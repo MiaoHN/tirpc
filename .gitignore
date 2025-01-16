@@ -1,0 +1,6 @@
+.vscode/
+.cache/
+build/
+__pycache__/
+
+*.log
