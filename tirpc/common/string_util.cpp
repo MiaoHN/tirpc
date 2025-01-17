@@ -23,7 +23,7 @@ void StringUtil::SplitStrToMap(const std::string &str, const std::string &split_
       if (j != std::basic_string<char>::npos && j != 0) {
         std::string key = i.substr(0, j);
         std::string value = i.substr(j + joiner.length(), i.length() - j - joiner.length());
-        DebugLog << "insert key = " << key << ", value=" << value;
+        DebugLog << "insert key=" << key << ", value=" << value;
         res[key.c_str()] = value;
       }
     }

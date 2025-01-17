@@ -21,7 +21,7 @@ static thread_local Reactor *t_reactor = nullptr;
 
 static thread_local int t_max_epoll_timeout = 10000;  // ms
 
-static thread_local CoroutineTaskQueue *t_coroutine_task_queue = nullptr;
+static CoroutineTaskQueue *t_coroutine_task_queue = nullptr;
 
 Reactor::Reactor() {
   if (t_reactor != nullptr) {
@@ -209,11 +209,10 @@ void Reactor::Loop() {
       }
     }
 
+    Mutex::Locker lock(mutex_);
     std::vector<std::function<void()>> tmp_tasks;
-    {
-      Mutex::Locker lock(mutex_);
-      tmp_tasks.swap(pending_tasks_);
-    }
+    tmp_tasks.swap(pending_tasks_);
+    lock.Unlock();
 
     for (auto &tmp_task : tmp_tasks) {
       if (tmp_task) {
@@ -297,8 +296,9 @@ void Reactor::Loop() {
     {
       Mutex::Locker lock(mutex_);
       tmp_add.swap(pending_add_fds_);
-      tmp_del.swap(pending_del_fds_);
       pending_add_fds_.clear();
+
+      tmp_del.swap(pending_del_fds_);
       pending_del_fds_.clear();
     }
 
@@ -321,7 +321,7 @@ void Reactor::Stop() {
   }
 }
 
-void Reactor::AddTask(std::function<void()> &&task, bool is_wakeup /*=true*/) {
+void Reactor::AddTask(std::function<void()> task, bool is_wakeup /*=true*/) {
   {
     Mutex::Locker lock(mutex_);
     pending_tasks_.push_back(task);
@@ -345,7 +345,7 @@ void Reactor::AddTask(std::vector<std::function<void()>> task, bool is_wakeup /*
   }
 }
 
-void Reactor::AddCoroutine(const Coroutine::ptr &cor, bool is_wakeup /*=true*/) {
+void Reactor::AddCoroutine(Coroutine::ptr cor, bool is_wakeup /*=true*/) {
   auto func = [cor]() { Coroutine::Resume(cor.get()); };
   AddTask(func, is_wakeup);
 }
@@ -358,7 +358,7 @@ auto Reactor::GetTimer() -> Timer * {
   return timer_;
 }
 
-auto Reactor::GetTid() const -> pid_t { return tid_; }
+// auto Reactor::GetTid() const -> pid_t { return tid_; }
 
 void Reactor::SetReactorType(ReactorType type) { type_ = type; }
 
@@ -373,6 +373,7 @@ auto CoroutineTaskQueue::GetCoroutineTaskQueue() -> CoroutineTaskQueue * {
 void CoroutineTaskQueue::Push(FdEvent *fd) {
   Mutex::Locker lock(mutex_);
   tasks_.push(fd);
+  lock.Unlock();
 }
 
 auto CoroutineTaskQueue::Pop() -> FdEvent * {
@@ -382,6 +383,7 @@ auto CoroutineTaskQueue::Pop() -> FdEvent * {
     re = tasks_.front();
     tasks_.pop();
   }
+  lock.Unlock();
 
   return re;
 }

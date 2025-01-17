@@ -1,5 +1,6 @@
 #include "tirpc/common/log.hpp"
 
+#include <execinfo.h>
 #include <fcntl.h>
 #include <semaphore.h>
 #include <sys/stat.h>
@@ -25,9 +26,44 @@ namespace tirpc {
 
 extern Logger::ptr g_rpc_logger;
 
+void BackTrace(std::vector<std::string> &bt, int size, int skip) {
+  void **array = static_cast<void **>(malloc(sizeof(void *) * size));
+  size_t s = ::backtrace(array, size);
+
+  char **strings = backtrace_symbols(array, s);
+  if (strings == nullptr) {
+    printf("backtrace_symbols return nullptr\n");
+    return;
+  }
+
+  for (size_t i = skip; i < s; ++i) {
+    bt.emplace_back(strings[i]);
+  }
+
+  free(strings);
+  free(array);
+}
+
+auto BacktraceToString(int size = 64, int skip = 2, const std::string &prefix = "") -> std::string {
+  std::vector<std::string> bt;
+  BackTrace(bt, size, skip);
+  std::stringstream ss;
+  for (auto &i : bt) {
+    ss << prefix << i << std::endl;
+  }
+  return ss.str();
+}
+
 void CoredumpHandler(int signal_no) {
   ErrorLog << "progress receive invalid signal, will exit";
   printf("progress receive invalid signal, will exit\n");
+
+  std::string bt = BacktraceToString();
+
+  ErrorLog << "coredump stack:\n" << bt;
+
+  printf("coredump stack:\n%s\n", bt.c_str());
+
   g_rpc_logger->Flush();
 
   pthread_join(g_rpc_logger->GetAsyncRpcLogger()->thread_, nullptr);
@@ -40,7 +76,17 @@ void CoredumpHandler(int signal_no) {
 class Coroutine;
 
 static thread_local pid_t t_thread_id = 0;
-static thread_local pid_t g_pid = 0;
+
+static pid_t g_pid = 0;
+
+auto GetTid() -> pid_t {
+  if (t_thread_id == 0) {
+    t_thread_id = syscall(SYS_gettid);
+  }
+  return t_thread_id;
+}
+
+auto OpenLog() -> bool { return g_rpc_logger != nullptr; }
 
 LogEvent::LogEvent(LogLevel level, const char *file_name, int line, const char *func_name, LogType type)
     : level_(level), file_name_(file_name), line_(line), func_name_(func_name), type_(type) {}
@@ -108,8 +154,6 @@ auto LogTypeToString(LogType logtype) -> std::string {
   }
 }
 
-auto OpenLog() -> bool { return g_rpc_logger != nullptr; }
-
 auto LogEvent::GetSS() -> std::stringstream & {
   // time_t now_time = timestamp_;
 
@@ -133,7 +177,7 @@ auto LogEvent::GetSS() -> std::stringstream & {
   pid_ = g_pid;
 
   if (t_thread_id == 0) {
-    t_thread_id = gettid();
+    t_thread_id = GetTid();
   }
   tid_ = t_thread_id;
 
@@ -184,12 +228,6 @@ auto Logger::GetLogger() -> Logger * { return g_rpc_logger.get(); }
 void Logger::Init(const char *file_name, const char *file_path, int max_size, int sync_interval) {
   if (!is_init_) {
     sync_interval_ = sync_interval;
-    for (int i = 0; i < 1000000; ++i) {
-      app_buffer_.emplace_back("");
-      rpc_buffer_.emplace_back("");
-    }
-    // app_buffer_.resize(1000000);
-    // buffer_.resize(1000000);
 
     rpc_logger_ = std::make_shared<AsyncLogger>(file_name, file_path, max_size, RPC_LOG);
     app_logger_ = std::make_shared<AsyncLogger>(file_name, file_path, max_size, APP_LOG);
@@ -214,17 +252,16 @@ void Logger::Start() {
 
 void Logger::LoopFunc() {
   std::vector<std::string> app_tmp;
-  {
-    Mutex::Locker lock1(app_mutex_);
-    app_tmp.swap(app_buffer_);
-  }
+  Mutex::Locker lock1(app_mutex_);
+  app_tmp.swap(app_buffer_);
+  lock1.Unlock();
 
-  std::vector<std::string> tmp = rpc_buffer_;
+  std::vector<std::string> rpc_tmp = rpc_buffer_;
   Mutex::Locker lock2(rpc_mutex_);
-  tmp.swap(rpc_buffer_);
+  rpc_tmp.swap(rpc_buffer_);
   lock2.Unlock();
 
-  rpc_logger_->Push(tmp);
+  rpc_logger_->Push(rpc_tmp);
   app_logger_->Push(app_tmp);
 }
 
@@ -237,6 +274,7 @@ void Logger::PushRpcLog(const std::string &msg) {
 void Logger::PushAppLog(const std::string &msg) {
   Mutex::Locker lock(app_mutex_);
   app_buffer_.push_back(msg);
+  lock.Unlock();
 }
 
 void Logger::Flush() {
@@ -270,17 +308,19 @@ auto AsyncLogger::Execute(void *arg) -> void * {
   assert(rt == 0);
 
   while (true) {
-    bool is_stop = false;
-    std::vector<std::string> tmp;
-    {
-      Mutex::Locker lock(ptr->mutex_);
-      while (ptr->tasks_.empty() && !ptr->stop_) {
-        pthread_cond_wait(&(ptr->condition_), ptr->mutex_.GetMutex());
-      }
-      tmp.swap(ptr->tasks_.front());
-      ptr->tasks_.pop();
-      is_stop = ptr->stop_;
+    Mutex::Locker lock(ptr->mutex_);
+    while (ptr->tasks_.empty() && !ptr->stop_) {
+      pthread_cond_wait(&(ptr->condition_), ptr->mutex_.GetMutex());
     }
+    bool is_stop = ptr->stop_;
+    if (is_stop && ptr->tasks_.empty()) {
+      lock.Unlock();
+      break;
+    }
+    std::vector<std::string> tmp;
+    tmp.swap(ptr->tasks_.front());
+    ptr->tasks_.pop();
+    lock.Unlock();
 
     timeval now;
     gettimeofday(&now, nullptr);
@@ -341,7 +381,18 @@ auto AsyncLogger::Execute(void *arg) -> void * {
 
     for (const auto &i : tmp) {
       if (!i.empty()) {
+        // Write to file
         fwrite(i.c_str(), 1, i.length(), ptr->file_handler_);
+
+        // Write to console
+        if (g_rpc_config->log_to_console_) {
+          // [APP] / [RPC]
+          if (ptr->type_ == APP_LOG) {
+            printf("[APP] %s", i.c_str());
+          } else {
+            printf("[RPC] %s", i.c_str());
+          }
+        }
       }
     }
     tmp.clear();
@@ -350,8 +401,9 @@ auto AsyncLogger::Execute(void *arg) -> void * {
       break;
     }
   }
-  if (ptr->file_handler_ == nullptr) {
+  if (ptr->file_handler_ != nullptr) {
     fclose(ptr->file_handler_);
+    ptr->file_handler_ = nullptr;
   }
 
   return nullptr;
@@ -361,7 +413,7 @@ void AsyncLogger::Push(std::vector<std::string> &buffer) {
   if (!buffer.empty()) {
     Mutex::Locker lock(mutex_);
     tasks_.push(buffer);
-    // lock.Unlock();
+    lock.Unlock();
     pthread_cond_signal(&condition_);
   }
 }

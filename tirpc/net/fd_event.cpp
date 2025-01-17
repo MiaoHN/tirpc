@@ -33,7 +33,7 @@ void FdEvent::HandleEvent(int flag) {
   ErrorLog << "unknow event";
 }
 
-void FdEvent::SetCallBack(IOEvent flag, std::function<void()> &&cb) {
+void FdEvent::SetCallBack(IOEvent flag, const std::function<void()> &cb) {
   if (flag == READ) {
     read_callback_ = cb;
   } else if (flag == WRITE) {

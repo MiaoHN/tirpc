@@ -30,15 +30,15 @@ class Coroutine {
  public:
   Coroutine(int size, char *stack_ptr);
 
-  Coroutine(int size, char *stack_ptr, std::function<void()> cb);
+  Coroutine(int size, char *stack_ptr, const std::function<void()> &cb);
 
   ~Coroutine();
 
-  auto SetCallBack(std::function<void()> cb) -> bool;
+  auto SetCallBack(const std::function<void()> &cb) -> bool;
 
   auto GetCorId() const -> int { return cor_id_; }
 
-  void SetIsInCoFunc(const bool v) { is_in_cofunc_ = v; }
+  void SetIsInCoFunc(bool v) { is_in_cofunc_ = v; }
 
   auto GetIsInCoFunc() const -> bool { return is_in_cofunc_; }
 
@@ -89,7 +89,7 @@ class Coroutine {
   int index_{-1};  // index in coroutine pool
 
  public:
-  std::function<void()> callback_;
+  std::function<void()> callback_{nullptr};
 };
 
 }  // namespace tirpc

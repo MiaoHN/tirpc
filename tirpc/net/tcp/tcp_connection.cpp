@@ -20,7 +20,7 @@ namespace tirpc {
 
 TcpConnection::TcpConnection(tirpc::TcpServer *tcp_svr, tirpc::IOThread *io_thread, int fd, int buff_size,
                              NetAddress::ptr peer_addr)
-    : io_thread_(io_thread), fd_(fd), peer_addr_(std::move(peer_addr)) {
+    : io_thread_(io_thread), fd_(fd), state_(Connected), connection_type_(ServerConnection), peer_addr_(std::move(peer_addr)) {
   reactor_ = io_thread_->GetReactor();
 
   // DebugLog << "state_=[" << state_ << "], =" << fd;
@@ -31,7 +31,7 @@ TcpConnection::TcpConnection(tirpc::TcpServer *tcp_svr, tirpc::IOThread *io_thre
   fd_event_->SetReactor(reactor_);
   InitBuffer(buff_size);
   loop_cor_ = GetCoroutinePool()->GetCoroutineInstanse();
-  state_ = Connected;
+  // state_ = Connected;
   DebugLog << "succ create tcp connection[" << state_ << "], fd=" << fd;
 }
 
@@ -58,7 +58,7 @@ void TcpConnection::InitServer() {
 void TcpConnection::SetUpServer() { reactor_->AddCoroutine(loop_cor_); }
 
 void TcpConnection::RegisterToTimeWheel() {
-  auto cb = [](const TcpConnection::ptr &conn) { conn->ShutdownConnection(); };
+  auto cb = [](TcpConnection::ptr conn) { conn->ShutdownConnection(); };
   TcpTimeWheel::TcpConnectionSlot::ptr tmp = std::make_shared<AbstractSlot<TcpConnection>>(shared_from_this(), cb);
   weak_slot_ = tmp;
   tcp_svr_->FreshTcpConnection(tmp);

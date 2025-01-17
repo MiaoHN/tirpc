@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <utility>
 
 namespace tirpc {
 
@@ -52,7 +53,7 @@ class Timer : public FdEvent {
 
   void AddTimerEvent(TimerEvent::ptr event, bool need_reset = true);
 
-  void DelTimerEvent(TimerEvent::ptr &event);
+  void DelTimerEvent(TimerEvent::ptr event);
 
   void ResetArriveTime();
 

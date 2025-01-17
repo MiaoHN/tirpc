@@ -29,61 +29,51 @@ Config::Config(const char *file_path) : file_path_(std::string(file_path)) {
   }
 }
 
+/**
+ * @brief Helper function to read the text content of an XML element
+ *
+ * @param node
+ * @param element_name
+ * @return std::string
+ */
+static auto GetElementText(tinyxml2::XMLElement *node, const std::string &element_name) -> std::string {
+  auto nnode = node->FirstChildElement(element_name.c_str());
+  if (nnode == nullptr || nnode->GetText() == nullptr) {
+    std::cerr << "start tirpc server error! Cannot read [" << element_name << "] xml node" << std::endl;
+    exit(0);
+  }
+  return nnode->GetText();
+}
+
+template <typename T>
+static auto GetElementType(tinyxml2::XMLElement *node, const std::string &element_name) -> T {
+  throw std::runtime_error("unsupported type");
+}
+
+template <>
+auto GetElementType<int>(tinyxml2::XMLElement *node, const std::string &element_name) -> int {
+  return std::atoi(GetElementText(node, element_name).c_str());
+}
+
+template <>
+auto GetElementType<std::string>(tinyxml2::XMLElement *node, const std::string &element_name) -> std::string {
+  return GetElementText(node, element_name);
+}
+
 void Config::ReadLogConfig(tinyxml2::XMLElement *log_node) {
-  tinyxml2::XMLElement *node = log_node->FirstChildElement("log_path");
-  if ((node == nullptr) || (node->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [log_path] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
-  log_path_ = std::string(node->GetText());
+  log_path_ = GetElementType<std::string>(log_node, "log_path");
+  log_prefix_ = GetElementType<std::string>(log_node, "log_prefix");
 
-  node = log_node->FirstChildElement("log_prefix");
-  if ((node == nullptr) || (node->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [log_prefix] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
-  log_prefix_ = std::string(node->GetText());
-
-  node = log_node->FirstChildElement("log_max_file_size");
-  if ((node == nullptr) || (node->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [log_max_file_size] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
-
-  int log_max_size = std::atoi(node->GetText());
+  int log_max_size = GetElementType<int>(log_node, "log_max_file_size");
   log_max_size_ = log_max_size * 1024 * 1024;
 
-  node = log_node->FirstChildElement("rpc_log_level");
-  if ((node == nullptr) || (node->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [rpc_log_level] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
+  level_ = StringToLevel(GetElementType<std::string>(log_node, "rpc_log_level"));
 
-  std::string log_level = std::string(node->GetText());
-  level_ = StringToLevel(log_level);
+  app_log_level_ = StringToLevel(GetElementType<std::string>(log_node, "app_log_level"));
 
-  node = log_node->FirstChildElement("app_log_level");
-  if ((node == nullptr) || (node->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [app_log_level] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
+  log_sync_interval_ = GetElementType<int>(log_node, "log_sync_interval");
 
-  log_level = std::string(node->GetText());
-  app_log_level_ = StringToLevel(log_level);
-
-  node = log_node->FirstChildElement("log_sync_interval");
-  if ((node == nullptr) || (node->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [log_sync_interval] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
-
-  log_sync_interval_ = std::atoi(node->GetText());
+  log_to_console_ = static_cast<bool>(GetElementType<int>(log_node, "log_to_console"));
 
   g_rpc_logger = std::make_shared<Logger>();
   g_rpc_logger->Init(log_prefix_.c_str(), log_path_.c_str(), log_max_size_, log_sync_interval_);
@@ -174,68 +164,20 @@ void Config::ReadConf() {
     exit(0);
   }
 
-  if ((coroutine_node->FirstChildElement("coroutine_stack_size") == nullptr) ||
-      (coroutine_node->FirstChildElement("coroutine_stack_size")->GetText() == nullptr)) {
-    printf(
-        "start tirpc server error! read config file [%s] error, cannot read [coroutine.coroutine_stack_size] xml "
-        "node\n",
-        file_path_.c_str());
-    exit(0);
-  }
-
-  if ((coroutine_node->FirstChildElement("coroutine_pool_size") == nullptr) ||
-      (coroutine_node->FirstChildElement("coroutine_pool_size")->GetText() == nullptr)) {
-    printf(
-        "start tirpc server error! read config file [%s] error, cannot read [coroutine.coroutine_pool_size] xml node\n",
-        file_path_.c_str());
-    exit(0);
-  }
-
-  int cor_stack_size = std::atoi(coroutine_node->FirstChildElement("coroutine_stack_size")->GetText());
+  int cor_stack_size = GetElementType<int>(coroutine_node, "coroutine_stack_size");
   cor_stack_size_ = 1024 * cor_stack_size;
-  cor_pool_size_ = std::atoi(coroutine_node->FirstChildElement("coroutine_pool_size")->GetText());
 
-  if ((root->FirstChildElement("msg_req_len") == nullptr) ||
-      (root->FirstChildElement("msg_req_len")->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [msg_req_len] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
+  cor_pool_size_ = GetElementType<int>(coroutine_node, "coroutine_pool_size");
 
-  msg_req_len_ = std::atoi(root->FirstChildElement("msg_req_len")->GetText());
+  msg_req_len_ = GetElementType<int>(root, "msg_req_len");
 
-  if ((root->FirstChildElement("max_connect_timeout") == nullptr) ||
-      (root->FirstChildElement("max_connect_timeout")->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [max_connect_timeout] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
-  int max_connect_timeout = std::atoi(root->FirstChildElement("max_connect_timeout")->GetText());
+  int max_connect_timeout = GetElementType<int>(root, "max_connect_timeout");
   max_connect_timeout_ = max_connect_timeout * 1000;
 
-  if ((root->FirstChildElement("iothread_num") == nullptr) ||
-      (root->FirstChildElement("iothread_num")->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [iothread_num] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
+  iothread_num_ = GetElementType<int>(root, "iothread_num");
 
-  iothread_num_ = std::atoi(root->FirstChildElement("iothread_num")->GetText());
-
-  if ((time_wheel_node->FirstChildElement("bucket_num") == nullptr) ||
-      (time_wheel_node->FirstChildElement("bucket_num")->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [time_wheel.bucket_num] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
-  if ((time_wheel_node->FirstChildElement("interval") == nullptr) ||
-      (time_wheel_node->FirstChildElement("interval")->GetText() == nullptr)) {
-    printf("start tirpc server error! read config file [%s] error, cannot read [time_wheel.interval] xml node\n",
-           file_path_.c_str());
-    exit(0);
-  }
-  timewheel_bucket_num_ = std::atoi(time_wheel_node->FirstChildElement("bucket_num")->GetText());
-  timewheel_interval_ = std::atoi(time_wheel_node->FirstChildElement("interval")->GetText());
+  timewheel_bucket_num_ = GetElementType<int>(time_wheel_node, "bucket_num");
+  timewheel_interval_ = GetElementType<int>(time_wheel_node, "interval");
 
   tinyxml2::XMLElement *net_node = root->FirstChildElement("server");
   if (net_node == nullptr) {
@@ -244,24 +186,20 @@ void Config::ReadConf() {
     exit(0);
   }
 
-  if ((net_node->FirstChildElement("ip") == nullptr) || (net_node->FirstChildElement("port") == nullptr) ||
-      (net_node->FirstChildElement("protocal") == nullptr)) {
-    printf(
-        "start tirpc server error! read config file [%s] error, cannot read [server.ip] or [server.port] or "
-        "[server.protocal] xml node\n",
-        file_path_.c_str());
-    exit(0);
-  }
-  std::string ip = std::string(net_node->FirstChildElement("ip")->GetText());
+  std::string ip = GetElementType<std::string>(net_node, "ip");
+
   if (ip.empty()) {
     ip = "0.0.0.0";
   }
-  int port = std::atoi(net_node->FirstChildElement("port")->GetText());
+
+  int port = GetElementType<int>(net_node, "port");
+
   if (port == 0) {
     printf("start tirpc server error! read config file [%s] error, read [server.port] = 0\n", file_path_.c_str());
     exit(0);
   }
-  std::string protocal = std::string(net_node->FirstChildElement("protocal")->GetText());
+  std::string protocal = GetElementType<std::string>(net_node, "protocal");
+
   std::transform(protocal.begin(), protocal.end(), protocal.begin(), toupper);
 
   tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>(ip, port);

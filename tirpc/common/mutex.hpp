@@ -39,16 +39,13 @@ struct ScopedLockImpl {
 template <class T>
 struct ReadScopedLockImpl {
  public:
-  explicit ReadScopedLockImpl(T &mutex) : mutex_(mutex) {
-    mutex_.RDLock();
-    locked_ = true;
-  }
+  explicit ReadScopedLockImpl(T &mutex) : mutex_(mutex) { Lock(); }
 
   ~ReadScopedLockImpl() { Unlock(); }
 
   void Lock() {
     if (!locked_) {
-      mutex_.rdlock();
+      mutex_.RDLock();
       locked_ = true;
     }
   }
@@ -103,17 +100,28 @@ class Mutex {
 
   Mutex() { pthread_mutex_init(&mutex_, nullptr); }
 
-  ~Mutex() { pthread_mutex_destroy(&mutex_); }
+  ~Mutex() { Unlock(); }
 
-  void Lock() { pthread_mutex_lock(&mutex_); }
+  void Lock() {
+    if (!locked_) {
+      pthread_mutex_lock(&mutex_);
+      locked_ = true;
+    }
+  }
 
-  void Unlock() { pthread_mutex_unlock(&mutex_); }
+  void Unlock() {
+    if (locked_) {
+      pthread_mutex_unlock(&mutex_);
+      locked_ = false;
+    }
+  }
 
   auto GetMutex() -> pthread_mutex_t * { return &mutex_; }
 
  private:
   /// mutex
   pthread_mutex_t mutex_;
+  bool locked_{false};
 };
 
 class RWMutex {

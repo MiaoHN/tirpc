@@ -42,19 +42,18 @@ Timer::~Timer() {
 }
 
 void Timer::AddTimerEvent(TimerEvent::ptr event, bool need_reset) {
+  RWMutex::WriteLocker lock(mutex_);
   bool is_reset = false;
-  {
-    RWMutex::WriteLocker lock(mutex_);
-    if (pending_events_.empty()) {
+  if (pending_events_.empty()) {
+    is_reset = true;
+  } else {
+    auto it = pending_events_.begin();
+    if (event->arrive_time_ < it->second->arrive_time_) {
       is_reset = true;
-    } else {
-      auto it = pending_events_.begin();
-      if (event->arrive_time_ < it->second->arrive_time_) {
-        is_reset = true;
-      }
     }
-    pending_events_.emplace(event->arrive_time_, event);
   }
+  pending_events_.emplace(event->arrive_time_, event);
+  lock.Unlock();
 
   if (is_reset && need_reset) {
     DebugLog << "need reset timer";
@@ -62,14 +61,14 @@ void Timer::AddTimerEvent(TimerEvent::ptr event, bool need_reset) {
   }
 }
 
-void Timer::DelTimerEvent(TimerEvent::ptr &event) {
+void Timer::DelTimerEvent(TimerEvent::ptr event) {
   event->is_canceled_ = true;
 
   RWMutex::WriteLocker lock(mutex_);
   auto begin = pending_events_.lower_bound(event->arrive_time_);
   auto end = pending_events_.upper_bound(event->arrive_time_);
   auto it = begin;
-  for (; it != end; ++it) {
+  for (; it != end; it++) {
     if (it->second == event) {
       DebugLog << "find timer event, now delete it. src arrive time=" << event->arrive_time_;
       break;
@@ -78,16 +77,14 @@ void Timer::DelTimerEvent(TimerEvent::ptr &event) {
   if (it != pending_events_.end()) {
     pending_events_.erase(it);
   }
-
+  lock.Unlock();
   DebugLog << "del timer event succ, origin arrive time=" << event->arrive_time_;
 }
 
 void Timer::ResetArriveTime() {
-  std::multimap<int64_t, TimerEvent::ptr> tmp;
-  {
-    RWMutex::ReadLocker lock(mutex_);
-    tmp = pending_events_;
-  }
+  RWMutex::ReadLocker lock(mutex_);
+  std::multimap<int64_t, TimerEvent::ptr> tmp = pending_events_;
+  lock.Unlock();
 
   if (tmp.empty()) {
     DebugLog << "no timer event, return";
@@ -128,22 +125,21 @@ void Timer::OnTimer() {
   }
 
   int64_t now = GetNowMs();
+  RWMutex::WriteLocker lock(mutex_);
+  auto it = pending_events_.begin();
   std::vector<TimerEvent::ptr> tmps;
   std::vector<std::pair<int64_t, std::function<void()>>> tasks;
-  {
-    RWMutex::WriteLocker lock(mutex_);
-    auto it = pending_events_.begin();
-    for (; it != pending_events_.end(); ++it) {
-      if (it->first <= now && !(it->second->is_canceled_)) {
-        tmps.push_back(it->second);
-        tasks.emplace_back(it->second->arrive_time_, it->second->task_);
-      } else {
-        break;
-      }
+  for (; it != pending_events_.end(); ++it) {
+    if (it->first <= now && !(it->second->is_canceled_)) {
+      tmps.push_back(it->second);
+      tasks.emplace_back(it->second->arrive_time_, it->second->task_);
+    } else {
+      break;
     }
-
-    pending_events_.erase(pending_events_.begin(), it);
   }
+
+  pending_events_.erase(pending_events_.begin(), it);
+  lock.Unlock();
 
   for (auto &tmp : tmps) {
     if (tmp->is_repeated_) {
@@ -154,7 +150,7 @@ void Timer::OnTimer() {
 
   ResetArriveTime();
 
-  for (const auto &i : tasks) {
+  for (auto &i : tasks) {
     i.second();
   }
 }

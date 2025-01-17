@@ -67,7 +67,7 @@ class IOThreadPool {
 
   void AddTaskByIndex(int index, std::function<void()> cb);
 
-  void AddCoroutineToRandomThread(Coroutine::ptr &cor, bool self = false);
+  void AddCoroutineToRandomThread(Coroutine::ptr cor, bool self = false);
 
   // add a coroutine to random thread in io thread pool
   // self = false, means random thread cann't be current thread

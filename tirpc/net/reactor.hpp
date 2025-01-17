@@ -34,11 +34,11 @@ class Reactor {
 
   void DelEvent(int fd, bool is_wakeup = true);
 
-  void AddTask(std::function<void()> &&task, bool is_wakeup = true);
+  void AddTask(std::function<void()> task, bool is_wakeup = true);
 
   void AddTask(std::vector<std::function<void()>> tasks, bool is_wakeup = true);
 
-  void AddCoroutine(const Coroutine::ptr &cor, bool is_wakeup = true);
+  void AddCoroutine(Coroutine::ptr cor, bool is_wakeup = true);
 
   void Wakeup();
 
@@ -48,7 +48,7 @@ class Reactor {
 
   auto GetTimer() -> Timer *;
 
-  auto GetTid() const -> pid_t;
+  // auto GetTid() const -> pid_t;
 
   void SetReactorType(ReactorType type);
 

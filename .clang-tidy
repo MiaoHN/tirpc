@@ -27,6 +27,7 @@ Checks:     '
             portability-*,
             readability-*,
             -performance-no-int-to-ptr,
+            -performance-unnecessary-value-param,
             -bugprone-easily-swappable-parameters,
             -bugprone-implicit-widening-of-multiplication-result,
             -bugprone-narrowing-conversions,

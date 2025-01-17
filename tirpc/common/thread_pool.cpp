@@ -15,6 +15,8 @@ auto ThreadPool::MainFunction(void *ptr) -> void * {
         pthread_cond_wait(&(pool->condition_), pool->mutex_.GetMutex());
       }
       cb = pool->tasks_.front();
+      lock.Unlock();
+
       pool->tasks_.pop();
     }
 
@@ -40,10 +42,9 @@ void ThreadPool::Start() {
 void ThreadPool::Stop() { stop_ = true; }
 
 void ThreadPool::AddTask(const std::function<void()> &cb) {
-  {
-    Mutex::Locker lock(mutex_);
-    tasks_.push(cb);
-  }
+  Mutex::Locker lock(mutex_);
+  tasks_.push(cb);
+  lock.Unlock();
   pthread_cond_signal(&condition_);
 }
 

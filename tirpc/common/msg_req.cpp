@@ -20,7 +20,7 @@ static thread_local std::string t_max_msg_req_nu;
 
 static int g_random_fd = -1;
 
-std::string MsgReqUtil::GenMsgNumber() {
+auto MsgReqUtil::GenMsgNumber() -> std::string {
   int t_msg_req_len = 20;
   if (g_rpc_config) {
     t_msg_req_len = g_rpc_config->msg_req_len_;

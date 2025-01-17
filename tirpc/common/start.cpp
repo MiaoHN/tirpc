@@ -40,7 +40,10 @@ void InitConfig(const char *file) {
 //   g_rpc_server->registerService(service);
 // }
 
-auto GetServer() -> TcpServer::ptr { return g_rpc_server; }
+auto GetServer() -> TcpServer::ptr {
+  assert(g_rpc_server != nullptr);
+  return g_rpc_server;
+}
 
 void StartRpcServer() {
   g_rpc_logger->Start();

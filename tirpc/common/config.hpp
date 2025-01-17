@@ -36,6 +36,7 @@ class Config {
   LogLevel level_{LogLevel::DEBUG};
   LogLevel app_log_level_{LogLevel::DEBUG};
   int log_sync_interval_{500};
+  bool log_to_console_{true};
 
   // coroutine params
   int cor_stack_size_{0};

@@ -34,7 +34,7 @@ static bool g_hook = true;
 
 void SetHook(bool value) { g_hook = value; }
 
-void toEpoll(const tirpc::FdEvent::ptr &fd_event, int events) {
+void toEpoll(tirpc::FdEvent::ptr fd_event, int events) {
   tirpc::Coroutine *cur_cor = tirpc::Coroutine::GetCurrentCoroutine();
   if ((events & tirpc::IOEvent::READ) != 0U) {
     DebugLog << "fd:[" << fd_event->GetFd() << "], register read event to epoll";

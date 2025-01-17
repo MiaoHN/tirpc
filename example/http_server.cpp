@@ -4,6 +4,7 @@
 
 #include "tinypb_server.pb.h"
 
+#include "tirpc/common/log.hpp"
 #include "tirpc/common/start.hpp"
 #include "tirpc/net/address.hpp"
 #include "tirpc/net/http/http_define.hpp"
@@ -164,14 +165,16 @@ class QPSHttpServlet : public tirpc::HttpServlet {
 };
 
 auto main(int argc, char *argv[]) -> int {
-  if (argc != 2) {
-    printf("Start tirPC server error, input argc is not 2!");
-    printf("Start tirPC server like this: \n");
-    printf("./server a.xml\n");
-    return 0;
+  // default config file
+  std::string config_file = "./config.xml";
+
+  if (argc == 2) {
+    config_file = argv[1];
   }
 
-  tirpc::InitConfig(argv[1]);
+  tirpc::InitConfig(config_file.c_str());
+
+  AppInfoLog("use config file %s", config_file.c_str());
 
   REGISTER_HTTP_SERVLET("/qps", QPSHttpServlet);
 

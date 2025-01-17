@@ -57,7 +57,7 @@ auto IOThread::GetReactor() -> Reactor * { return reactor_; }
 
 auto IOThread::GetPthreadId() -> pthread_t { return thread_; }
 
-void IOThread::SetThreadIndex(const int index) { index_ = index; }
+void IOThread::SetThreadIndex(int index) { index_ = index; }
 
 auto IOThread::GetThreadIndex() -> int { return index_; }
 
@@ -71,7 +71,7 @@ auto IOThread::Main(void *arg) -> void * {
   t_cur_io_thread = thread;
   thread->reactor_ = t_reactor_ptr;
   thread->reactor_->SetReactorType(SubReactor);
-  thread->tid_ = gettid();
+  thread->tid_ = GetTid();
 
   Coroutine::GetCurrentCoroutine();
 
@@ -120,17 +120,17 @@ auto IOThreadPool::GetIoThreadPoolSize() -> int { return size_; }
 
 void IOThreadPool::BroadcastTask(std::function<void()> cb) {
   for (const auto &i : io_threads_) {
-    i->GetReactor()->AddTask(std::move(cb), true);
+    i->GetReactor()->AddTask(cb, true);
   }
 }
 
 void IOThreadPool::AddTaskByIndex(int index, std::function<void()> cb) {
   if (index >= 0 && index < size_) {
-    io_threads_[index]->GetReactor()->AddTask(std::move(cb), true);
+    io_threads_[index]->GetReactor()->AddTask(cb, true);
   }
 }
 
-void IOThreadPool::AddCoroutineToRandomThread(Coroutine::ptr &cor, bool self /* = false*/) {
+void IOThreadPool::AddCoroutineToRandomThread(Coroutine::ptr cor, bool self /* = false*/) {
   if (size_ == 1) {
     io_threads_[0]->GetReactor()->AddCoroutine(cor, true);
     return;
@@ -158,7 +158,7 @@ void IOThreadPool::AddCoroutineToRandomThread(Coroutine::ptr &cor, bool self /* 
 
 auto IOThreadPool::AddCoroutineToRandomThread(std::function<void()> cb, bool self /* = false*/) -> Coroutine::ptr {
   Coroutine::ptr cor = GetCoroutinePool()->GetCoroutineInstanse();
-  cor->SetCallBack(std::move(cb));
+  cor->SetCallBack(cb);
   AddCoroutineToRandomThread(cor, self);
   return cor;
 }
@@ -170,7 +170,7 @@ auto IOThreadPool::AddCoroutineToThreadByIndex(int index, std::function<void()> 
     return nullptr;
   }
   Coroutine::ptr cor = GetCoroutinePool()->GetCoroutineInstanse();
-  cor->SetCallBack(std::move(cb));
+  cor->SetCallBack(cb);
   io_threads_[index]->GetReactor()->AddCoroutine(cor, true);
   return cor;
 }
@@ -178,7 +178,7 @@ auto IOThreadPool::AddCoroutineToThreadByIndex(int index, std::function<void()> 
 void IOThreadPool::AddCoroutineToEachThread(std::function<void()> cb) {
   for (const auto &i : io_threads_) {
     Coroutine::ptr cor = GetCoroutinePool()->GetCoroutineInstanse();
-    cor->SetCallBack(std::move(cb));
+    cor->SetCallBack(cb);
     i->GetReactor()->AddCoroutine(cor, true);
   }
 }

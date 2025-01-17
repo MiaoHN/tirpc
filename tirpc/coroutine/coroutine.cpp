@@ -57,19 +57,20 @@ Coroutine::Coroutine(int size, char *stack_ptr) : stack_size_(size), stack_sp_(s
   t_coroutine_count++;
 }
 
-Coroutine::Coroutine(int size, char *stack_ptr, std::function<void()> cb) : stack_size_(size), stack_sp_(stack_ptr) {
+Coroutine::Coroutine(int size, char *stack_ptr, const std::function<void()> &cb)
+    : stack_size_(size), stack_sp_(stack_ptr) {
   assert(stack_ptr != nullptr);
 
   if (t_main_coroutine == nullptr) {
     t_main_coroutine = new Coroutine();
   }
 
-  SetCallBack(std::move(cb));
+  SetCallBack(cb);
   cor_id_ = t_current_coroutine_id++;
   t_coroutine_count++;
 }
 
-auto Coroutine::SetCallBack(std::function<void()> cb) -> bool {
+auto Coroutine::SetCallBack(const std::function<void()> &cb) -> bool {
   if (this == t_main_coroutine) {
     ErrorLog << "main coroutine cannot set callback";
     return false;
@@ -80,7 +81,7 @@ auto Coroutine::SetCallBack(std::function<void()> cb) -> bool {
     return false;
   }
 
-  callback_ = std::move(cb);
+  callback_ = cb;
 
   char *top = stack_sp_ + stack_size_;
 
