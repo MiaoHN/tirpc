@@ -33,7 +33,7 @@ auto TcpBuffer::WriteIndex() const -> int { return write_index_; }
 void TcpBuffer::ResizeBuffer(int size) {
   std::vector<char> tmp(size);
   int c = std::min(size, Readable());
-  memcpy(&tmp[0], &buffer_[read_index_], c);
+  memcpy(tmp.data(), &buffer_[read_index_], c);
 
   buffer_.swap(tmp);
   read_index_ = 0;
@@ -58,7 +58,7 @@ void TcpBuffer::ReadFromBuffer(std::vector<char> &re, int size) {
   std::vector<char> tmp(read_size);
 
   // std::copy(read_index_, read_index_ + read_size, tmp);
-  memcpy(&tmp[0], &buffer_[read_index_], read_size);
+  memcpy(tmp.data(), &buffer_[read_index_], read_size);
   re.swap(tmp);
   read_index_ += read_size;
   AdjustBuffer();
@@ -70,7 +70,7 @@ void TcpBuffer::AdjustBuffer() {
 
     int count = Readable();
     // std::copy(&buffer_[read_index_], Readable(), &new_buffer);
-    memcpy(&new_buffer[0], &buffer_[read_index_], count);
+    memcpy(new_buffer.data(), &buffer_[read_index_], count);
 
     buffer_.swap(new_buffer);
     write_index_ = count;

@@ -21,7 +21,7 @@ namespace tirpc {
 
 extern tirpc::Config::ptr g_rpc_config;
 
-TcpAcceptor::TcpAcceptor(NetAddress::ptr net_addr) : local_addr_(net_addr) { family_ = local_addr_->GetFamily(); }
+TcpAcceptor::TcpAcceptor(NetAddress::ptr net_addr) : local_addr_(std::move(net_addr)) { family_ = local_addr_->GetFamily(); }
 
 void TcpAcceptor::Init() {
   fd_ = socket(local_addr_->GetFamily(), SOCK_STREAM, 0);

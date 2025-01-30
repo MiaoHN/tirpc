@@ -12,7 +12,7 @@
 
 namespace tirpc {
 
-CoroutineMutex::CoroutineMutex() {}
+CoroutineMutex::CoroutineMutex() = default;
 
 CoroutineMutex::~CoroutineMutex() {
   if (lock_) {

@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
+#include <utility>
 
 #include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
@@ -17,7 +18,7 @@
 namespace tirpc {
 
 TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, int buff_size, NetAddress::ptr peer_addr)
-    : io_thread_(io_thread), fd_(fd), state_(Connected), connection_type_(ServerConnection), peer_addr_(peer_addr) {
+    : io_thread_(io_thread), fd_(fd), peer_addr_(std::move(peer_addr)) {
   reactor_ = io_thread_->GetReactor();
 
   // DebugLog << "state_=[" << state_ << "], =" << fd;
@@ -33,7 +34,7 @@ TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, in
 }
 
 TcpConnection::TcpConnection(TcpClient *tcp_cli, Reactor *reactor, int fd, int buff_size, NetAddress::ptr peer_addr)
-    : fd_(fd), state_(NotConnected), connection_type_(ClientConnection), peer_addr_(peer_addr) {
+    : fd_(fd), state_(NotConnected), connection_type_(ClientConnection), peer_addr_(std::move(peer_addr)) {
   reactor_ = reactor;
 
   tcp_cli_ = tcp_cli;

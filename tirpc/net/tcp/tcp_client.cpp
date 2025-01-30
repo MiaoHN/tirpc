@@ -3,6 +3,8 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#include <utility>
+
 #include "tirpc/common/error_code.hpp"
 #include "tirpc/common/log.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
@@ -16,7 +18,7 @@
 
 namespace tirpc {
 
-TcpClient::TcpClient(NetAddress::ptr addr, ProtocalType type /*= TinyPb_Protocal*/) : peer_addr_(addr) {
+TcpClient::TcpClient(NetAddress::ptr addr, ProtocalType type /*= TinyPb_Protocal*/) : peer_addr_(std::move(addr)) {
   family_ = peer_addr_->GetFamily();
   fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (fd_ == -1) {
