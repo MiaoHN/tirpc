@@ -47,6 +47,7 @@ Checks:     '
             -readability-inconsistent-declaration-parameter-name,
             -readability-convert-member-functions-to-static,
             -readability-identifier-length,
+            -readability-implicit-bool-conversion,
             # -readability-identifier-naming,
             -readability-function-cognitive-complexity,
             -readability-magic-numbers,

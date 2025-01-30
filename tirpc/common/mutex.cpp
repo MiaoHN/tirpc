@@ -12,7 +12,7 @@
 
 namespace tirpc {
 
-CoroutineMutex::CoroutineMutex() = default;
+CoroutineMutex::CoroutineMutex() {}
 
 CoroutineMutex::~CoroutineMutex() {
   if (lock_) {
@@ -28,15 +28,15 @@ void CoroutineMutex::Lock() {
 
   Coroutine *cor = Coroutine::GetCurrentCoroutine();
 
-  mutex_.Lock();
+  Mutex::Locker lock(mutex_);
   if (!lock_) {
     lock_ = true;
-    mutex_.Unlock();
     DebugLog << "coroutine succ get coroutine mutex";
+    lock.Unlock();
   } else {
     sleep_cors_.push(cor);
     auto tmp = sleep_cors_;
-    mutex_.Unlock();
+    lock.Unlock();
 
     DebugLog << "coroutine yield, pending coroutine mutex, current sleep queue exist [" << tmp.size() << "] coroutines";
 

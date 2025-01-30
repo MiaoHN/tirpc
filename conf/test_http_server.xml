@@ -10,14 +10,14 @@
     <log_max_file_size>5</log_max_file_size>
 
     <!--log level: DEBUG < INFO < WARN < ERROR < NONE(don't print log)-->
-    <rpc_log_level>DEBUG</rpc_log_level>
-    <app_log_level>DEBUG</app_log_level>
+    <rpc_log_level>NONE</rpc_log_level>
+    <app_log_level>NONE</app_log_level>
 
     <!--inteval that put log info to async logger, ms-->
     <log_sync_interval>200</log_sync_interval>
 
     <!--console enable: 1-enable, 0-disable-->
-    <log_to_console>1</log_to_console>
+    <log_to_console>0</log_to_console>
   </log>
 
   <coroutine>
@@ -35,7 +35,7 @@
   <max_connect_timeout>75</max_connect_timeout>
 
   <!--count of io threads, at least 1-->
-  <iothread_num>1</iothread_num>
+  <iothread_num>5</iothread_num>
 
   <time_wheel>
     <bucket_num>3</bucket_num>

@@ -6,7 +6,7 @@ namespace tirpc {
 
 class MsgReqUtil {
  public:
-  static std::string GenMsgNumber();
+  static auto GenMsgNumber() -> std::string;
 };
 
 }  // namespace tirpc

@@ -149,7 +149,7 @@ auto TinyPbRpcDispacther::ParseServiceFullName(const std::string &full_name, std
   return true;
 }
 
-void TinyPbRpcDispacther::RegisterService(const service_ptr &service) {
+void TinyPbRpcDispacther::RegisterService(service_ptr service) {
   std::string service_name = service->GetDescriptor()->full_name();
   service_map_[service_name] = service;
   InfoLog << "succ register service[" << service_name << "]!";

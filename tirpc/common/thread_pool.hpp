@@ -19,7 +19,7 @@ class ThreadPool {
 
   void Stop();
 
-  void AddTask(const std::function<void()> &task);
+  void AddTask(std::function<void()> task);
 
  private:
   static auto MainFunction(void *ptr) -> void *;

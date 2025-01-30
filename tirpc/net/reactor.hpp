@@ -48,7 +48,7 @@ class Reactor {
 
   auto GetTimer() -> Timer *;
 
-  // auto GetTid() const -> pid_t;
+  auto GetTid() -> pid_t;
 
   void SetReactorType(ReactorType type);
 

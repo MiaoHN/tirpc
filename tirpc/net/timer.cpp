@@ -119,7 +119,7 @@ void Timer::ResetArriveTime() {
 void Timer::OnTimer() {
   char buf[8];
   while (true) {
-    if ((g_sys_read_fun(fd_, buf, sizeof(buf)) == -1) && errno == EAGAIN) {
+    if ((g_sys_read_fun(fd_, buf, 8) == -1) && errno == EAGAIN) {
       break;
     }
   }
@@ -129,7 +129,7 @@ void Timer::OnTimer() {
   auto it = pending_events_.begin();
   std::vector<TimerEvent::ptr> tmps;
   std::vector<std::pair<int64_t, std::function<void()>>> tasks;
-  for (; it != pending_events_.end(); ++it) {
+  for (it = pending_events_.begin(); it != pending_events_.end(); ++it) {
     if (it->first <= now && !(it->second->is_canceled_)) {
       tmps.push_back(it->second);
       tasks.emplace_back(it->second->arrive_time_, it->second->task_);
@@ -142,6 +142,7 @@ void Timer::OnTimer() {
   lock.Unlock();
 
   for (auto &tmp : tmps) {
+    // DebugLog << "excute timer event on " << (*i)->m_arrive_time;
     if (tmp->is_repeated_) {
       tmp->Reset();
       AddTimerEvent(tmp, false);
@@ -150,7 +151,7 @@ void Timer::OnTimer() {
 
   ResetArriveTime();
 
-  for (auto &i : tasks) {
+  for (const auto &i : tasks) {
     i.second();
   }
 }

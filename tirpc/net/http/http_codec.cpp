@@ -192,7 +192,7 @@ auto HttpCodeC::ParseHttpRequestHeader(HttpRequest *requset, const std::string &
   if (str.empty() || str.length() < 4 || str == "\r\n\r\n") {
     return true;
   }
-  const std::string &tmp = str;
+  const std::string& tmp = str;
   StringUtil::SplitStrToMap(tmp, "\r\n", ":", requset->requeset_header_.maps_);
   return true;
 }

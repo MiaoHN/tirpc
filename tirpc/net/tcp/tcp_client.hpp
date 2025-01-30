@@ -19,7 +19,7 @@ class TcpClient {
  public:
   using ptr = std::shared_ptr<TcpClient>;
 
-  explicit TcpClient(NetAddress::ptr &addr, ProtocalType type = TinyPb_Protocal);
+  explicit TcpClient(NetAddress::ptr addr, ProtocalType type = TinyPb_Protocal);
 
   ~TcpClient();
 

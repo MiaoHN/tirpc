@@ -30,11 +30,11 @@ class Coroutine {
  public:
   Coroutine(int size, char *stack_ptr);
 
-  Coroutine(int size, char *stack_ptr, const std::function<void()> &cb);
+  Coroutine(int size, char *stack_ptr, std::function<void()> cb);
 
   ~Coroutine();
 
-  auto SetCallBack(const std::function<void()> &cb) -> bool;
+  auto SetCallBack(std::function<void()> cb) -> bool;
 
   auto GetCorId() const -> int { return cor_id_; }
 

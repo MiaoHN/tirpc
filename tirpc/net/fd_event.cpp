@@ -33,7 +33,7 @@ void FdEvent::HandleEvent(int flag) {
   ErrorLog << "unknow event";
 }
 
-void FdEvent::SetCallBack(IOEvent flag, const std::function<void()> &cb) {
+void FdEvent::SetCallBack(IOEvent flag, std::function<void()> cb) {
   if (flag == READ) {
     read_callback_ = cb;
   } else if (flag == WRITE) {
@@ -55,7 +55,7 @@ auto FdEvent::GetCallBack(IOEvent flag) const -> std::function<void()> {
 }
 
 void FdEvent::AddListenEvents(IOEvent event) {
-  if ((listen_events_ & event) != 0U) {
+  if (listen_events_ & event) {
     DebugLog << "already has this event, skip";
     return;
   }
@@ -111,14 +111,14 @@ void FdEvent::SetNonBlock() {
   }
 
   int flag = fcntl(fd_, F_GETFL, 0);
-  if ((flag & O_NONBLOCK) != 0) {
+  if (flag & O_NONBLOCK) {
     DebugLog << "already nonblock";
     return;
   }
 
   fcntl(fd_, F_SETFL, flag | O_NONBLOCK);
   flag = fcntl(fd_, F_GETFL, 0);
-  if ((flag & O_NONBLOCK) != 0) {
+  if (flag & O_NONBLOCK) {
     DebugLog << "set nonblock succ";
   } else {
     ErrorLog << "set nonblock fail";
@@ -142,23 +142,22 @@ auto FdEvent::GetCoroutine() -> Coroutine * { return cor_; }
 void FdEvent::ClearCoroutine() { cor_ = nullptr; }
 
 auto FdEventContainer::GetFdEvent(int fd) -> FdEvent::ptr {
-  {
-    RWMutex::ReadLocker rlock(mutex_);
-    if (fd < static_cast<int>(fds_.size())) {
-      FdEvent::ptr ptr = fds_[fd];
-      return ptr;
-    }
-  }
-
-  {
-    RWMutex::WriteLocker wlock(mutex_);
-    int n = static_cast<int>(fd * 1.5);
-    for (int i = fds_.size(); i < n; ++i) {
-      fds_.push_back(std::make_shared<FdEvent>(i));
-    }
+  RWMutex::ReadLocker rlock(mutex_);
+  if (fd < static_cast<int>(fds_.size())) {
     FdEvent::ptr ptr = fds_[fd];
+    rlock.Unlock();
     return ptr;
   }
+  rlock.Unlock();
+
+  RWMutex::WriteLocker wlock(mutex_);
+  int n = static_cast<int>(fd * 1.5);
+  for (int i = fds_.size(); i < n; ++i) {
+    fds_.push_back(std::make_shared<FdEvent>(i));
+  }
+  FdEvent::ptr ptr = fds_[fd];
+  wlock.Unlock();
+  return ptr;
 }
 
 FdEventContainer::FdEventContainer(int size) {

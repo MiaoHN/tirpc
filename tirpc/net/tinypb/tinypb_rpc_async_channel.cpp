@@ -22,7 +22,7 @@
 
 namespace tirpc {
 
-TinyPbRpcAsyncChannel::TinyPbRpcAsyncChannel(const NetAddress::ptr &addr) {
+TinyPbRpcAsyncChannel::TinyPbRpcAsyncChannel(NetAddress::ptr addr) {
   rpc_channel_ = std::make_shared<TinyPbRpcChannel>(addr);
   current_iothread_ = IOThread::GetCurrentIOThread();
   current_cor_ = Coroutine::GetCurrentCoroutine();
@@ -35,8 +35,8 @@ TinyPbRpcAsyncChannel::~TinyPbRpcAsyncChannel() {
 
 auto TinyPbRpcAsyncChannel::GetRpcChannel() -> TinyPbRpcChannel * { return rpc_channel_.get(); }
 
-void TinyPbRpcAsyncChannel::SaveCallee(const con_ptr &controller, const msg_ptr &req, const msg_ptr &res,
-                                       const clo_ptr &closure) {
+void TinyPbRpcAsyncChannel::SaveCallee(con_ptr controller, msg_ptr req, msg_ptr res,
+                                       clo_ptr closure) {
   controller_ = controller;
   req_ = req;
   res_ = res;

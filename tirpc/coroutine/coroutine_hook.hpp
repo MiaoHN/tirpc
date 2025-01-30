@@ -8,9 +8,9 @@ using read_fun_ptr_t = ssize_t (*)(int, void *, size_t);
 
 using write_fun_ptr_t = ssize_t (*)(int, const void *, size_t);
 
-using connect_fun_ptr_t = int (*)(int, const struct sockaddr *, __socklen_t);
+using connect_fun_ptr_t = int (*)(int, const struct sockaddr *, socklen_t);
 
-using accept_fun_ptr_t = int (*)(int, struct sockaddr *, __socklen_t *);
+using accept_fun_ptr_t = int (*)(int, struct sockaddr *, socklen_t *);
 
 using socket_fun_ptr_t = int (*)(int, int, int);
 

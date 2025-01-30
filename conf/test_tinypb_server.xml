@@ -13,8 +13,10 @@
     <rpc_log_level>DEBUG</rpc_log_level>
     <app_log_level>DEBUG</app_log_level>
 
-    <!--inteval that put log info to async logger, ms-->
-    <log_sync_inteval>500</log_sync_inteval>
+    <!--interval that put log info to async logger, ms-->
+    <log_sync_interval>500</log_sync_interval>
+
+    <log_to_console>1</log_to_console>
   </log>
 
   <coroutine>
@@ -37,8 +39,8 @@
   <time_wheel>
     <bucket_num>6</bucket_num>
 
-    <!--inteval that destroy bad TcpConnection, s-->
-    <inteval>10</inteval>
+    <!--interval that destroy bad TcpConnection, s-->
+    <interval>10</interval>
   </time_wheel>
 
   <server>

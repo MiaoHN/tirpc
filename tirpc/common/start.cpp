@@ -40,10 +40,7 @@ void InitConfig(const char *file) {
 //   g_rpc_server->registerService(service);
 // }
 
-auto GetServer() -> TcpServer::ptr {
-  assert(g_rpc_server != nullptr);
-  return g_rpc_server;
-}
+auto GetServer() -> TcpServer::ptr { return g_rpc_server; }
 
 void StartRpcServer() {
   g_rpc_logger->Start();
@@ -54,6 +51,6 @@ auto GetIOThreadPoolSize() -> int { return g_rpc_server->GetIoThreadPool()->GetI
 
 auto GetConfig() -> Config::ptr { return g_rpc_config; }
 
-void AddTimerEvent(TimerEvent::ptr &event) {}
+void AddTimerEvent(TimerEvent::ptr event) {}
 
 }  // namespace tirpc

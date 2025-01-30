@@ -31,7 +31,7 @@ auto MsgReqUtil::GenMsgNumber() -> std::string {
       g_random_fd = open("/dev/urandom", O_RDONLY);
     }
     std::string res(t_msg_req_len, 0);
-    if (read(g_random_fd, &res.front(), t_msg_req_len) != t_msg_req_len) {
+    if (read(g_random_fd, &res[0], t_msg_req_len) != t_msg_req_len) {
       ErrorLog << "read /dev/urandom data less " << t_msg_req_len << " bytes";
       return "";
     }

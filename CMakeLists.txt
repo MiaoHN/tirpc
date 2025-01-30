@@ -53,13 +53,28 @@ set(LIBS
 
 set(coroutine ${PROJECT_SOURCE_DIR}/example/coroutine.cpp)
 
-add_executable(example_coroutine ${coroutine})
-target_link_libraries(example_coroutine ${LIBS})
+add_executable(coroutine ${coroutine})
+target_link_libraries(coroutine ${LIBS})
 
 set(http_server
   ${PROJECT_SOURCE_DIR}/example/http_server.cpp
   ${PROJECT_SOURCE_DIR}/example/tinypb_server.pb.cc
 )
 
-add_executable(example_http_server ${http_server})
-target_link_libraries(example_http_server ${LIBS})
+add_executable(http_server ${http_server})
+target_link_libraries(http_server ${LIBS})
+
+# tinypb server/client
+set(tinypb_server
+  ${PROJECT_SOURCE_DIR}/example/tinypb_server.cpp
+  ${PROJECT_SOURCE_DIR}/example/tinypb_server.pb.cc
+)
+add_executable(tinypb_server ${tinypb_server})
+target_link_libraries(tinypb_server ${LIBS})
+
+set(tinypb_client
+  ${PROJECT_SOURCE_DIR}/example/tinypb_client.cpp
+  ${PROJECT_SOURCE_DIR}/example/tinypb_server.pb.cc
+)
+add_executable(tinypb_client ${tinypb_client})
+target_link_libraries(tinypb_client ${LIBS})

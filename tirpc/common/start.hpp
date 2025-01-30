@@ -43,6 +43,6 @@ auto GetIOThreadPoolSize() -> int;
 
 auto GetConfig() -> Config::ptr;
 
-void AddTimerEvent(TimerEvent::ptr &event);
+void AddTimerEvent(TimerEvent::ptr event);
 
 }  // namespace tirpc

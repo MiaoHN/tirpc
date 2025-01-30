@@ -7,18 +7,15 @@ auto ThreadPool::MainFunction(void *ptr) -> void * {
   pthread_cond_init(&pool->condition_, nullptr);
 
   while (!pool->stop_) {
-    std::function<void()> cb;
-    {
-      Mutex::Locker lock(pool->mutex_);
+    Mutex::Locker lock(pool->mutex_);
 
-      while (pool->tasks_.empty()) {
-        pthread_cond_wait(&(pool->condition_), pool->mutex_.GetMutex());
-      }
-      cb = pool->tasks_.front();
-      lock.Unlock();
-
-      pool->tasks_.pop();
+    while (pool->tasks_.empty()) {
+      pthread_cond_wait(&(pool->condition_), pool->mutex_.GetMutex());
     }
+    std::function<void()> cb = pool->tasks_.front();
+    lock.Unlock();
+
+    pool->tasks_.pop();
 
     cb();
   }
@@ -41,7 +38,7 @@ void ThreadPool::Start() {
 
 void ThreadPool::Stop() { stop_ = true; }
 
-void ThreadPool::AddTask(const std::function<void()> &cb) {
+void ThreadPool::AddTask(std::function<void()> cb) {
   Mutex::Locker lock(mutex_);
   tasks_.push(cb);
   lock.Unlock();

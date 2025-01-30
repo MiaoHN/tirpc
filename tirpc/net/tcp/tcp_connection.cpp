@@ -3,11 +3,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
-#include <utility>
 
 #include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
-#include "tirpc/net/abstract_data.hpp"
 #include "tirpc/net/tcp/abstract_slot.hpp"
 #include "tirpc/net/tcp/tcp_client.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
@@ -18,9 +16,8 @@
 
 namespace tirpc {
 
-TcpConnection::TcpConnection(tirpc::TcpServer *tcp_svr, tirpc::IOThread *io_thread, int fd, int buff_size,
-                             NetAddress::ptr peer_addr)
-    : io_thread_(io_thread), fd_(fd), state_(Connected), connection_type_(ServerConnection), peer_addr_(std::move(peer_addr)) {
+TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, int buff_size, NetAddress::ptr peer_addr)
+    : io_thread_(io_thread), fd_(fd), state_(Connected), connection_type_(ServerConnection), peer_addr_(peer_addr) {
   reactor_ = io_thread_->GetReactor();
 
   // DebugLog << "state_=[" << state_ << "], =" << fd;
@@ -31,13 +28,12 @@ TcpConnection::TcpConnection(tirpc::TcpServer *tcp_svr, tirpc::IOThread *io_thre
   fd_event_->SetReactor(reactor_);
   InitBuffer(buff_size);
   loop_cor_ = GetCoroutinePool()->GetCoroutineInstanse();
-  // state_ = Connected;
+  state_ = Connected;
   DebugLog << "succ create tcp connection[" << state_ << "], fd=" << fd;
 }
 
-TcpConnection::TcpConnection(tirpc::TcpClient *tcp_cli, tirpc::Reactor *reactor, int fd, int buff_size,
-                             NetAddress::ptr peer_addr)
-    : fd_(fd), state_(NotConnected), connection_type_(ClientConnection), peer_addr_(std::move(peer_addr)) {
+TcpConnection::TcpConnection(TcpClient *tcp_cli, Reactor *reactor, int fd, int buff_size, NetAddress::ptr peer_addr)
+    : fd_(fd), state_(NotConnected), connection_type_(ClientConnection), peer_addr_(peer_addr) {
   reactor_ = reactor;
 
   tcp_cli_ = tcp_cli;
@@ -55,6 +51,7 @@ void TcpConnection::InitServer() {
   RegisterToTimeWheel();
   loop_cor_->SetCallBack(std::bind(&TcpConnection::MainServerLoopCorFunc, this));
 }
+
 void TcpConnection::SetUpServer() { reactor_->AddCoroutine(loop_cor_); }
 
 void TcpConnection::RegisterToTimeWheel() {
@@ -234,7 +231,7 @@ void TcpConnection::Output() {
     if (write_buffer_->Readable() <= 0) {
       // InfoLog << "send all data, now unregister write event on reactor and yield Coroutine";
       InfoLog << "send all data, now unregister write event and break";
-      // fd_event_->delListenEvents(IOEvent::WRITE);
+      // fd_event_->DelListenEvents(IOEvent::WRITE);
       break;
     }
 
@@ -296,10 +293,9 @@ auto TcpConnection::GetCodec() const -> AbstractCodeC::ptr { return codec_; }
 
 auto TcpConnection::GetState() -> TcpConnectionState {
   TcpConnectionState state;
-  {
-    RWMutex::ReadLocker lock(mutex_);
-    state = state_;
-  }
+  RWMutex::ReadLocker lock(mutex_);
+  state = state_;
+  lock.Unlock();
 
   return state;
 }
@@ -307,6 +303,7 @@ auto TcpConnection::GetState() -> TcpConnectionState {
 void TcpConnection::SetState(const TcpConnectionState &state) {
   RWMutex::WriteLocker lock(mutex_);
   state_ = state;
+  lock.Unlock();
 }
 
 void TcpConnection::SetOverTimeFlag(bool value) { is_over_time_ = value; }

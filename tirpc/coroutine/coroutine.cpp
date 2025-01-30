@@ -19,9 +19,9 @@ static thread_local Runtime *t_current_runtime = nullptr;
 
 static std::atomic_int t_coroutine_count = {0};
 
-static std::atomic_int t_current_coroutine_id = {0};
+static std::atomic_int t_current_coroutine_id = {1};
 
-auto GetCoroutineIndex() -> int { return t_current_coroutine_id.load(); }
+auto GetCoroutineIndex() -> int { return t_current_coroutine_id; }
 
 auto GetCurrentRuntime() -> Runtime * { return t_current_runtime; }
 
@@ -57,8 +57,7 @@ Coroutine::Coroutine(int size, char *stack_ptr) : stack_size_(size), stack_sp_(s
   t_coroutine_count++;
 }
 
-Coroutine::Coroutine(int size, char *stack_ptr, const std::function<void()> &cb)
-    : stack_size_(size), stack_sp_(stack_ptr) {
+Coroutine::Coroutine(int size, char *stack_ptr, std::function<void()> cb) : stack_size_(size), stack_sp_(stack_ptr) {
   assert(stack_ptr != nullptr);
 
   if (t_main_coroutine == nullptr) {
@@ -70,7 +69,7 @@ Coroutine::Coroutine(int size, char *stack_ptr, const std::function<void()> &cb)
   t_coroutine_count++;
 }
 
-auto Coroutine::SetCallBack(const std::function<void()> &cb) -> bool {
+auto Coroutine::SetCallBack(std::function<void()> cb) -> bool {
   if (this == t_main_coroutine) {
     ErrorLog << "main coroutine cannot set callback";
     return false;
@@ -92,7 +91,7 @@ auto Coroutine::SetCallBack(const std::function<void()> &cb) -> bool {
   coctx_.regs_[kRSP] = top;
   coctx_.regs_[kRBP] = top;
   coctx_.regs_[kRETAddr] = reinterpret_cast<void *>(CoFunction);
-  coctx_.regs_[kRDI] = this;
+  coctx_.regs_[kRDI] = reinterpret_cast<char *>(this);
 
   can_resume_ = true;
   return true;
@@ -110,10 +109,10 @@ auto Coroutine::GetCurrentCoroutine() -> Coroutine * {
 }
 
 auto Coroutine::GetMainCoroutine() -> Coroutine * {
-  if (t_main_coroutine == nullptr) {
-    t_main_coroutine = new Coroutine();
+  if (t_main_coroutine != nullptr) {
+    return t_main_coroutine;
   }
-
+  t_main_coroutine = new Coroutine();
   return t_main_coroutine;
 }
 

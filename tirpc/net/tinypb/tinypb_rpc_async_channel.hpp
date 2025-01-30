@@ -23,7 +23,7 @@ class TinyPbRpcAsyncChannel : public google::protobuf::RpcChannel,
   using msg_ptr = std::shared_ptr<google::protobuf::Message>;
   using clo_ptr = std::shared_ptr<google::protobuf::Closure>;
 
-  explicit TinyPbRpcAsyncChannel(const NetAddress::ptr &addr);
+  explicit TinyPbRpcAsyncChannel(NetAddress::ptr addr);
 
   ~TinyPbRpcAsyncChannel() override;
 
@@ -35,7 +35,7 @@ class TinyPbRpcAsyncChannel : public google::protobuf::RpcChannel,
 
   // must call saveCallee before CallMethod
   // in order to save shared_ptr count of req res controller
-  void SaveCallee(const con_ptr &controller, const msg_ptr &req, const msg_ptr &res, const clo_ptr &closure);
+  void SaveCallee(con_ptr controller, msg_ptr req, msg_ptr res, clo_ptr closure);
 
   void Wait();
 

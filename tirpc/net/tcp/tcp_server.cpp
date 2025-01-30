@@ -21,9 +21,7 @@ namespace tirpc {
 
 extern tirpc::Config::ptr g_rpc_config;
 
-TcpAcceptor::TcpAcceptor(NetAddress::ptr net_addr) : local_addr_(std::move(net_addr)) {
-  family_ = local_addr_->GetFamily();
-}
+TcpAcceptor::TcpAcceptor(NetAddress::ptr net_addr) : local_addr_(net_addr) { family_ = local_addr_->GetFamily(); }
 
 void TcpAcceptor::Init() {
   fd_ = socket(local_addr_->GetFamily(), SOCK_STREAM, 0);
@@ -121,7 +119,7 @@ TcpServer::TcpServer(NetAddress::ptr addr, ProtocalType type /*= TinyPb_Protocal
     protocal_type_ = TinyPb_Protocal;
   }
 
-  main_reactor_ = tirpc::Reactor::GetReactor();
+  main_reactor_ = Reactor::GetReactor();
   main_reactor_->SetReactorType(MainReactor);
 
   time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, g_rpc_config->timewheel_bucket_num_,
@@ -141,7 +139,7 @@ void TcpServer::Start() {
   accept_cor_->SetCallBack(std::bind(&TcpServer::MainAcceptCorFunc, this));
 
   InfoLog << "resume accept coroutine";
-  tirpc::Coroutine::Resume(accept_cor_.get());
+  Coroutine::Resume(accept_cor_.get());
 
   io_pool_->Start();
   main_reactor_->Loop();
@@ -176,9 +174,9 @@ void TcpServer::MainAcceptCorFunc() {
   }
 }
 
-void TcpServer::AddCoroutine(const Coroutine::ptr &cor) { main_reactor_->AddCoroutine(cor); }
+void TcpServer::AddCoroutine(Coroutine::ptr cor) { main_reactor_->AddCoroutine(cor); }
 
-auto TcpServer::RegisterService(std::shared_ptr<google::protobuf::Service> &service) -> bool {
+auto TcpServer::RegisterService(std::shared_ptr<google::protobuf::Service> service) -> bool {
   if (protocal_type_ == TinyPb_Protocal) {
     if (service) {
       dynamic_cast<TinyPbRpcDispacther *>(dispatcher_.get())->RegisterService(service);
@@ -193,7 +191,7 @@ auto TcpServer::RegisterService(std::shared_ptr<google::protobuf::Service> &serv
   return true;
 }
 
-auto TcpServer::RegisterHttpServlet(const std::string &url_path, const HttpServlet::ptr &servlet) -> bool {
+auto TcpServer::RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool {
   if (protocal_type_ == Http_Protocal) {
     if (servlet) {
       dynamic_cast<HttpDispacther *>(dispatcher_.get())->RegisterServlet(url_path, servlet);

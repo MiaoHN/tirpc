@@ -16,14 +16,14 @@
 
 namespace tirpc {
 
-TcpClient::TcpClient(NetAddress::ptr &addr, ProtocalType type /*= TinyPb_Protocal*/) : peer_addr_(addr) {
+TcpClient::TcpClient(NetAddress::ptr addr, ProtocalType type /*= TinyPb_Protocal*/) : peer_addr_(addr) {
   family_ = peer_addr_->GetFamily();
   fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (fd_ == -1) {
     ErrorLog << "call socket error, fd=-1, sys error=" << strerror(errno);
   }
   DebugLog << "TcpClient() create fd = " << fd_;
-  local_addr_ = std::make_shared<tirpc::IPAddress>("127.0.0.1", 0);
+  local_addr_ = std::make_shared<IPAddress>("127.0.0.1", 0);
   reactor_ = Reactor::GetReactor();
 
   if (type == Http_Protocal) {
@@ -51,7 +51,7 @@ auto TcpClient::GetConnection() -> TcpConnection * {
 }
 
 void TcpClient::ResetFd() {
-  tirpc::FdEvent::ptr fd_event = tirpc::FdEventContainer::GetFdContainer()->GetFdEvent(fd_);
+  FdEvent::ptr fd_event = FdEventContainer::GetFdContainer()->GetFdEvent(fd_);
   fd_event->UnregisterFromReactor();
   close(fd_);
   fd_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -63,12 +63,12 @@ void TcpClient::ResetFd() {
 
 auto TcpClient::SendAndRecvTinyPb(const std::string &msg_no, TinyPbStruct::pb_ptr &res) -> int {
   bool is_timeout = false;
-  tirpc::Coroutine *cur_cor = tirpc::Coroutine::GetCurrentCoroutine();
+  Coroutine *cur_cor = Coroutine::GetCurrentCoroutine();
   auto timer_cb = [this, &is_timeout, cur_cor]() {
     InfoLog << "TcpClient timer out event occur";
     is_timeout = true;
     this->connection_->SetOverTimeFlag(true);
-    tirpc::Coroutine::Resume(cur_cor);
+    Coroutine::Resume(cur_cor);
   };
   TimerEvent::ptr event = std::make_shared<TimerEvent>(max_timeout_, false, timer_cb);
   reactor_->GetTimer()->AddTimerEvent(event);

@@ -27,7 +27,7 @@ class NetAddress {
 
 class IPAddress : public NetAddress {
  public:
-  IPAddress(std::string ip, uint16_t port);
+  IPAddress(const std::string &ip, uint16_t port);
 
   explicit IPAddress(const std::string &addr);
 

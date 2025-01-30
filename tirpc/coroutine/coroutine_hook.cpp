@@ -36,9 +36,9 @@ void SetHook(bool value) { g_hook = value; }
 
 void toEpoll(tirpc::FdEvent::ptr fd_event, int events) {
   tirpc::Coroutine *cur_cor = tirpc::Coroutine::GetCurrentCoroutine();
-  if ((events & tirpc::IOEvent::READ) != 0U) {
+  if (events & tirpc::IOEvent::READ) {
     DebugLog << "fd:[" << fd_event->GetFd() << "], register read event to epoll";
-    // fd_event->SetCallBack(tirpc::IOEvent::READ,
+    // fd_event->setCallBack(tirpc::IOEvent::READ,
     // 	[cur_cor, fd_event]() {
     // 		tirpc::Coroutine::Resume(cur_cor);
     // 	}
@@ -46,9 +46,9 @@ void toEpoll(tirpc::FdEvent::ptr fd_event, int events) {
     fd_event->SetCoroutine(cur_cor);
     fd_event->AddListenEvents(tirpc::IOEvent::READ);
   }
-  if ((events & tirpc::IOEvent::WRITE) != 0U) {
+  if (events & tirpc::IOEvent::WRITE) {
     DebugLog << "fd:[" << fd_event->GetFd() << "], register write event to epoll";
-    // fd_event->SetCallBack(tirpc::IOEvent::WRITE,
+    // fd_event->setCallBack(tirpc::IOEvent::WRITE,
     // 	[cur_cor]() {
     // 		tirpc::Coroutine::Resume(cur_cor);
     // 	}
@@ -206,8 +206,7 @@ int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
   if (n == 0) {
     DebugLog << "direct connect succ, return";
     return n;
-  }
-  if (errno != EINPROGRESS) {
+  } else if (errno != EINPROGRESS) {
     DebugLog << "connect error and errno is't EINPROGRESS, errno=" << errno << ",error=" << strerror(errno);
     return n;
   }
@@ -285,7 +284,7 @@ unsigned int sleep_hook(unsigned int seconds) {
   }
 
   // 定时器也需要删除
-  // tirpc::Reactor::GetReactor()->GetTimer()->DelTimerEvent(event);
+  // tirpc::Reactor::GetReactor()->getTimer()->delTimerEvent(event);
 
   return 0;
 }
@@ -297,35 +296,40 @@ extern "C" {
 int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
   if (!tirpc::g_hook) {
     return g_sys_accept_fun(sockfd, addr, addrlen);
+  } else {
+    return tirpc::accept_hook(sockfd, addr, addrlen);
   }
-  return tirpc::accept_hook(sockfd, addr, addrlen);
 }
 
 ssize_t read(int fd, void *buf, size_t count) {
   if (!tirpc::g_hook) {
     return g_sys_read_fun(fd, buf, count);
+  } else {
+    return tirpc::read_hook(fd, buf, count);
   }
-  return tirpc::read_hook(fd, buf, count);
 }
 
 ssize_t write(int fd, const void *buf, size_t count) {
   if (!tirpc::g_hook) {
     return g_sys_write_fun(fd, buf, count);
+  } else {
+    return tirpc::write_hook(fd, buf, count);
   }
-  return tirpc::write_hook(fd, buf, count);
 }
 
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
   if (!tirpc::g_hook) {
     return g_sys_connect_fun(sockfd, addr, addrlen);
+  } else {
+    return tirpc::connect_hook(sockfd, addr, addrlen);
   }
-  return tirpc::connect_hook(sockfd, addr, addrlen);
 }
 
 unsigned int sleep(unsigned int seconds) {
   if (!tirpc::g_hook) {
     return g_sys_sleep_fun(seconds);
+  } else {
+    return tirpc::sleep_hook(seconds);
   }
-  return tirpc::sleep_hook(seconds);
 }
 }

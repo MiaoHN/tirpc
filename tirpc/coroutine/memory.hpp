@@ -24,9 +24,9 @@ class Memory {
 
   auto GetBlock() -> char *;
 
-  void BackBlock(const char *block);
+  void BackBlock(char *block);
 
-  auto HasBlock(const char *block) -> bool;
+  auto HasBlock(char *block) -> bool;
 
  private:
   int block_size_{0};

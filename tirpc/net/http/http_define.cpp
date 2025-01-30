@@ -37,7 +37,7 @@ auto HttpHeaderComm::GetValue(const std::string &key) -> std::string { return ma
 
 auto HttpHeaderComm::GetHeaderTotalLength() -> int {
   int len = 0;
-  for (const auto &it : maps_) {
+  for (const auto& it : maps_) {
     len += it.first.length() + 1 + it.second.length() + 2;
   }
   return len;
@@ -47,7 +47,7 @@ void HttpHeaderComm::SetKeyValue(const std::string &key, const std::string &valu
 
 auto HttpHeaderComm::ToHttpString() -> std::string {
   std::stringstream ss;
-  for (const auto &it : maps_) {
+  for (const auto& it : maps_) {
     ss << it.first << ":" << it.second << "\r\n";
   }
   return ss.str();

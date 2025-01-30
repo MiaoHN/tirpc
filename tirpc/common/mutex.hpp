@@ -11,7 +11,10 @@ namespace tirpc {
 template <class T>
 struct ScopedLockImpl {
  public:
-  explicit ScopedLockImpl(T &mutex) : mutex_(mutex) { mutex_.Lock(); }
+  explicit ScopedLockImpl(T &mutex) : mutex_(mutex) {
+    mutex_.Lock();
+    locked_ = true;
+  }
 
   ~ScopedLockImpl() { Unlock(); }
 
@@ -33,13 +36,16 @@ struct ScopedLockImpl {
   /// mutex
   T &mutex_;
   /// 是否已上锁
-  bool locked_{false};
+  bool locked_;
 };
 
 template <class T>
 struct ReadScopedLockImpl {
  public:
-  explicit ReadScopedLockImpl(T &mutex) : mutex_(mutex) { Lock(); }
+  explicit ReadScopedLockImpl(T &mutex) : mutex_(mutex) {
+    mutex_.RDLock();
+    locked_ = true;
+  }
 
   ~ReadScopedLockImpl() { Unlock(); }
 
@@ -61,7 +67,7 @@ struct ReadScopedLockImpl {
   /// mutex
   T &mutex_;
   /// 是否已上锁
-  bool locked_{false};
+  bool locked_;
 };
 
 /**
@@ -70,7 +76,10 @@ struct ReadScopedLockImpl {
 template <class T>
 struct WriteScopedLockImpl {
  public:
-  explicit WriteScopedLockImpl(T &mutex) : mutex_(mutex) { Lock(); }
+  explicit WriteScopedLockImpl(T &mutex) : mutex_(mutex) {
+    mutex_.WRLock();
+    locked_ = true;
+  }
 
   ~WriteScopedLockImpl() { Unlock(); }
 
@@ -90,7 +99,7 @@ struct WriteScopedLockImpl {
 
  private:
   T &mutex_;
-  bool locked_{false};
+  bool locked_;
 };
 
 class Mutex {
@@ -100,32 +109,22 @@ class Mutex {
 
   Mutex() { pthread_mutex_init(&mutex_, nullptr); }
 
-  ~Mutex() { Unlock(); }
+  ~Mutex() { pthread_mutex_destroy(&mutex_); }
 
-  void Lock() {
-    if (!locked_) {
-      pthread_mutex_lock(&mutex_);
-      locked_ = true;
-    }
-  }
+  void Lock() { pthread_mutex_lock(&mutex_); }
 
-  void Unlock() {
-    if (locked_) {
-      pthread_mutex_unlock(&mutex_);
-      locked_ = false;
-    }
-  }
+  void Unlock() { pthread_mutex_unlock(&mutex_); }
 
   auto GetMutex() -> pthread_mutex_t * { return &mutex_; }
 
  private:
   /// mutex
   pthread_mutex_t mutex_;
-  bool locked_{false};
 };
 
 class RWMutex {
  public:
+  /// 局部读锁
   using ReadLocker = ReadScopedLockImpl<RWMutex>;
 
   using WriteLocker = WriteScopedLockImpl<RWMutex>;

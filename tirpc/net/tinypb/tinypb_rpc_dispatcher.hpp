@@ -13,7 +13,7 @@ namespace tirpc {
 
 class TinyPbRpcDispacther : public AbstractDispatcher {
  public:
-  // typedef std::shared_ptr<TinyPbRpcDispacther> ptr;
+  // using ptr = std::shared_ptr<TinyPbRpcDispacther>;
   using service_ptr = std::shared_ptr<google::protobuf::Service>;
 
   TinyPbRpcDispacther() = default;
@@ -23,7 +23,7 @@ class TinyPbRpcDispacther : public AbstractDispatcher {
 
   auto ParseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name) -> bool;
 
-  void RegisterService(const service_ptr &service);
+  void RegisterService(service_ptr service);
 
  public:
   // all services should be registerd on there before progress start

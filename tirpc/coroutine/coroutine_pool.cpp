@@ -26,12 +26,12 @@ CoroutinePool::CoroutinePool(int pool_size, int stack_size /*= 1024 * 128 B*/)
   // set main coroutine first
   Coroutine::GetCurrentCoroutine();
 
-  memory_pool_.push_back(std::make_shared<Memory>(stack_size, pool_size_));
+  memory_pool_.push_back(std::make_shared<Memory>(stack_size_, pool_size_));
 
   Memory::ptr tmp = memory_pool_[0];
 
   for (int i = 0; i < pool_size_; ++i) {
-    Coroutine::ptr cor = std::make_shared<Coroutine>(stack_size, tmp->GetBlock());
+    Coroutine::ptr cor = std::make_shared<Coroutine>(stack_size_, tmp->GetBlock());
     cor->SetIndex(i);
     free_cors_.emplace_back(cor, false);
   }
@@ -67,7 +67,7 @@ auto CoroutinePool::GetCoroutineInstanse() -> Coroutine::ptr {
   return std::make_shared<Coroutine>(stack_size_, memory_pool_[memory_pool_.size() - 1]->GetBlock());
 }
 
-void CoroutinePool::ReturnCoroutine(Coroutine::ptr &cor) {
+void CoroutinePool::ReturnCoroutine(Coroutine::ptr cor) {
   int i = cor->GetIndex();
   if (i >= 0 && i < pool_size_) {
     free_cors_[i].second = false;

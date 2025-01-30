@@ -10,7 +10,6 @@ namespace tirpc {
 enum IOEvent {
   READ = EPOLLIN,
   WRITE = EPOLLOUT,
-  ETModel = EPOLLET,
 };
 
 class Reactor;
@@ -27,7 +26,7 @@ class FdEvent : public std::enable_shared_from_this<FdEvent> {
 
   void HandleEvent(int flag);
 
-  void SetCallBack(IOEvent flag, const std::function<void()> &cb);
+  void SetCallBack(IOEvent flag, std::function<void()> cb);
 
   auto GetCallBack(IOEvent flag) const -> std::function<void()>;
 

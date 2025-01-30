@@ -50,11 +50,11 @@ class TcpServer {
 
   void Start();
 
-  void AddCoroutine(const Coroutine::ptr &cor);
+  void AddCoroutine(Coroutine::ptr cor);
 
-  auto RegisterService(std::shared_ptr<google::protobuf::Service> &service) -> bool;
+  auto RegisterService(std::shared_ptr<google::protobuf::Service> service) -> bool;
 
-  auto RegisterHttpServlet(const std::string &url_path, const HttpServlet::ptr &servlet) -> bool;
+  auto RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool;
 
   auto AddClient(IOThread *io_thread, int fd) -> TcpConnection::ptr;
 

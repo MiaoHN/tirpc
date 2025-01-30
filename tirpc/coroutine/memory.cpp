@@ -17,8 +17,8 @@ Memory::Memory(int block_size, int block_count) : block_size_(block_size), block
 
   blocks_.resize(block_count_);
 
-  for (auto &&block : blocks_) {
-    block = false;
+  for (size_t i = 0; i < blocks_.size(); ++i) {
+    blocks_[i] = false;
   }
 
   ref_count_ = 0;
@@ -55,10 +55,10 @@ auto Memory::GetBlock() -> char * {
     return nullptr;
   }
   ref_count_++;
-  return start_ + t * block_size_;
+  return start_ + (t * block_size_);
 }
 
-void Memory::BackBlock(const char *block) {
+void Memory::BackBlock(char *block) {
   if (block > end_ || block < start_) {
     ErrorLog << "error, this block is not belong to this Memory";
     return;
@@ -70,6 +70,6 @@ void Memory::BackBlock(const char *block) {
   ref_count_--;
 }
 
-auto Memory::HasBlock(const char *block) -> bool { return ((block >= start_) && (block <= end_)); }
+auto Memory::HasBlock(char *block) -> bool { return ((block >= start_) && (block <= end_)); }
 
 }  // namespace tirpc
