@@ -2,7 +2,7 @@
 #include <atomic>
 #include <future>
 
-#include "tinypb_server.pb.h"
+#include "rpc_server.pb.h"
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/start.hpp"
@@ -18,7 +18,7 @@
 
 const char *html = "<html><body><h1>Welcome to tirPC, just enjoy it!</h1><p>%s</p></body></html>";
 
-tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 20000);
+tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);
 
 class BlockCallHttpServlet : public tirpc::HttpServlet {
  public:
@@ -86,24 +86,24 @@ class NonBlockCallHttpServlet : public tirpc::HttpServlet {
     SetHttpCode(res, tirpc::HTTP_OK);
     SetHttpContentType(res, "text/html;charset=utf-8");
 
-    std::shared_ptr<queryAgeReq> rpc_req = std::make_shared<queryAgeReq>();
-    std::shared_ptr<queryAgeRes> rpc_res = std::make_shared<queryAgeRes>();
+    auto rpc_req = std::make_shared<queryAgeReq>();
+    auto rpc_res = std::make_shared<queryAgeRes>();
     AppDebugLog("now to call QueryServer tirPC server to query who's id is %s", req->query_maps_["id"].c_str());
     rpc_req->set_id(std::atoi(req->query_maps_["id"].c_str()));
 
-    std::shared_ptr<tirpc::RpcController> rpc_controller = std::make_shared<tirpc::RpcController>();
+    auto rpc_controller = std::make_shared<tirpc::RpcController>();
     rpc_controller->SetTimeout(10000);
 
     AppDebugLog("NonBlockCallHttpServlet begin to call RPC async");
 
-    tirpc::RpcAsyncChannel::ptr async_channel = std::make_shared<tirpc::RpcAsyncChannel>(addr);
+    auto async_channel = std::make_shared<tirpc::RpcAsyncChannel>(addr);
 
     auto cb = [rpc_res]() {
       printf("call succ, res = %s\n", rpc_res->ShortDebugString().c_str());
       AppDebugLog("NonBlockCallHttpServlet async call end, res=%s", rpc_res->ShortDebugString().c_str());
     };
 
-    std::shared_ptr<tirpc::RpcClosure> closure = std::make_shared<tirpc::RpcClosure>(cb);
+    auto closure = std::make_shared<tirpc::RpcClosure>(cb);
     async_channel->SaveCallee(rpc_controller, rpc_req, rpc_res, closure);
 
     QueryService_Stub stub(async_channel.get());

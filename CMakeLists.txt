@@ -61,23 +61,23 @@ target_link_libraries(coroutine ${LIBS})
 
 set(http_server
   ${PROJECT_SOURCE_DIR}/example/http_server.cpp
-  ${PROJECT_SOURCE_DIR}/example/tinypb_server.pb.cc
+  ${PROJECT_SOURCE_DIR}/example/rpc_server.pb.cc
 )
 
 add_executable(http_server ${http_server})
 target_link_libraries(http_server ${LIBS})
 
 # tinypb server/client
-set(tinypb_server
-  ${PROJECT_SOURCE_DIR}/example/tinypb_server.cpp
-  ${PROJECT_SOURCE_DIR}/example/tinypb_server.pb.cc
+set(rpc_server
+  ${PROJECT_SOURCE_DIR}/example/rpc_server.cpp
+  ${PROJECT_SOURCE_DIR}/example/rpc_server.pb.cc
 )
-add_executable(tinypb_server ${tinypb_server})
-target_link_libraries(tinypb_server ${LIBS})
+add_executable(rpc_server ${rpc_server})
+target_link_libraries(rpc_server ${LIBS})
 
-set(tinypb_client
-  ${PROJECT_SOURCE_DIR}/example/tinypb_client.cpp
-  ${PROJECT_SOURCE_DIR}/example/tinypb_server.pb.cc
+set(rpc_client
+  ${PROJECT_SOURCE_DIR}/example/rpc_client.cpp
+  ${PROJECT_SOURCE_DIR}/example/rpc_server.pb.cc
 )
-add_executable(tinypb_client ${tinypb_client})
-target_link_libraries(tinypb_client ${LIBS})
+add_executable(rpc_client ${rpc_client})
+target_link_libraries(rpc_client ${LIBS})

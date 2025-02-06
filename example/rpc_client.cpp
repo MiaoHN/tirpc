@@ -1,7 +1,7 @@
 #include <google/protobuf/service.h>
 #include <iostream>
 
-#include "tinypb_server.pb.h"
+#include "rpc_server.pb.h"
 #include "tirpc/net/address.hpp"
 #include "tirpc/net/rpc/rpc_async_channel.hpp"
 #include "tirpc/net/rpc/rpc_channel.hpp"

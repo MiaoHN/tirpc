@@ -2,7 +2,7 @@
 #include <atomic>
 #include <sstream>
 
-#include "tinypb_server.pb.h"
+#include "rpc_server.pb.h"
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/mutex.hpp"
