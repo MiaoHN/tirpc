@@ -15,23 +15,22 @@ namespace tirpc {
 
 class IOThread;
 
-class TinyPbRpcAsyncChannel : public google::protobuf::RpcChannel,
-                              public std::enable_shared_from_this<TinyPbRpcAsyncChannel> {
+class RpcAsyncChannel : public google::protobuf::RpcChannel, public std::enable_shared_from_this<RpcAsyncChannel> {
  public:
-  using ptr = std::shared_ptr<TinyPbRpcAsyncChannel>;
+  using ptr = std::shared_ptr<RpcAsyncChannel>;
   using con_ptr = std::shared_ptr<google::protobuf::RpcController>;
   using msg_ptr = std::shared_ptr<google::protobuf::Message>;
   using clo_ptr = std::shared_ptr<google::protobuf::Closure>;
 
-  explicit TinyPbRpcAsyncChannel(NetAddress::ptr addr);
+  explicit RpcAsyncChannel(NetAddress::ptr addr);
 
-  ~TinyPbRpcAsyncChannel() override;
+  ~RpcAsyncChannel() override;
 
   void CallMethod(const google::protobuf::MethodDescriptor *method, google::protobuf::RpcController *controller,
                   const google::protobuf::Message *request, google::protobuf::Message *response,
                   google::protobuf::Closure *done) override;
 
-  auto GetRpcChannel() -> TinyPbRpcChannel *;
+  auto GetRpcChannel() -> RpcChannel *;
 
   // must call saveCallee before CallMethod
   // in order to save shared_ptr count of req res controller
@@ -56,7 +55,7 @@ class TinyPbRpcAsyncChannel : public google::protobuf::RpcChannel,
   auto GetClosurePtr() -> google::protobuf::Closure *;
 
  private:
-  TinyPbRpcChannel::ptr rpc_channel_;
+  tirpc::RpcChannel::ptr rpc_channel_;
   Coroutine::ptr pending_cor_;
   Coroutine *current_cor_{nullptr};
   IOThread *current_iothread_{nullptr};

@@ -22,20 +22,20 @@
 
 namespace tirpc {
 
-TinyPbRpcAsyncChannel::TinyPbRpcAsyncChannel(NetAddress::ptr addr) {
-  rpc_channel_ = std::make_shared<TinyPbRpcChannel>(addr);
+RpcAsyncChannel::RpcAsyncChannel(NetAddress::ptr addr) {
+  rpc_channel_ = std::make_shared<tirpc::RpcChannel>(addr);
   current_iothread_ = IOThread::GetCurrentIOThread();
   current_cor_ = Coroutine::GetCurrentCoroutine();
 }
 
-TinyPbRpcAsyncChannel::~TinyPbRpcAsyncChannel() {
-  // DebugLog << "~TinyPbRpcAsyncChannel(), return coroutine";
+RpcAsyncChannel::~RpcAsyncChannel() {
+  // DebugLog << "~RpcAsyncChannel(), return coroutine";
   GetCoroutinePool()->ReturnCoroutine(pending_cor_);
 }
 
-auto TinyPbRpcAsyncChannel::GetRpcChannel() -> TinyPbRpcChannel * { return rpc_channel_.get(); }
+auto RpcAsyncChannel::GetRpcChannel() -> RpcChannel * { return rpc_channel_.get(); }
 
-void TinyPbRpcAsyncChannel::SaveCallee(con_ptr controller, msg_ptr req, msg_ptr res, clo_ptr closure) {
+void RpcAsyncChannel::SaveCallee(con_ptr controller, msg_ptr req, msg_ptr res, clo_ptr closure) {
   controller_ = controller;
   req_ = req;
   res_ = res;
@@ -43,14 +43,13 @@ void TinyPbRpcAsyncChannel::SaveCallee(con_ptr controller, msg_ptr req, msg_ptr 
   is_pre_set_ = true;
 }
 
-void TinyPbRpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
-                                       google::protobuf::RpcController *controller,
-                                       const google::protobuf::Message *request, google::protobuf::Message *response,
-                                       google::protobuf::Closure *done) {
-  auto *rpc_controller = dynamic_cast<TinyPbRpcController *>(controller);
+void RpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
+                                 google::protobuf::RpcController *controller, const google::protobuf::Message *request,
+                                 google::protobuf::Message *response, google::protobuf::Closure *done) {
+  auto *rpc_controller = dynamic_cast<RpcController *>(controller);
   if (!is_pre_set_) {
     ErrorLog << "Error! must call [saveCallee()] function before [CallMethod()]";
-    auto *rpc_controller = dynamic_cast<TinyPbRpcController *>(controller);
+    auto *rpc_controller = dynamic_cast<RpcController *>(controller);
     rpc_controller->SetError(ERROR_NOT_SET_ASYNC_PRE_CALL,
                              "Error! must call [saveCallee()] function before [CallMethod()];");
     is_finished_ = true;
@@ -65,7 +64,7 @@ void TinyPbRpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor 
     DebugLog << "get from RunTime error, generate new msgno=" << rpc_controller->MsgSeq();
   }
 
-  std::shared_ptr<TinyPbRpcAsyncChannel> s_ptr = shared_from_this();
+  std::shared_ptr<RpcAsyncChannel> s_ptr = shared_from_this();
 
   auto cb = [s_ptr, method]() mutable {
     DebugLog << "now excute rpc call method by this thread";
@@ -95,7 +94,7 @@ void TinyPbRpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor 
   pending_cor_ = GetServer()->GetIoThreadPool()->AddCoroutineToRandomThread(cb, false);
 }
 
-void TinyPbRpcAsyncChannel::Wait() {
+void RpcAsyncChannel::Wait() {
   need_resume_ = true;
   if (is_finished_) {
     return;
@@ -103,20 +102,20 @@ void TinyPbRpcAsyncChannel::Wait() {
   Coroutine::Yield();
 }
 
-void TinyPbRpcAsyncChannel::SetFinished(bool value) { is_finished_ = true; }
+void RpcAsyncChannel::SetFinished(bool value) { is_finished_ = true; }
 
-auto TinyPbRpcAsyncChannel::GetIoThread() -> IOThread * { return current_iothread_; }
+auto RpcAsyncChannel::GetIoThread() -> IOThread * { return current_iothread_; }
 
-auto TinyPbRpcAsyncChannel::GetCurrentCoroutine() -> Coroutine * { return current_cor_; }
+auto RpcAsyncChannel::GetCurrentCoroutine() -> Coroutine * { return current_cor_; }
 
-auto TinyPbRpcAsyncChannel::GetNeedResume() -> bool { return need_resume_; }
+auto RpcAsyncChannel::GetNeedResume() -> bool { return need_resume_; }
 
-auto TinyPbRpcAsyncChannel::GetControllerPtr() -> google::protobuf::RpcController * { return controller_.get(); }
+auto RpcAsyncChannel::GetControllerPtr() -> google::protobuf::RpcController * { return controller_.get(); }
 
-auto TinyPbRpcAsyncChannel::GetRequestPtr() -> google::protobuf::Message * { return req_.get(); }
+auto RpcAsyncChannel::GetRequestPtr() -> google::protobuf::Message * { return req_.get(); }
 
-auto TinyPbRpcAsyncChannel::GetResponsePtr() -> google::protobuf::Message * { return res_.get(); }
+auto RpcAsyncChannel::GetResponsePtr() -> google::protobuf::Message * { return res_.get(); }
 
-auto TinyPbRpcAsyncChannel::GetClosurePtr() -> google::protobuf::Closure * { return closure_.get(); }
+auto RpcAsyncChannel::GetClosurePtr() -> google::protobuf::Closure * { return closure_.get(); }
 
 }  // namespace tirpc

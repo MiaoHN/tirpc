@@ -9,14 +9,14 @@
 
 namespace tirpc {
 
-class TinyPbRpcController : public google::protobuf::RpcController {
+class RpcController : public google::protobuf::RpcController {
  public:
-  using ptr = std::shared_ptr<TinyPbRpcController>;
+  using ptr = std::shared_ptr<RpcController>;
   // Client-side methods ---------------------------------------------
 
-  TinyPbRpcController() = default;
+  RpcController() = default;
 
-  ~TinyPbRpcController() override = default;
+  ~RpcController() override = default;
 
   void Reset() override;
 

@@ -29,14 +29,14 @@ namespace ${PROJECT_NAME} {
 
 class Interface {
  public:
-  Interface(const tinyrpc::TinyPbRpcController& controller);
+  Interface(const tinyrpc::RpcController& controller);
 
   virtual ~Interface();
 
   virtual void run() = 0;
  
  protected:
-  const tinyrpc::TinyPbRpcController& m_controller;
+  const tinyrpc::RpcController& m_controller;
 
 };
 

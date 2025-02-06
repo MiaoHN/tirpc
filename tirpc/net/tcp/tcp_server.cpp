@@ -116,7 +116,7 @@ TcpServer::TcpServer(NetAddress::ptr addr, ProtocalType type /*= TinyPb_Protocal
     codec_ = std::make_shared<HttpCodeC>();
     protocal_type_ = Http_Protocal;
   } else {
-    dispatcher_ = std::make_shared<TinyPbRpcDispacther>();
+    dispatcher_ = std::make_shared<RpcDispacther>();
     codec_ = std::make_shared<TinyPbCodeC>();
     protocal_type_ = TinyPb_Protocal;
   }
@@ -181,7 +181,7 @@ void TcpServer::AddCoroutine(Coroutine::ptr cor) { main_reactor_->AddCoroutine(c
 auto TcpServer::RegisterService(std::shared_ptr<google::protobuf::Service> service) -> bool {
   if (protocal_type_ == TinyPb_Protocal) {
     if (service) {
-      dynamic_cast<TinyPbRpcDispacther *>(dispatcher_.get())->RegisterService(service);
+      dynamic_cast<RpcDispacther *>(dispatcher_.get())->RegisterService(service);
     } else {
       ErrorLog << "register service error, service ptr is nullptr";
       return false;

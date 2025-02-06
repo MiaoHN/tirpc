@@ -27,10 +27,10 @@ void test_client() {
 
   tinyrpc::IPAddress::ptr addr = std::make_shared<tinyrpc::IPAddress>("127.0.0.1", 12345);
 
-  tinyrpc::TinyPbRpcChannel channel(addr);
+  tinyrpc::RpcChannel channel(addr);
   ${STUBCLASS} stub(&channel);
 
-  tinyrpc::TinyPbRpcController rpc_controller;
+  tinyrpc::RpcController rpc_controller;
   rpc_controller.SetTimeout(5000);
 
   ${REQUEST_TYPE} rpc_req;

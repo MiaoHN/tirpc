@@ -21,7 +21,7 @@ ${INCLUDE_INTERFACEBASE_HEADER}
 namespace ${PROJECT_NAME} {
 
 
-Interface::Interface(const tinyrpc::TinyPbRpcController& controller) 
+Interface::Interface(const tinyrpc::RpcController& controller) 
   : m_controller(controller) {
 
 }

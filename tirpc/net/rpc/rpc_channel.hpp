@@ -8,11 +8,11 @@
 
 namespace tirpc {
 
-class TinyPbRpcChannel : public google::protobuf::RpcChannel {
+class RpcChannel : public google::protobuf::RpcChannel {
  public:
-  using ptr = std::shared_ptr<TinyPbRpcChannel>;
-  explicit TinyPbRpcChannel(NetAddress::ptr addr);
-  ~TinyPbRpcChannel() override = default;
+  using ptr = std::shared_ptr<RpcChannel>;
+  explicit RpcChannel(NetAddress::ptr addr);
+  ~RpcChannel() override = default;
 
   void CallMethod(const google::protobuf::MethodDescriptor *method, google::protobuf::RpcController *controller,
                   const google::protobuf::Message *request, google::protobuf::Message *response,

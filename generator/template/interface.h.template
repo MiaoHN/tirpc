@@ -32,7 +32,7 @@ namespace ${PROJECT_NAME} {
 class ${CLASS_NAME} : public Interface {
  public:
 
-  ${CLASS_NAME}(const ${REQUEST_TYPE}& request, ${RESPONSE_TYPE}& response, const tinyrpc::TinyPbRpcController& controller);
+  ${CLASS_NAME}(const ${REQUEST_TYPE}& request, ${RESPONSE_TYPE}& response, const tinyrpc::RpcController& controller);
 
   ~${CLASS_NAME}();
 

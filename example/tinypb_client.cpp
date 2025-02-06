@@ -11,10 +11,10 @@
 void TestClient() {
   tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);
 
-  tirpc::TinyPbRpcChannel channel(addr);
+  tirpc::RpcChannel channel(addr);
   QueryService_Stub stub(&channel);
 
-  tirpc::TinyPbRpcController rpc_controller;
+  tirpc::RpcController rpc_controller;
   rpc_controller.SetTimeout(5000);
 
   queryAgeReq rpc_req;

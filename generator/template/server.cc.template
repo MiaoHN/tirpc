@@ -23,7 +23,7 @@ ${INCLUDE_SERVICE_HEADER}
 ${INCLUDE_INTERFACEBASE_HEADER}
 
 #define CALL_RPC_INTERFACE(type)                                                                                                    \                                                                           
-  tinyrpc::TinyPbRpcController* con = dynamic_cast<tinyrpc::TinyPbRpcController*>(controller);                                      \
+  tinyrpc::RpcController* con = dynamic_cast<tinyrpc::RpcController*>(controller);                                      \
   std::shared_ptr<type> impl = std::make_shared<type>(*request, *response, *con);                                                   \
   try {                                                                                                                             \
     AppInfoLog("In|request:{%s}", request->ShortDebugString().c_str());                                                             \

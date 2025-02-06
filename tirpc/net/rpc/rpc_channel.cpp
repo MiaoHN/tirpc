@@ -18,15 +18,15 @@
 
 namespace tirpc {
 
-TinyPbRpcChannel::TinyPbRpcChannel(NetAddress::ptr addr) : addr_(std::move(addr)) {}
+RpcChannel::RpcChannel(NetAddress::ptr addr) : addr_(std::move(addr)) {}
 
-void TinyPbRpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
-                                  google::protobuf::RpcController *controller, const google::protobuf::Message *request,
-                                  google::protobuf::Message *response, google::protobuf::Closure *done) {
+void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
+                            google::protobuf::RpcController *controller, const google::protobuf::Message *request,
+                            google::protobuf::Message *response, google::protobuf::Closure *done) {
   TinyPbStruct pb_struct;
-  auto *rpc_controller = dynamic_cast<TinyPbRpcController *>(controller);
+  auto *rpc_controller = dynamic_cast<RpcController *>(controller);
   if (rpc_controller == nullptr) {
-    ErrorLog << "call failed. falid to dynamic cast TinyPbRpcController";
+    ErrorLog << "call failed. falid to dynamic cast RpcController";
     return;
   }
 

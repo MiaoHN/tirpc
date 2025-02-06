@@ -36,10 +36,10 @@ class BlockCallHttpServlet : public tirpc::HttpServlet {
     AppDebugLog("now to call QueryServer tirPC server to query who's id is %s", req->query_maps_["id"].c_str());
     rpc_req.set_id(std::atoi(req->query_maps_["id"].c_str()));
 
-    tirpc::TinyPbRpcChannel channel(addr);
+    tirpc::RpcChannel channel(addr);
     QueryService_Stub stub(&channel);
 
-    tirpc::TinyPbRpcController rpc_controller;
+    tirpc::RpcController rpc_controller;
     rpc_controller.SetTimeout(5000);
 
     AppDebugLog("BlockCallHttpServlet end to call RPC");
@@ -91,19 +91,19 @@ class NonBlockCallHttpServlet : public tirpc::HttpServlet {
     AppDebugLog("now to call QueryServer tirPC server to query who's id is %s", req->query_maps_["id"].c_str());
     rpc_req->set_id(std::atoi(req->query_maps_["id"].c_str()));
 
-    std::shared_ptr<tirpc::TinyPbRpcController> rpc_controller = std::make_shared<tirpc::TinyPbRpcController>();
+    std::shared_ptr<tirpc::RpcController> rpc_controller = std::make_shared<tirpc::RpcController>();
     rpc_controller->SetTimeout(10000);
 
     AppDebugLog("NonBlockCallHttpServlet begin to call RPC async");
 
-    tirpc::TinyPbRpcAsyncChannel::ptr async_channel = std::make_shared<tirpc::TinyPbRpcAsyncChannel>(addr);
+    tirpc::RpcAsyncChannel::ptr async_channel = std::make_shared<tirpc::RpcAsyncChannel>(addr);
 
     auto cb = [rpc_res]() {
       printf("call succ, res = %s\n", rpc_res->ShortDebugString().c_str());
       AppDebugLog("NonBlockCallHttpServlet async call end, res=%s", rpc_res->ShortDebugString().c_str());
     };
 
-    std::shared_ptr<tirpc::TinyPbRpcClosure> closure = std::make_shared<tirpc::TinyPbRpcClosure>(cb);
+    std::shared_ptr<tirpc::RpcClosure> closure = std::make_shared<tirpc::RpcClosure>(cb);
     async_channel->SaveCallee(rpc_controller, rpc_req, rpc_res, closure);
 
     QueryService_Stub stub(async_channel.get());

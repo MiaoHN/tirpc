@@ -22,7 +22,7 @@ ${INCLUDE_PB_HEADER}
 
 namespace ${PROJECT_NAME} {
 
-${CLASS_NAME}::${CLASS_NAME}(const ${REQUEST_TYPE}& request, ${RESPONSE_TYPE}& response, const tinyrpc::TinyPbRpcController& controller)
+${CLASS_NAME}::${CLASS_NAME}(const ${REQUEST_TYPE}& request, ${RESPONSE_TYPE}& response, const tinyrpc::RpcController& controller)
   : Interface(controller), 
   m_request(request), 
   m_response(response) {

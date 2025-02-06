@@ -11,13 +11,13 @@
 
 namespace tirpc {
 
-class TinyPbRpcDispacther : public AbstractDispatcher {
+class RpcDispacther : public AbstractDispatcher {
  public:
-  // using ptr = std::shared_ptr<TinyPbRpcDispacther>;
+  // using ptr = std::shared_ptr<RpcDispacther>;
   using service_ptr = std::shared_ptr<google::protobuf::Service>;
 
-  TinyPbRpcDispacther() = default;
-  ~TinyPbRpcDispacther() override = default;
+  RpcDispacther() = default;
+  ~RpcDispacther() override = default;
 
   void Dispatch(AbstractData *data, TcpConnection *conn) override;
 

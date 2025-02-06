@@ -17,7 +17,7 @@ namespace tirpc {
 
 class TcpBuffer;
 
-void TinyPbRpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
+void RpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
   auto *tmp = dynamic_cast<TinyPbStruct *>(data);
 
   if (tmp == nullptr) {
@@ -100,14 +100,14 @@ void TinyPbRpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
 
   DebugLog << reply_pk.msg_req_ << "|response.name = " << response->GetDescriptor()->full_name();
 
-  TinyPbRpcController rpc_controller;
+  RpcController rpc_controller;
   rpc_controller.SetMsgReq(reply_pk.msg_req_);
   rpc_controller.SetMethodName(method_name);
   rpc_controller.SetMethodFullName(tmp->service_full_name_);
 
   std::function<void()> reply_package_func = []() {};
 
-  TinyPbRpcClosure closure(reply_package_func);
+  RpcClosure closure(reply_package_func);
   service->CallMethod(method, &rpc_controller, request, response, &closure);
 
   InfoLog << "Call [" << reply_pk.service_full_name_ << "] succ, now send reply package";
@@ -129,8 +129,8 @@ void TinyPbRpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
   conn->GetCodec()->Encode(conn->GetOutBuffer(), dynamic_cast<AbstractData *>(&reply_pk));
 }
 
-auto TinyPbRpcDispacther::ParseServiceFullName(const std::string &full_name, std::string &service_name,
-                                               std::string &method_name) -> bool {
+auto RpcDispacther::ParseServiceFullName(const std::string &full_name, std::string &service_name,
+                                         std::string &method_name) -> bool {
   if (full_name.empty()) {
     ErrorLog << "service_full_name empty";
     return false;
@@ -149,7 +149,7 @@ auto TinyPbRpcDispacther::ParseServiceFullName(const std::string &full_name, std
   return true;
 }
 
-void TinyPbRpcDispacther::RegisterService(service_ptr service) {
+void RpcDispacther::RegisterService(service_ptr service) {
   std::string service_name = service->GetDescriptor()->full_name();
   service_map_[service_name] = service;
   InfoLog << "succ register service[" << service_name << "]!";

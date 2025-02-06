@@ -7,12 +7,12 @@
 
 namespace tirpc {
 
-class TinyPbRpcClosure : public google::protobuf::Closure {
+class RpcClosure : public google::protobuf::Closure {
  public:
-  using ptr = std::shared_ptr<TinyPbRpcClosure>;
-  explicit TinyPbRpcClosure(std::function<void()> cb) : cb_(std::move(cb)) {}
+  using ptr = std::shared_ptr<RpcClosure>;
+  explicit RpcClosure(std::function<void()> cb) : cb_(std::move(cb)) {}
 
-  ~TinyPbRpcClosure() override = default;
+  ~RpcClosure() override = default;
 
   void Run() override {
     if (cb_) {
