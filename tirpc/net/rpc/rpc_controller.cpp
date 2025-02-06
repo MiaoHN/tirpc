@@ -1,4 +1,4 @@
-#include "tirpc/net/tinypb/tinypb_rpc_controller.hpp"
+#include "tirpc/net/rpc/rpc_controller.hpp"
 
 #include <google/protobuf/service.h>
 #include <google/protobuf/stubs/callback.h>

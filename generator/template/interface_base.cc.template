@@ -14,8 +14,8 @@
 *************************************************************/
 
 
-#include <tinyrpc/net/tinypb/tinypb_rpc_closure.h>
-#include <tinyrpc/net/tinypb/tinypb_rpc_controller.h>
+#include <tinyrpc/net/rpc/rpc_closure.h>
+#include <tinyrpc/net/rpc/rpc_controller.h>
 ${INCLUDE_INTERFACEBASE_HEADER}
 
 namespace ${PROJECT_NAME} {

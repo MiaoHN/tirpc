@@ -16,8 +16,8 @@
 #ifndef ${HEADER_DEFINE}
 #define ${HEADER_DEFINE} 
 
-#include <tinyrpc/net/tinypb/tinypb_rpc_closure.h>
-#include <tinyrpc/net/tinypb/tinypb_rpc_controller.h>
+#include <tinyrpc/net/rpc/rpc_closure.h>
+#include <tinyrpc/net/rpc/rpc_controller.h>
 #include <google/protobuf/message.h>
 
 namespace ${PROJECT_NAME} {

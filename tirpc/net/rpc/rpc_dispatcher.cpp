@@ -1,4 +1,4 @@
-#include "tirpc/net/tinypb/tinypb_rpc_dispatcher.hpp"
+#include "tirpc/net/rpc/rpc_dispatcher.hpp"
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
@@ -7,11 +7,11 @@
 #include "tirpc/common/error_code.hpp"
 #include "tirpc/common/msg_req.hpp"
 #include "tirpc/net/abstract_dispatcher.hpp"
+#include "tirpc/net/rpc/rpc_closure.hpp"
+#include "tirpc/net/rpc/rpc_controller.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
 #include "tirpc/net/tinypb/tinypb_codec.hpp"
 #include "tirpc/net/tinypb/tinypb_data.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_closure.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_controller.hpp"
 
 namespace tirpc {
 

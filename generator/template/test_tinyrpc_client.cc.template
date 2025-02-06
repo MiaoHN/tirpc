@@ -15,10 +15,10 @@
 
 
 #include <google/protobuf/service.h>
-#include <tinyrpc/net/tinypb/tinypb_rpc_channel.h>
-#include <tinyrpc/net/tinypb/tinypb_rpc_async_channel.h>
-#include <tinyrpc/net/tinypb/tinypb_rpc_controller.h>
-#include <tinyrpc/net/tinypb/tinypb_rpc_closure.h>
+#include <tinyrpc/net/rpc/rpc_channel.h>
+#include <tinyrpc/net/rpc/rpc_async_channel.h>
+#include <tinyrpc/net/rpc/rpc_controller.h>
+#include <tinyrpc/net/rpc/rpc_closure.h>
 #include <tinyrpc/net/net_address.h>
 ${INCLUDE_PB_HEADER}
 

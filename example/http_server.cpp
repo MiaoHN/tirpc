@@ -11,10 +11,10 @@
 #include "tirpc/net/http/http_request.hpp"
 #include "tirpc/net/http/http_response.hpp"
 #include "tirpc/net/http/http_servlet.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_async_channel.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_channel.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_closure.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_controller.hpp"
+#include "tirpc/net/rpc/rpc_async_channel.hpp"
+#include "tirpc/net/rpc/rpc_channel.hpp"
+#include "tirpc/net/rpc/rpc_closure.hpp"
+#include "tirpc/net/rpc/rpc_controller.hpp"
 
 const char *html = "<html><body><h1>Welcome to tirPC, just enjoy it!</h1><p>%s</p></body></html>";
 

@@ -1,4 +1,4 @@
-#include "tirpc/net/tinypb/tinypb_rpc_async_channel.hpp"
+#include "tirpc/net/rpc/rpc_async_channel.hpp"
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
@@ -13,12 +13,12 @@
 #include "tirpc/coroutine/coroutine.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
 #include "tirpc/net/address.hpp"
+#include "tirpc/net/rpc/rpc_channel.hpp"
+#include "tirpc/net/rpc/rpc_controller.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_client.hpp"
 #include "tirpc/net/tinypb/tinypb_codec.hpp"
 #include "tirpc/net/tinypb/tinypb_data.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_channel.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_controller.hpp"
 
 namespace tirpc {
 
@@ -35,8 +35,7 @@ TinyPbRpcAsyncChannel::~TinyPbRpcAsyncChannel() {
 
 auto TinyPbRpcAsyncChannel::GetRpcChannel() -> TinyPbRpcChannel * { return rpc_channel_.get(); }
 
-void TinyPbRpcAsyncChannel::SaveCallee(con_ptr controller, msg_ptr req, msg_ptr res,
-                                       clo_ptr closure) {
+void TinyPbRpcAsyncChannel::SaveCallee(con_ptr controller, msg_ptr req, msg_ptr res, clo_ptr closure) {
   controller_ = controller;
   req_ = req;
   res_ = res;

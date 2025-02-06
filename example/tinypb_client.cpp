@@ -3,10 +3,10 @@
 
 #include "tinypb_server.pb.h"
 #include "tirpc/net/address.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_async_channel.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_channel.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_closure.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_controller.hpp"
+#include "tirpc/net/rpc/rpc_async_channel.hpp"
+#include "tirpc/net/rpc/rpc_channel.hpp"
+#include "tirpc/net/rpc/rpc_closure.hpp"
+#include "tirpc/net/rpc/rpc_controller.hpp"
 
 void TestClient() {
   tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);

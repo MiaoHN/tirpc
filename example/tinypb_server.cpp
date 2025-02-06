@@ -8,8 +8,8 @@
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/common/start.hpp"
 #include "tirpc/net/address.hpp"
+#include "tirpc/net/rpc/rpc_dispatcher.hpp"
 #include "tirpc/net/tcp/tcp_server.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_dispatcher.hpp"
 
 static int i = 0;
 

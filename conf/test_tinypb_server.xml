@@ -10,8 +10,8 @@
     <log_max_file_size>5</log_max_file_size>
 
     <!--log level: DEBUG < INFO < WARN < ERROR-->
-    <rpc_log_level>DEBUG</rpc_log_level>
-    <app_log_level>DEBUG</app_log_level>
+    <rpc_log_level>WARN</rpc_log_level>
+    <app_log_level>WARN</app_log_level>
 
     <!--interval that put log info to async logger, ms-->
     <log_sync_interval>500</log_sync_interval>
@@ -45,7 +45,7 @@
 
   <server>
     <ip>127.0.0.1</ip>
-    <port>20000</port>
+    <port>39999</port>
     <protocal>TinyPB</protocal>
   </server>
 

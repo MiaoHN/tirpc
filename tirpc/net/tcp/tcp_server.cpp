@@ -12,16 +12,18 @@
 #include "tirpc/coroutine/coroutine_pool.hpp"
 #include "tirpc/net/http/http_codec.hpp"
 #include "tirpc/net/http/http_dispatcher.hpp"
+#include "tirpc/net/rpc/rpc_dispatcher.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
-#include "tirpc/net/tinypb/tinypb_rpc_dispatcher.hpp"
 
 namespace tirpc {
 
 extern tirpc::Config::ptr g_rpc_config;
 
-TcpAcceptor::TcpAcceptor(NetAddress::ptr net_addr) : local_addr_(std::move(net_addr)) { family_ = local_addr_->GetFamily(); }
+TcpAcceptor::TcpAcceptor(NetAddress::ptr net_addr) : local_addr_(std::move(net_addr)) {
+  family_ = local_addr_->GetFamily();
+}
 
 void TcpAcceptor::Init() {
   fd_ = socket(local_addr_->GetFamily(), SOCK_STREAM, 0);
