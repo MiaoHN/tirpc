@@ -1,5 +1,6 @@
 #include "tirpc/net/tcp/tcp_connection.hpp"
 
+#include <asm-generic/errno.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
@@ -126,11 +127,18 @@ void TcpConnection::Input() {
     }
     if (rt <= 0) {
       DebugLog << "rt <= 0";
-      ErrorLog << "read empty while occur read event, because of peer close, fd= " << fd_
-               << ", sys error=" << strerror(errno) << ", now to clear tcp connection";
-      // this cor can destroy
-      close_flag = true;
-      break;
+      if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        // 没有数据可读，稍后再试
+      } else {
+        if (errno == ECONNRESET) {
+          // 对端关闭
+        } else {
+          ErrorLog << "read empty while occur read event, fd= " << fd_ << ", sys error=" << strerror(errno);
+        }
+        // this cor can destroy
+        close_flag = true;
+        break;
+      }
     }
     if (rt == read_count) {
       DebugLog << "read_count == rt";
