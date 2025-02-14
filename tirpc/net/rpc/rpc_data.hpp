@@ -17,6 +17,7 @@ class TinyPbStruct : public AbstractData {
   auto operator=(const TinyPbStruct &) -> TinyPbStruct & = default;
   TinyPbStruct(TinyPbStruct &&) = default;
   auto operator=(TinyPbStruct &&) -> TinyPbStruct & = default;
+  auto GetMsgReq() const -> std::string override { return msg_req_; }
 
   /*
   **  min of package is: 1 + 4 + 4 + 4 + 4 + 4 + 4 + 1 = 26 bytes

@@ -4,7 +4,7 @@
 
 #include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/tcp/abstract_data.hpp"
-#include "tirpc/net/tinypb/tinypb_data.hpp"
+#include "tirpc/net/rpc/rpc_data.hpp"
 
 namespace tirpc {
 
@@ -23,7 +23,7 @@ class TinyPbCodeC : public AbstractCodeC {
   void Decode(TcpBuffer *buf, AbstractData *data) override;
 
   // overwrite
-  auto GetProtocalType() -> ProtocalType override;
+  auto GenDataPtr() -> AbstractData::ptr override;
 
   auto EncodePbData(TinyPbStruct *data, int &len) -> const char *;
 };

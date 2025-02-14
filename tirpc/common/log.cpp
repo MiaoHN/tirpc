@@ -166,10 +166,10 @@ auto LogEvent::GetSS() -> std::stringstream & {
   char buf[128];
   strftime(buf, sizeof(buf), format, &time);
 
-  ss_ << "[" << buf << "." << timeval_.tv_usec << "]\t";
+  ss_ << "[" << buf << "." << timeval_.tv_usec << "] ";
 
   std::string s_level = LevelToString(level_);
-  ss_ << "[" << s_level << "]\t";
+  ss_ << "[" << s_level << "] ";
 
   if (g_pid == 0) {
     g_pid = getpid();
@@ -183,21 +183,18 @@ auto LogEvent::GetSS() -> std::stringstream & {
 
   cor_id_ = Coroutine::GetCurrentCoroutine()->GetCorId();
 
-  ss_ << "[" << pid_ << "]\t"
-      << "[" << tid_ << "]\t"
-      << "[" << cor_id_ << "]\t"
-      << "[" << file_name_ << ":" << line_ << "]\t";
+  // ss_ << "[" << pid_ << "] ";
   // << "[" << func_name_ << "]\t";
   Runtime *runtime = GetCurrentRuntime();
   if (runtime != nullptr) {
-    std::string msgno = runtime->msg_no_;
-    if (!msgno.empty()) {
-      ss_ << "[" << msgno << "]\t";
-    }
+    // std::string msgno = runtime->msg_no_;
+    // if (!msgno.empty()) {
+    //   ss_ << "[" << msgno << "] ";
+    // }
 
     std::string interface_name = runtime->interface_name_;
     if (!interface_name.empty()) {
-      ss_ << "[" << interface_name << "]\t";
+      ss_ << "[" << interface_name << "] ";
     }
   }
   return ss_;
@@ -254,11 +251,13 @@ void Logger::LoopFunc() {
   std::vector<std::string> app_tmp;
   Mutex::Locker lock1(app_mutex_);
   app_tmp.swap(app_buffer_);
+  app_buffer_.clear();
   lock1.Unlock();
 
   std::vector<std::string> rpc_tmp = rpc_buffer_;
   Mutex::Locker lock2(rpc_mutex_);
   rpc_tmp.swap(rpc_buffer_);
+  rpc_buffer_.clear();
   lock2.Unlock();
 
   rpc_logger_->Push(rpc_tmp);

@@ -1,4 +1,4 @@
-#include "tirpc/net/tinypb/tinypb_codec.hpp"
+#include "tirpc/net/rpc/rpc_codec.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -8,10 +8,10 @@
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/msg_req.hpp"
-#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/base/byte.hpp"
+#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/tcp/tcp_buffer.hpp"
-#include "tirpc/net/tinypb/tinypb_data.hpp"
+#include "tirpc/net/rpc/rpc_data.hpp"
 
 namespace tirpc {
 
@@ -286,6 +286,6 @@ void TinyPbCodeC::Decode(TcpBuffer *buf, AbstractData *data) {
   data = pb_struct;
 }
 
-auto TinyPbCodeC::GetProtocalType() -> ProtocalType { return TinyPb_Protocal; }
+auto TinyPbCodeC::GenDataPtr() -> AbstractData::ptr { return std::make_shared<TinyPbStruct>(); }
 
 }  // namespace tirpc

@@ -30,7 +30,7 @@ void TestClient() {
     return;
   }
 
-  std::cout << "Success get response frrom tirpc server " << addr->ToString()
+  std::cout << "Success get response from tirpc server " << addr->ToString()
             << ", response body: " << rpc_res.ShortDebugString() << std::endl;
 }
 

@@ -9,7 +9,7 @@
 #include "tirpc/net/rpc/rpc_channel.hpp"
 #include "tirpc/net/rpc/rpc_controller.hpp"
 #include "tirpc/net/tcp/tcp_client.hpp"
-#include "tirpc/net/tinypb/tinypb_data.hpp"
+#include "tirpc/net/rpc/rpc_data.hpp"
 
 namespace tirpc {
 

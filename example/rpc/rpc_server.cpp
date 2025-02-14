@@ -64,14 +64,16 @@ class QueryServiceImpl : public QueryService {
 };
 
 auto main(int argc, char *argv[]) -> int {
-  if (argc != 2) {
-    printf("Start tirpc server error, input argc is not 2!");
-    printf("Start tirpc server like this: \n");
-    printf("./server a.xml\n");
-    return 0;
+ // default config file
+  std::string config_file = "./conf/rpc_server.xml";
+
+  if (argc == 2) {
+    config_file = argv[1];
   }
 
-  tirpc::InitConfig(argv[1]);
+  tirpc::InitConfig(config_file.c_str());
+
+  AppInfoLog("use config file %s", config_file.c_str());
 
   auto server = std::make_shared<tirpc::RpcServer>(tirpc::GetConfig()->GetAddr());
 

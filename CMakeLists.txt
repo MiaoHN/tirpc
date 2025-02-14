@@ -16,11 +16,10 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/base NETBASE)
 aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/rpc RPC)
 aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/http HTTP)
 aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/tcp TCP)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/tinypb TINYPB)
 
 set(COXTX ${PROJECT_SOURCE_DIR}/tirpc/coroutine/coctx_swap.s)
 
-add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NETBASE} ${HTTP} ${TINYPB} ${RPC})
+add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NETBASE} ${HTTP} ${RPC})
 
 
 find_package(Protobuf REQUIRED)
@@ -54,30 +53,4 @@ set(LIBS
     pthread
 )
 
-set(coroutine ${PROJECT_SOURCE_DIR}/example/coroutine.cpp)
-
-add_executable(coroutine ${coroutine})
-target_link_libraries(coroutine ${LIBS})
-
-set(http_server
-  ${PROJECT_SOURCE_DIR}/example/http_server.cpp
-  ${PROJECT_SOURCE_DIR}/example/rpc_server.pb.cc
-)
-
-add_executable(http_server ${http_server})
-target_link_libraries(http_server ${LIBS})
-
-# tinypb server/client
-set(rpc_server
-  ${PROJECT_SOURCE_DIR}/example/rpc_server.cpp
-  ${PROJECT_SOURCE_DIR}/example/rpc_server.pb.cc
-)
-add_executable(rpc_server ${rpc_server})
-target_link_libraries(rpc_server ${LIBS})
-
-set(rpc_client
-  ${PROJECT_SOURCE_DIR}/example/rpc_client.cpp
-  ${PROJECT_SOURCE_DIR}/example/rpc_server.pb.cc
-)
-add_executable(rpc_client ${rpc_client})
-target_link_libraries(rpc_client ${LIBS})
+add_subdirectory(example)

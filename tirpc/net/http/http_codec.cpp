@@ -5,10 +5,10 @@
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/string_util.hpp"
-#include "tirpc/net/tcp/abstract_codec.hpp"
-#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/http/http_request.hpp"
 #include "tirpc/net/http/http_response.hpp"
+#include "tirpc/net/tcp/abstract_codec.hpp"
+#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/tcp/tcp_buffer.hpp"
 
 namespace tirpc {
@@ -125,6 +125,8 @@ void HttpCodeC::Decode(TcpBuffer *buf, AbstractData *data) {
   DebugLog << "test http decode end";
 }
 
+auto HttpCodeC::GenDataPtr() -> AbstractData::ptr { return std::make_shared<HttpRequest>(); }
+
 auto HttpCodeC::ParseHttpRequestLine(HttpRequest *requset, const std::string &tmp) -> bool {
   size_t s1 = tmp.find_first_of(' ');
   size_t s2 = tmp.find_last_of(' ');
@@ -192,7 +194,7 @@ auto HttpCodeC::ParseHttpRequestHeader(HttpRequest *requset, const std::string &
   if (str.empty() || str.length() < 4 || str == "\r\n\r\n") {
     return true;
   }
-  const std::string& tmp = str;
+  const std::string &tmp = str;
   StringUtil::SplitStrToMap(tmp, "\r\n", ":", requset->requeset_header_.maps_);
   return true;
 }
@@ -203,7 +205,5 @@ auto HttpCodeC::ParseHttpRequestContent(HttpRequest *requset, const std::string 
   requset->request_body_ = str;
   return true;
 }
-
-auto HttpCodeC::GetProtocalType() -> ProtocalType { return Http_Protocal; }
 
 }  // namespace tirpc

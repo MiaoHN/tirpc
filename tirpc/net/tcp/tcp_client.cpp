@@ -14,7 +14,7 @@
 #include "tirpc/net/base/fd_event.hpp"
 #include "tirpc/net/http/http_codec.hpp"
 #include "tirpc/net/base/timer.hpp"
-#include "tirpc/net/tinypb/tinypb_codec.hpp"
+#include "tirpc/net/rpc/rpc_codec.hpp"
 
 namespace tirpc {
 

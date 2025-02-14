@@ -2,9 +2,9 @@
 
 #include <map>
 #include <string>
+#include "tirpc/net/http/http_request.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/tcp/abstract_data.hpp"
-#include "tirpc/net/http/http_request.hpp"
 
 namespace tirpc {
 
@@ -18,7 +18,7 @@ class HttpCodeC : public AbstractCodeC {
 
   void Decode(TcpBuffer *buf, AbstractData *data) override;
 
-  auto GetProtocalType() -> ProtocalType override;
+  auto GenDataPtr() -> AbstractData::ptr override;
 
  private:
   auto ParseHttpRequestLine(HttpRequest *requset, const std::string &tmp) -> bool;

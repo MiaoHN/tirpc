@@ -8,13 +8,14 @@
 
 #include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
+#include "tirpc/net/base/timer.hpp"
+#include "tirpc/net/rpc/rpc_codec.hpp"
+#include "tirpc/net/rpc/rpc_data.hpp"
+#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/tcp/abstract_slot.hpp"
 #include "tirpc/net/tcp/tcp_client.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
 #include "tirpc/net/tcp/tcp_server.hpp"
-#include "tirpc/net/base/timer.hpp"
-#include "tirpc/net/tinypb/tinypb_codec.hpp"
-#include "tirpc/net/tinypb/tinypb_data.hpp"
 
 namespace tirpc {
 
@@ -167,7 +168,6 @@ void TcpConnection::Input() {
   if (!read_all) {
     ErrorLog << "not read all data in socket buffer";
   }
-  InfoLog << "recv [" << count << "] bytes data from [" << peer_addr_->ToString() << "], fd [" << fd_ << "]";
   if (connection_type_ == ServerConnection) {
     TcpTimeWheel::TcpConnectionSlot::ptr tmp = weak_slot_.lock();
     if (tmp) {
@@ -181,12 +181,7 @@ void TcpConnection::Execute() {
 
   // it only server do this
   while (read_buffer_->Readable() > 0) {
-    std::shared_ptr<AbstractData> data;
-    if (codec_->GetProtocalType() == TinyPb_Protocal) {
-      data = std::make_shared<TinyPbStruct>();
-    } else {
-      data = std::make_shared<HttpRequest>();
-    }
+    auto data = codec_->GenDataPtr();
 
     codec_->Decode(read_buffer_.get(), data.get());
     // DebugLog << "parse service_name=" << pb_struct.service_full_name;

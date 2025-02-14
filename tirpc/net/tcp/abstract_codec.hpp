@@ -23,7 +23,7 @@ class AbstractCodeC {
 
   virtual void Decode(TcpBuffer *buf, AbstractData *data) = 0;
 
-  virtual auto GetProtocalType() -> ProtocalType = 0;
+  virtual auto GenDataPtr() -> AbstractData::ptr = 0;
 };
 
 }  // namespace tirpc

@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "tirpc/net/tcp/abstract_dispatcher.hpp"
-#include "tirpc/net/tinypb/tinypb_data.hpp"
+#include "tirpc/net/rpc/rpc_data.hpp"
 
 namespace tirpc {
 
