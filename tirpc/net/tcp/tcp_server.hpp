@@ -99,6 +99,10 @@ class TcpServer {
 
   ProtocalType protocal_type_{TinyPb_Protocal};
 
+  /**
+   * @brief TCP 时间轮，用于管理 TcpConnection 的生存时间
+   * 
+   */
   TcpTimeWheel::ptr time_wheel_;
 
   std::map<int, std::shared_ptr<TcpConnection>> clients_;

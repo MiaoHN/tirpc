@@ -143,6 +143,8 @@ void TcpServer::Start() {
   InfoLog << "resume accept coroutine";
   Coroutine::Resume(accept_cor_.get());
 
+  // accept_cor 已经执行，但在服务器刚启动时没有其它连接（NonBlocking），所以 Yield 回来了
+
   io_pool_->Start();
   main_reactor_->Loop();
 }
@@ -156,7 +158,6 @@ void TcpServer::MainAcceptCorFunc() {
   while (!is_stop_accept_) {
     int fd = acceptor_->ToAccept();
     if (fd == -1) {
-      ErrorLog << "accept ret -1 error, return, to yield";
       Coroutine::Yield();
       continue;
     }
@@ -164,11 +165,6 @@ void TcpServer::MainAcceptCorFunc() {
     TcpConnection::ptr conn = AddClient(io_thread, fd);
     conn->InitServer();
     DebugLog << "tcpconnection address is " << conn.get() << ", and fd is" << fd;
-
-    // auto cb = [io_thread, conn]() mutable {
-    //   io_thread->addClient(conn.get());
-    // 	conn.reset();
-    // };
 
     io_thread->GetReactor()->AddCoroutine(conn->GetCoroutine());
     tcp_counts_++;

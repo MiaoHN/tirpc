@@ -83,15 +83,10 @@ auto IOThread::Main(void *arg) -> void * {
 
   sem_destroy(&thread->start_semaphore_);
 
-  DebugLog << "IOThread " << thread->tid_ << " begin to loop";
+  // IOThreadPool::Start 后执行这条语句，启动本线程的 reactor 循环
   t_reactor_ptr->Loop();
 
   return nullptr;
-}
-
-void IOThread::AddClient(TcpConnection *tcp_conn) {
-  tcp_conn->RegisterToTimeWheel();
-  tcp_conn->SetUpServer();
 }
 
 IOThreadPool::IOThreadPool(int size) : size_(size) {
@@ -119,7 +114,7 @@ auto IOThreadPool::GetIoThread() -> IOThread * {
 auto IOThreadPool::GetIoThreadPoolSize() -> int { return size_; }
 
 void IOThreadPool::BroadcastTask(std::function<void()> cb) {
-  for (const auto& i : io_threads_) {
+  for (const auto &i : io_threads_) {
     i->GetReactor()->AddTask(cb, true);
   }
 }
@@ -176,7 +171,7 @@ auto IOThreadPool::AddCoroutineToThreadByIndex(int index, std::function<void()> 
 }
 
 void IOThreadPool::AddCoroutineToEachThread(std::function<void()> cb) {
-  for (const auto& i : io_threads_) {
+  for (const auto &i : io_threads_) {
     Coroutine::ptr cor = GetCoroutinePool()->GetCoroutineInstanse();
     cor->SetCallBack(cb);
     i->GetReactor()->AddCoroutine(cor, true);

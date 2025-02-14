@@ -7,6 +7,10 @@
 
 namespace tirpc {
 
+/**
+ * @brief 用于封装一个回调函数，在 RPC 调用完成时执行
+ *
+ */
 class RpcClosure : public google::protobuf::Closure {
  public:
   using ptr = std::shared_ptr<RpcClosure>;

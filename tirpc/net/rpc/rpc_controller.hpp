@@ -9,6 +9,10 @@
 
 namespace tirpc {
 
+/**
+ * @brief 用于控制 RPC 调用的各种状态和信息
+ *
+ */
 class RpcController : public google::protobuf::RpcController {
  public:
   using ptr = std::shared_ptr<RpcController>;
@@ -32,9 +36,14 @@ class RpcController : public google::protobuf::RpcController {
 
   auto IsCanceled() const -> bool override;
 
+  /**
+   * @brief 注册一个回调函数，当 RPC 调用被取消时调用
+   * 
+   * @param callback 
+   */
   void NotifyOnCancel(google::protobuf::Closure *callback) override;
 
-  // common methods
+  // Common methods -------------------------------------------------
 
   auto ErrorCode() const -> int;
 

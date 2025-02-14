@@ -23,8 +23,6 @@ class IOThread {
 
   auto GetReactor() -> Reactor *;
 
-  void AddClient(TcpConnection *tcp_conn);
-
   auto GetPthreadId() -> pthread_t;
 
   void SetThreadIndex(int index);

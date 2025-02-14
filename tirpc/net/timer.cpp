@@ -117,6 +117,7 @@ void Timer::ResetArriveTime() {
 }
 
 void Timer::OnTimer() {
+  // 把定时器文件描述符读干净
   char buf[8];
   while (true) {
     if ((g_sys_read_fun(fd_, buf, 8) == -1) && errno == EAGAIN) {
@@ -124,35 +125,35 @@ void Timer::OnTimer() {
     }
   }
 
+  // 取出到期并未取消的事件
   int64_t now = GetNowMs();
   RWMutex::WriteLocker lock(mutex_);
   auto it = pending_events_.begin();
-  std::vector<TimerEvent::ptr> tmps;
-  std::vector<std::pair<int64_t, std::function<void()>>> tasks;
+  std::vector<TimerEvent::ptr> repeated_tasks;
+  std::vector<std::function<void()>> tasks;
   for (it = pending_events_.begin(); it != pending_events_.end(); ++it) {
-    if (it->first <= now && !(it->second->is_canceled_)) {
-      tmps.push_back(it->second);
-      tasks.emplace_back(it->second->arrive_time_, it->second->task_);
-    } else {
+    if (it->first > now || it->second->is_canceled_) {
       break;
     }
+    if (it->second->is_repeated_) {
+      repeated_tasks.push_back(it->second);
+    }
+    tasks.emplace_back(it->second->task_);
   }
 
   pending_events_.erase(pending_events_.begin(), it);
   lock.Unlock();
 
-  for (auto &tmp : tmps) {
+  for (auto &task : repeated_tasks) {
     // DebugLog << "excute timer event on " << (*i)->m_arrive_time;
-    if (tmp->is_repeated_) {
-      tmp->Reset();
-      AddTimerEvent(tmp, false);
-    }
+    task->Reset();
+    AddTimerEvent(task, false);
   }
 
   ResetArriveTime();
 
-  for (const auto &i : tasks) {
-    i.second();
+  for (const auto &task : tasks) {
+    task();
   }
 }
 

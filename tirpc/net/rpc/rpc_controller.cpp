@@ -40,11 +40,13 @@ void RpcController::SetError(const int err_code, const std::string &err_info) {
 void RpcController::SetPeerAddr(NetAddress::ptr addr) { peer_addr_ = std::move(addr); }
 
 void RpcController::SetLocalAddr(NetAddress::ptr addr) { local_addr_ = std::move(addr); }
+
 auto RpcController::PeerAddr() -> NetAddress::ptr { return peer_addr_; }
 
 auto RpcController::LocalAddr() -> NetAddress::ptr { return local_addr_; }
 
 void RpcController::SetTimeout(const int timeout) { timeout_ = timeout; }
+
 auto RpcController::Timeout() const -> int { return timeout_; }
 
 void RpcController::SetMethodName(const std::string &name) { method_name_ = name; }
