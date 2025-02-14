@@ -7,7 +7,7 @@ namespace tirpc {
 HttpServer::HttpServer(NetAddress::ptr addr) : TcpServer(addr) {
   dispatcher_ = std::make_shared<HttpDispatcher>();
   codec_ = std::make_shared<HttpCodeC>();
-  start_info_ = " View Page at: http://" + addr->ToString();
+  start_info_ = " View Page at: http://" + addr->ToString() + "\n Press Ctrl+C to stop";
 }
 
 auto HttpServer::RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool {

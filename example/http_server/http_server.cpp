@@ -1,27 +1,6 @@
-#include <atomic>
-#include <fstream>
-#include <future>
-#include <memory>
-#include <sstream>
-
-#include "tirpc/common/log.hpp"
+#include "tirpc/net/http/http_server.hpp"
 #include "tirpc/common/start.hpp"
 #include "tirpc/common/string_util.hpp"
-#include "tirpc/coroutine/coroutine_hook.hpp"
-#include "tirpc/net/base/address.hpp"
-#include "tirpc/net/http/http_define.hpp"
-#include "tirpc/net/http/http_request.hpp"
-#include "tirpc/net/http/http_response.hpp"
-#include "tirpc/net/http/http_server.hpp"
-#include "tirpc/net/http/http_servlet.hpp"
-#include "tirpc/net/rpc/rpc_async_channel.hpp"
-#include "tirpc/net/rpc/rpc_channel.hpp"
-#include "tirpc/net/rpc/rpc_closure.hpp"
-#include "tirpc/net/rpc/rpc_controller.hpp"
-
-const char *html = "<html><body><h1>Welcome to tirPC, just enjoy it!</h1><p>%s</p></body></html>";
-
-tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);
 
 class FileHttpServlet : public tirpc::HttpServlet {
  public:

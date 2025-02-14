@@ -57,14 +57,18 @@ auto BacktraceToString(int size = 64, int skip = 2, const std::string &prefix = 
 }
 
 void CoredumpHandler(int signal_no) {
-  ErrorLog << "progress receive invalid signal, will exit";
-  printf("progress receive invalid signal, will exit\n");
+  if (signal_no == SIGINT) {
+    std::cout << "\nReceived Ctrl+C signal, preparing for graceful exit..." << std::endl;
+  } else {
+    ErrorLog << "progress receive invalid signal, will exit";
+    printf("progress receive invalid signal, will exit\n");
 
-  std::string bt = BacktraceToString();
+    std::string bt = BacktraceToString();
 
-  ErrorLog << "coredump stack:\n" << bt;
+    ErrorLog << "coredump stack:\n" << bt;
 
-  printf("coredump stack:\n%s\n", bt.c_str());
+    printf("coredump stack:\n%s\n", bt.c_str());
+  }
 
   g_rpc_logger->Flush();
 
