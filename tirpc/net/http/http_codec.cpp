@@ -5,8 +5,8 @@
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/string_util.hpp"
-#include "tirpc/net/abstract_codec.hpp"
-#include "tirpc/net/abstract_data.hpp"
+#include "tirpc/net/tcp/abstract_codec.hpp"
+#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/http/http_request.hpp"
 #include "tirpc/net/http/http_response.hpp"
 #include "tirpc/net/tcp/tcp_buffer.hpp"

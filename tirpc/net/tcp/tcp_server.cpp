@@ -109,17 +109,17 @@ auto TcpAcceptor::ToAccept() -> int {
   return rt;
 }
 
-TcpServer::TcpServer(NetAddress::ptr addr, ProtocalType type /*= TinyPb_Protocal*/) : addr_(std::move(addr)) {
+TcpServer::TcpServer(NetAddress::ptr addr) : addr_(std::move(addr)) {
   io_pool_ = std::make_shared<IOThreadPool>(g_rpc_config->iothread_num_);
-  if (type == Http_Protocal) {
-    dispatcher_ = std::make_shared<HttpDispacther>();
-    codec_ = std::make_shared<HttpCodeC>();
-    protocal_type_ = Http_Protocal;
-  } else {
-    dispatcher_ = std::make_shared<RpcDispacther>();
-    codec_ = std::make_shared<TinyPbCodeC>();
-    protocal_type_ = TinyPb_Protocal;
-  }
+  // if (type == Http_Protocal) {
+  //   dispatcher_ = std::make_shared<HttpDispacther>();
+  //   codec_ = std::make_shared<HttpCodeC>();
+  //   protocal_type_ = Http_Protocal;
+  // } else {
+  //   dispatcher_ = std::make_shared<RpcDispacther>();
+  //   codec_ = std::make_shared<TinyPbCodeC>();
+  //   protocal_type_ = TinyPb_Protocal;
+  // }
 
   main_reactor_ = Reactor::GetReactor();
   main_reactor_->SetReactorType(MainReactor);
@@ -173,36 +173,6 @@ void TcpServer::MainAcceptCorFunc() {
 }
 
 void TcpServer::AddCoroutine(Coroutine::ptr cor) { main_reactor_->AddCoroutine(cor); }
-
-auto TcpServer::RegisterService(std::shared_ptr<google::protobuf::Service> service) -> bool {
-  if (protocal_type_ == TinyPb_Protocal) {
-    if (service) {
-      dynamic_cast<RpcDispacther *>(dispatcher_.get())->RegisterService(service);
-    } else {
-      ErrorLog << "register service error, service ptr is nullptr";
-      return false;
-    }
-  } else {
-    ErrorLog << "register service error. Just TinyPB protocal server need to resgister Service";
-    return false;
-  }
-  return true;
-}
-
-auto TcpServer::RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool {
-  if (protocal_type_ == Http_Protocal) {
-    if (servlet) {
-      dynamic_cast<HttpDispacther *>(dispatcher_.get())->RegisterServlet(url_path, servlet);
-    } else {
-      ErrorLog << "register http servlet error, servlet ptr is nullptr";
-      return false;
-    }
-  } else {
-    ErrorLog << "register http servlet error. Just Http protocal server need to resgister HttpServlet";
-    return false;
-  }
-  return true;
-}
 
 auto TcpServer::AddClient(IOThread *io_thread, int fd) -> TcpConnection::ptr {
   auto it = clients_.find(fd);

@@ -1,15 +1,17 @@
 #include <google/protobuf/service.h>
 #include <atomic>
 #include <future>
+#include <memory>
 
 #include "rpc_server.pb.h"
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/start.hpp"
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 #include "tirpc/net/http/http_define.hpp"
 #include "tirpc/net/http/http_request.hpp"
 #include "tirpc/net/http/http_response.hpp"
+#include "tirpc/net/http/http_server.hpp"
 #include "tirpc/net/http/http_servlet.hpp"
 #include "tirpc/net/rpc/rpc_async_channel.hpp"
 #include "tirpc/net/rpc/rpc_channel.hpp"
@@ -176,11 +178,13 @@ auto main(int argc, char *argv[]) -> int {
 
   AppInfoLog("use config file %s", config_file.c_str());
 
-  REGISTER_HTTP_SERVLET("/qps", QPSHttpServlet);
+  auto server = std::make_shared<tirpc::HttpServer>(tirpc::GetConfig()->GetAddr());
 
-  REGISTER_HTTP_SERVLET("/block", BlockCallHttpServlet);
-  REGISTER_HTTP_SERVLET("/nonblock", NonBlockCallHttpServlet);
+  server->RegisterHttpServlet("/qps", std::make_shared<QPSHttpServlet>());
+  server->RegisterHttpServlet("/block", std::make_shared<BlockCallHttpServlet>());
+  server->RegisterHttpServlet("/nonblock", std::make_shared<NonBlockCallHttpServlet>());
 
-  tirpc::StartRpcServer();
+  tirpc::StartServer(server);
+
   return 0;
 }

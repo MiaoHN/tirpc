@@ -1,4 +1,4 @@
-#include "tirpc/net/reactor.hpp"
+#include "tirpc/net/base/reactor.hpp"
 
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
@@ -11,8 +11,8 @@
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 #include "tirpc/coroutine/coroutine_hook.hpp"
-#include "tirpc/net/fd_event.hpp"
-#include "tirpc/net/timer.hpp"
+#include "tirpc/net/base/fd_event.hpp"
+#include "tirpc/net/base/timer.hpp"
 
 extern read_fun_ptr_t g_sys_read_fun;    // sys read func
 extern write_fun_ptr_t g_sys_write_fun;  // sys write func

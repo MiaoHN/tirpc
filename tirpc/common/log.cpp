@@ -19,8 +19,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "tirpc/net/reactor.hpp"
-#include "tirpc/net/timer.hpp"
+#include "tirpc/net/base/reactor.hpp"
+#include "tirpc/net/base/timer.hpp"
 
 namespace tirpc {
 

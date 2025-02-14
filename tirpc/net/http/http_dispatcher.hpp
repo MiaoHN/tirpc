@@ -3,7 +3,7 @@
 #include <map>
 #include <memory>
 
-#include "tirpc/net/abstract_dispatcher.hpp"
+#include "tirpc/net/tcp/abstract_dispatcher.hpp"
 #include "tirpc/net/http/http_servlet.hpp"
 
 namespace tirpc {

@@ -3,6 +3,7 @@
 #include <tinyxml2.h>
 #include <memory>
 #include <string>
+#include "tirpc/net/base/address.hpp"
 
 #ifdef DECLARE_MYSQL_PLUGIN
 #include "tirpc/common/mysql_instance.hpp"
@@ -27,6 +28,8 @@ class Config {
   void ReadLogConfig(tinyxml2::XMLElement *node);
 
   auto GetXmlNode(const std::string &name) -> tinyxml2::XMLElement *;
+
+  auto GetAddr() -> IPAddress::ptr { return addr_; }
 
  public:
   // log params
@@ -53,6 +56,8 @@ class Config {
 #ifdef DECLARE_MYSQL_PLUGIN
   std::map<std::string, MySQLOption> mysql_options_;
 #endif
+
+  IPAddress::ptr addr_;
 
  private:
   std::string file_path_;

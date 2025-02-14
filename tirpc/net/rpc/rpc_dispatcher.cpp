@@ -6,7 +6,7 @@
 
 #include "tirpc/common/error_code.hpp"
 #include "tirpc/common/msg_req.hpp"
-#include "tirpc/net/abstract_dispatcher.hpp"
+#include "tirpc/net/tcp/abstract_dispatcher.hpp"
 #include "tirpc/net/rpc/rpc_closure.hpp"
 #include "tirpc/net/rpc/rpc_controller.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"

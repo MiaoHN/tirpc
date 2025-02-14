@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "tirpc/common/mutex.hpp"
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 
 namespace tirpc {
 

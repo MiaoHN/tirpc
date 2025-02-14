@@ -1,5 +1,6 @@
 #include <google/protobuf/service.h>
 #include <atomic>
+#include <memory>
 #include <sstream>
 
 #include "rpc_server.pb.h"
@@ -7,9 +8,9 @@
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/common/start.hpp"
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 #include "tirpc/net/rpc/rpc_dispatcher.hpp"
-#include "tirpc/net/tcp/tcp_server.hpp"
+#include "tirpc/net/rpc/rpc_server.hpp"
 
 static int i = 0;
 
@@ -72,9 +73,11 @@ auto main(int argc, char *argv[]) -> int {
 
   tirpc::InitConfig(argv[1]);
 
-  REGISTER_SERVICE(QueryServiceImpl);
+  auto server = std::make_shared<tirpc::RpcServer>(tirpc::GetConfig()->GetAddr());
 
-  tirpc::StartRpcServer();
+  server->RegisterService(std::make_shared<QueryServiceImpl>());
+
+  tirpc::StartServer(server);
 
   return 0;
 }

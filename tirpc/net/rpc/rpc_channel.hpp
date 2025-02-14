@@ -3,7 +3,7 @@
 #include <google/protobuf/service.h>
 #include <memory>
 
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 #include "tirpc/net/tcp/tcp_client.hpp"
 
 namespace tirpc {

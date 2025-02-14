@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "tirpc/coroutine/coroutine.hpp"
-#include "tirpc/net/reactor.hpp"
+#include "tirpc/net/base/reactor.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
 
 namespace tirpc {

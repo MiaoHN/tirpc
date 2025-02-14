@@ -3,7 +3,7 @@
 #include <google/protobuf/service.h>
 #include <memory>
 
-#include "tirpc/net/abstract_data.hpp"
+#include "tirpc/net/tcp/abstract_data.hpp"
 
 namespace tirpc {
 

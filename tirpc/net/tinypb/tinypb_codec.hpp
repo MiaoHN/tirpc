@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "tirpc/net/abstract_codec.hpp"
-#include "tirpc/net/abstract_data.hpp"
+#include "tirpc/net/tcp/abstract_codec.hpp"
+#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/tinypb/tinypb_data.hpp"
 
 namespace tirpc {

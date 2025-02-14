@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "rpc_server.pb.h"
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 #include "tirpc/net/rpc/rpc_async_channel.hpp"
 #include "tirpc/net/rpc/rpc_channel.hpp"
 #include "tirpc/net/rpc/rpc_closure.hpp"

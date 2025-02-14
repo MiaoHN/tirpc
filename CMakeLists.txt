@@ -12,7 +12,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 # *.cc
 file(GLOB COMM ${PROJECT_SOURCE_DIR}/tirpc/common/*.cpp)
 aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/coroutine COR)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net NET)
+aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/base NETBASE)
 aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/rpc RPC)
 aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/http HTTP)
 aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/tcp TCP)
@@ -20,7 +20,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/tinypb TINYPB)
 
 set(COXTX ${PROJECT_SOURCE_DIR}/tirpc/coroutine/coctx_swap.s)
 
-add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NET} ${HTTP} ${TINYPB} ${RPC})
+add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NETBASE} ${HTTP} ${TINYPB} ${RPC})
 
 
 find_package(Protobuf REQUIRED)

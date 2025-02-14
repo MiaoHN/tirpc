@@ -10,7 +10,7 @@
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/msg_req.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 #include "tirpc/net/rpc/rpc_controller.hpp"
 #include "tirpc/net/tcp/tcp_client.hpp"
 #include "tirpc/net/tinypb/tinypb_codec.hpp"

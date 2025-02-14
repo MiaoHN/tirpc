@@ -3,17 +3,17 @@
 #include <google/protobuf/service.h>
 #include <map>
 
-#include "tirpc/net/abstract_codec.hpp"
-#include "tirpc/net/abstract_dispatcher.hpp"
-#include "tirpc/net/address.hpp"
-#include "tirpc/net/fd_event.hpp"
+#include "tirpc/net/tcp/abstract_codec.hpp"
+#include "tirpc/net/tcp/abstract_dispatcher.hpp"
+#include "tirpc/net/base/address.hpp"
+#include "tirpc/net/base/fd_event.hpp"
 #include "tirpc/net/http/http_dispatcher.hpp"
 #include "tirpc/net/http/http_servlet.hpp"
-#include "tirpc/net/reactor.hpp"
+#include "tirpc/net/base/reactor.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
-#include "tirpc/net/timer.hpp"
+#include "tirpc/net/base/timer.hpp"
 
 namespace tirpc {
 
@@ -44,17 +44,13 @@ class TcpServer {
  public:
   using ptr = std::shared_ptr<TcpServer>;
 
-  explicit TcpServer(NetAddress::ptr addr, ProtocalType type = TinyPb_Protocal);
+  explicit TcpServer(NetAddress::ptr addr);
 
   ~TcpServer();
 
   void Start();
 
   void AddCoroutine(Coroutine::ptr cor);
-
-  auto RegisterService(std::shared_ptr<google::protobuf::Service> service) -> bool;
-
-  auto RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool;
 
   auto AddClient(IOThread *io_thread, int fd) -> TcpConnection::ptr;
 
@@ -78,6 +74,11 @@ class TcpServer {
 
   void ClearClientTimerFunc();
 
+ protected:
+  AbstractDispatcher::ptr dispatcher_;
+
+  AbstractCodeC::ptr codec_;
+
  private:
   NetAddress::ptr addr_;
 
@@ -91,17 +92,11 @@ class TcpServer {
 
   Coroutine::ptr accept_cor_;
 
-  AbstractDispatcher::ptr dispatcher_;
-
-  AbstractCodeC::ptr codec_;
-
   IOThreadPool::ptr io_pool_;
-
-  ProtocalType protocal_type_{TinyPb_Protocal};
 
   /**
    * @brief TCP 时间轮，用于管理 TcpConnection 的生存时间
-   * 
+   *
    */
   TcpTimeWheel::ptr time_wheel_;
 

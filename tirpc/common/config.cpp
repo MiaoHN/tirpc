@@ -8,8 +8,8 @@
 #include <tinyxml.h>
 
 #include "tirpc/common/log.hpp"
-#include "tirpc/net/abstract_codec.hpp"
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/tcp/abstract_codec.hpp"
+#include "tirpc/net/base/address.hpp"
 #include "tirpc/net/tcp/tcp_server.hpp"
 
 namespace tirpc {
@@ -202,13 +202,7 @@ void Config::ReadConf() {
 
   std::transform(protocal.begin(), protocal.end(), protocal.begin(), toupper);
 
-  tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>(ip, port);
-
-  if (protocal == "HTTP") {
-    g_rpc_server = std::make_shared<TcpServer>(addr, Http_Protocal);
-  } else {
-    g_rpc_server = std::make_shared<TcpServer>(addr, TinyPb_Protocal);
-  }
+  addr_ = std::make_shared<tirpc::IPAddress>(ip, port);
 
   char buff[512];
   sprintf(buff,

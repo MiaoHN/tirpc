@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "tirpc/net/abstract_data.hpp"
+#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/http/http_define.hpp"
 
 namespace tirpc {

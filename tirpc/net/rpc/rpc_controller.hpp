@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <memory>
 
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 
 namespace tirpc {
 

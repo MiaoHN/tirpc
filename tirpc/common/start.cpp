@@ -40,12 +40,13 @@ void InitConfig(const char *file) {
 //   g_rpc_server->registerService(service);
 // }
 
-auto GetServer() -> TcpServer::ptr { return g_rpc_server; }
-
-void StartRpcServer() {
+void StartServer(TcpServer::ptr server) {
+  g_rpc_server = server;
   g_rpc_logger->Start();
   g_rpc_server->Start();
 }
+
+auto GetServer() -> TcpServer::ptr { return g_rpc_server; }
 
 auto GetIOThreadPoolSize() -> int { return g_rpc_server->GetIoThreadPool()->GetIoThreadPoolSize(); }
 

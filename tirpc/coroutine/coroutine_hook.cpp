@@ -10,9 +10,9 @@
 #include "tirpc/common/log.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 
-#include "tirpc/net/fd_event.hpp"
-#include "tirpc/net/reactor.hpp"
-#include "tirpc/net/timer.hpp"
+#include "tirpc/net/base/fd_event.hpp"
+#include "tirpc/net/base/reactor.hpp"
+#include "tirpc/net/base/timer.hpp"
 
 #define HOOK_SYS_FUNC(name) name##_fun_ptr_t g_sys_##name##_fun = (name##_fun_ptr_t)dlsym(RTLD_NEXT, #name);
 

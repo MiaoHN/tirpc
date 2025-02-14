@@ -12,7 +12,7 @@
 #include "tirpc/common/start.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
-#include "tirpc/net/address.hpp"
+#include "tirpc/net/base/address.hpp"
 #include "tirpc/net/rpc/rpc_channel.hpp"
 #include "tirpc/net/rpc/rpc_controller.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"

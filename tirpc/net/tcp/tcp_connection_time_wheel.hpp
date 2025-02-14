@@ -3,9 +3,9 @@
 #include <queue>
 #include <vector>
 
-#include "tirpc/net/reactor.hpp"
+#include "tirpc/net/base/reactor.hpp"
 #include "tirpc/net/tcp/abstract_slot.hpp"
-#include "tirpc/net/timer.hpp"
+#include "tirpc/net/base/timer.hpp"
 
 namespace tirpc {
 
