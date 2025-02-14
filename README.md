@@ -1,5 +1,7 @@
 # TiRPC - Tiny RPC Framework
 
+多线程多协程轻量 RPC 框架
+
 ## Examples
 
 ### RPC Service
@@ -12,13 +14,13 @@
 
 ## Benchmark
 
-### Environment
+### 测试环境
 
 - CPU: Intel Core i5-9300H @ 8x 2.4GHz
 - RAM: 15934MiB
 - OS: Ubuntu 20.04 jammy(on  the Windows Subsystem for Linux)
 
-### Test
+### 测试结果
 
 ```bash
 wrk -c 1000 -t 8 -d 30 --latency 'http://127.0.0.1:19999/qps?id=1'
