@@ -17,16 +17,28 @@ HttpServlet::HttpServlet() = default;
 
 HttpServlet::~HttpServlet() = default;
 
+static auto GetParamsStr(const std::map<std::string, std::string> &query_map) -> std::string {
+  std::stringstream ss;
+  if (!query_map.empty()) {
+    ss << ", params = { ";
+    for (const auto &[k, v] : query_map) {
+      ss << k + ": " + v + ", ";
+    }
+    ss << "}";
+  }
+  return ss.str();
+}
+
 void HttpServlet::Handle(HttpRequest *req, HttpResponse *res) {
   // handleNotFound();
   switch (req->request_method_) {
     case HttpMethod::GET: {
-      InfoLog << "<GET> path = '" << req->request_path_ << "'";
+      InfoLog << "<GET> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
       HandleGet(req, res);
       break;
     }
     case HttpMethod::POST: {
-      InfoLog << "<POST> path = '" << req->request_path_ << "'";
+      InfoLog << "<POST> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
       HandlePost(req, res);
       break;
     }

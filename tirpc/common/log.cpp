@@ -178,9 +178,11 @@ static auto GetTimeString() -> std::string {
 static auto AdjustString(const std::string &str, size_t length, char padChar = ' ') -> std::string {
   std::string result = str;
   if (result.length() > length) {
-    result = result.substr(0, length);
+    result = result.substr(result.length() - length, length);
   } else if (result.length() < length) {
-    result.append(length - result.length(), padChar);
+    // 在左侧填充字符实现右对齐
+    std::string padding(length - result.length(), padChar);
+    result = padding + result;
   }
   return result;
 }
@@ -393,7 +395,7 @@ auto AsyncLogger::Execute(void *arg) -> void * {
         fwrite(i.c_str(), 1, i.length(), ptr->file_handler_);
 
         // Write to console
-        if (g_rpc_config->log_to_console_) {
+        if (g_rpc_config->log_to_console_ && ptr->type_ == RPC_LOG) {
           std::cout << i;
         }
       }

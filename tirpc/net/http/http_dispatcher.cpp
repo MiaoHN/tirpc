@@ -19,7 +19,8 @@ void HttpDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
   Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_ = MsgReqUtil::GenMsgNumber();
   SetCurrentRuntime(Coroutine::GetCurrentCoroutine()->GetRuntime());
 
-  DebugLog << "begin to dispatch client http request, msgno=" << Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_;
+  DebugLog << "begin to dispatch client http request, msgno="
+           << Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_;
 
   std::string url_path = resquest->request_path_;
   if (!url_path.empty()) {
@@ -36,8 +37,7 @@ void HttpDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
         it->second->SetCommParam(resquest, &response);
         it->second->Handle(resquest, &response);
       } else {
-        ErrorLog << "404, url path{ " << url_path
-                 << "}, msgno=" << Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_;
+        ErrorLog << "No matched servlet for url path '" << url_path << "'";
         NotFoundHttpServlet servlet;
         Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = servlet.GetServletName();
         servlet.SetCommParam(resquest, &response);

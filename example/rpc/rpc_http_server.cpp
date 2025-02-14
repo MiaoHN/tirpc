@@ -27,9 +27,7 @@ class BlockCallHttpServlet : public tirpc::HttpServlet {
   BlockCallHttpServlet() = default;
   ~BlockCallHttpServlet() override = default;
 
-  void Handle(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
-    AppDebugLog("BlockCallHttpServlet get request");
-    AppDebugLog("BlockCallHttpServlet success recive http request, now to get http response");
+  void HandleGet(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
     SetHttpCode(res, tirpc::HTTP_OK);
     SetHttpContentType(res, "text/html;charset=utf-8");
 
@@ -82,9 +80,7 @@ class NonBlockCallHttpServlet : public tirpc::HttpServlet {
   NonBlockCallHttpServlet() = default;
   ~NonBlockCallHttpServlet() override = default;
 
-  void Handle(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
-    AppInfoLog("NonBlockCallHttpServlet get request");
-    AppDebugLog("NonBlockCallHttpServlet success recive http request, now to get http response");
+  void HandleGet(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
     SetHttpCode(res, tirpc::HTTP_OK);
     SetHttpContentType(res, "text/html;charset=utf-8");
 
@@ -101,7 +97,6 @@ class NonBlockCallHttpServlet : public tirpc::HttpServlet {
     auto async_channel = std::make_shared<tirpc::RpcAsyncChannel>(addr);
 
     auto cb = [rpc_res]() {
-      printf("call succ, res = %s\n", rpc_res->ShortDebugString().c_str());
       AppDebugLog("NonBlockCallHttpServlet async call end, res=%s", rpc_res->ShortDebugString().c_str());
     };
 
@@ -150,8 +145,7 @@ class QPSHttpServlet : public tirpc::HttpServlet {
   QPSHttpServlet() = default;
   ~QPSHttpServlet() override = default;
 
-  void Handle(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
-    AppDebugLog("QPSHttpServlet get request");
+  void HandleGet(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
     SetHttpCode(res, tirpc::HTTP_OK);
     SetHttpContentType(res, "text/html;charset=utf-8");
 

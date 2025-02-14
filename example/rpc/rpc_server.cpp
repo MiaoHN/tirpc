@@ -73,8 +73,6 @@ auto main(int argc, char *argv[]) -> int {
 
   tirpc::InitConfig(config_file.c_str());
 
-  AppInfoLog("use config file %s", config_file.c_str());
-
   auto server = std::make_shared<tirpc::RpcServer>(tirpc::GetConfig()->GetAddr());
 
   server->RegisterService(std::make_shared<QueryServiceImpl>());

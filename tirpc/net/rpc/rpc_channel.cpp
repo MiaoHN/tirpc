@@ -63,10 +63,6 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
     return;
   }
 
-  InfoLog << "============================================================";
-  InfoLog << pb_struct.msg_req_ << "|" << rpc_controller->PeerAddr()->ToString()
-          << "|. Set client send request data:" << request->ShortDebugString();
-  InfoLog << "============================================================";
   client->SetTimeout(rpc_controller->Timeout());
 
   TinyPbStruct::pb_ptr res_data;
@@ -90,11 +86,6 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
     return;
   }
 
-  InfoLog << "============================================================";
-  InfoLog << pb_struct.msg_req_ << "|" << rpc_controller->PeerAddr()->ToString() << "|call rpc server ["
-          << pb_struct.service_full_name_ << "] succ"
-          << ". Get server reply response data:" << response->ShortDebugString();
-  InfoLog << "============================================================";
 
   // excute callback function
   if (done != nullptr) {

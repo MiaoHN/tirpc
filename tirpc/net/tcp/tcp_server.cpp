@@ -117,7 +117,7 @@ TcpServer::TcpServer(NetAddress::ptr addr) : addr_(std::move(addr)) {
   //   codec_ = std::make_shared<HttpCodeC>();
   //   protocal_type_ = Http_Protocal;
   // } else {
-  //   dispatcher_ = std::make_shared<RpcDispacther>();
+  //   dispatcher_ = std::make_shared<RpcDispatcher>();
   //   codec_ = std::make_shared<TinyPbCodeC>();
   //   protocal_type_ = TinyPb_Protocal;
   // }

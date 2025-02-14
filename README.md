@@ -1,5 +1,15 @@
 # TiRPC - Tiny RPC Framework
 
+## Examples
+
+### RPC Service
+
+![rpc_service](https://cdn.jsdelivr.net/gh/MiaoHN/image-host@master/images/202502142213545.png)
+
+### Http Server
+
+![http_server](https://cdn.jsdelivr.net/gh/MiaoHN/image-host@master/images/202502142146289.png)
+
 ## Benchmark
 
 ### Environment
@@ -20,10 +30,8 @@ wrk -c 1000 -t 8 -d 30 --latency 'http://127.0.0.1:19999/qps?id=1'
 | 4         | 38781.26 | 36080.29 | 37408.68 | 36920.82 |
 | 16        | 72882.96 | 63116.69 | 64311.55 | 75873.56 |
 
-### Flamegraph
-
-![flamegraph](./images/flame.svg)
-
 ## Reference
 
+- [libco](https://github.com/Tencent/libco)
 - [tinyrpc](https://github.com/Gooddbird/tinyrpc)
+- [sylar](https://github.com/sylar-yin/sylar)

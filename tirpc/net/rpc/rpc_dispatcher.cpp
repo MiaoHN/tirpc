@@ -6,18 +6,18 @@
 
 #include "tirpc/common/error_code.hpp"
 #include "tirpc/common/msg_req.hpp"
-#include "tirpc/net/tcp/abstract_dispatcher.hpp"
 #include "tirpc/net/rpc/rpc_closure.hpp"
-#include "tirpc/net/rpc/rpc_controller.hpp"
-#include "tirpc/net/tcp/tcp_connection.hpp"
 #include "tirpc/net/rpc/rpc_codec.hpp"
+#include "tirpc/net/rpc/rpc_controller.hpp"
 #include "tirpc/net/rpc/rpc_data.hpp"
+#include "tirpc/net/tcp/abstract_dispatcher.hpp"
+#include "tirpc/net/tcp/tcp_connection.hpp"
 
 namespace tirpc {
 
 class TcpBuffer;
 
-void RpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
+void RpcDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
   auto *tmp = dynamic_cast<TinyPbStruct *>(data);
 
   if (tmp == nullptr) {
@@ -92,10 +92,6 @@ void RpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
     return;
   }
 
-  InfoLog << "============================================================";
-  InfoLog << reply_pk.msg_req_ << "|Get client request data:" << request->ShortDebugString();
-  InfoLog << "============================================================";
-
   google::protobuf::Message *response = service->GetResponsePrototype(method).New();
 
   DebugLog << reply_pk.msg_req_ << "|response.name = " << response->GetDescriptor()->full_name();
@@ -110,17 +106,13 @@ void RpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
   RpcClosure closure(reply_package_func);
   service->CallMethod(method, &rpc_controller, request, response, &closure);
 
-  InfoLog << "Call [" << reply_pk.service_full_name_ << "] succ, now send reply package";
+  InfoLog << "Called successfully, now send reply package";
 
   if (!(response->SerializeToString(&(reply_pk.pb_data_)))) {
     reply_pk.pb_data_ = "";
     ErrorLog << reply_pk.msg_req_ << "|reply error! encode reply package error";
     reply_pk.err_code_ = ERROR_FAILED_SERIALIZE;
     reply_pk.err_info_ = "failed to serilize relpy data";
-  } else {
-    InfoLog << "============================================================";
-    InfoLog << reply_pk.msg_req_ << "|Set server response data:" << response->ShortDebugString();
-    InfoLog << "============================================================";
   }
 
   delete request;
@@ -129,7 +121,7 @@ void RpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
   conn->GetCodec()->Encode(conn->GetOutBuffer(), dynamic_cast<AbstractData *>(&reply_pk));
 }
 
-auto RpcDispacther::ParseServiceFullName(const std::string &full_name, std::string &service_name,
+auto RpcDispatcher::ParseServiceFullName(const std::string &full_name, std::string &service_name,
                                          std::string &method_name) -> bool {
   if (full_name.empty()) {
     ErrorLog << "service_full_name empty";
@@ -149,10 +141,10 @@ auto RpcDispacther::ParseServiceFullName(const std::string &full_name, std::stri
   return true;
 }
 
-void RpcDispacther::RegisterService(service_ptr service) {
+void RpcDispatcher::RegisterService(service_ptr service) {
   std::string service_name = service->GetDescriptor()->full_name();
   service_map_[service_name] = service;
-  InfoLog << "succ register service[" << service_name << "]!";
+  InfoLog << "Successfully register service [" << service_name << "]!";
 }
 
 }  // namespace tirpc

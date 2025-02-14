@@ -6,13 +6,14 @@
 namespace tirpc {
 
 RpcServer::RpcServer(NetAddress::ptr addr) : TcpServer(addr) {
-  dispatcher_ = std::make_shared<RpcDispacther>();
+  dispatcher_ = std::make_shared<RpcDispatcher>();
   codec_ = std::make_shared<TinyPbCodeC>();
+  start_info_ = "RPC service has started and is available at " + addr->ToString();
 }
 
 auto RpcServer::RegisterService(std::shared_ptr<google::protobuf::Service> service) -> bool {
   if (service) {
-    dynamic_cast<RpcDispacther *>(dispatcher_.get())->RegisterService(service);
+    dynamic_cast<RpcDispatcher *>(dispatcher_.get())->RegisterService(service);
   } else {
     ErrorLog << "register service error, service ptr is nullptr";
     return false;

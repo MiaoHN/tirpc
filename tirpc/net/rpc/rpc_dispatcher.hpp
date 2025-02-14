@@ -15,13 +15,13 @@ namespace tirpc {
  * @brief 用于处理 RPC 请求的分发
  *
  */
-class RpcDispacther : public AbstractDispatcher {
+class RpcDispatcher : public AbstractDispatcher {
  public:
-  // using ptr = std::shared_ptr<RpcDispacther>;
+  // using ptr = std::shared_ptr<RpcDispatcher>;
   using service_ptr = std::shared_ptr<google::protobuf::Service>;
 
-  RpcDispacther() = default;
-  ~RpcDispacther() override = default;
+  RpcDispatcher() = default;
+  ~RpcDispatcher() override = default;
 
   /**
    * @brief 分发 RPC 请求，根据请求数据和连接进行处理
