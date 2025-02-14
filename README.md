@@ -8,7 +8,7 @@
 
 ### Http Server
 
-![http_server](https://cdn.jsdelivr.net/gh/MiaoHN/image-host@master/images/202502142146289.png)
+![http_server](https://cdn.jsdelivr.net/gh/MiaoHN/image-host@master/images/202502142240987.png)
 
 ## Benchmark
 
