@@ -3,17 +3,17 @@
 #include <google/protobuf/service.h>
 #include <map>
 
-#include "tirpc/net/tcp/abstract_codec.hpp"
-#include "tirpc/net/tcp/abstract_dispatcher.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/base/fd_event.hpp"
+#include "tirpc/net/base/reactor.hpp"
+#include "tirpc/net/base/timer.hpp"
 #include "tirpc/net/http/http_dispatcher.hpp"
 #include "tirpc/net/http/http_servlet.hpp"
-#include "tirpc/net/base/reactor.hpp"
+#include "tirpc/net/tcp/abstract_codec.hpp"
+#include "tirpc/net/tcp/abstract_dispatcher.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
-#include "tirpc/net/base/timer.hpp"
 
 namespace tirpc {
 
@@ -78,6 +78,8 @@ class TcpServer {
   AbstractDispatcher::ptr dispatcher_;
 
   AbstractCodeC::ptr codec_;
+
+  std::string start_info_{};
 
  private:
   NetAddress::ptr addr_;

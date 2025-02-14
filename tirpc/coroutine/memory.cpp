@@ -11,7 +11,7 @@ Memory::Memory(int block_size, int block_count) : block_size_(block_size), block
   start_ = static_cast<char *>(malloc(size_));
 
   assert(start_ != nullptr);
-  InfoLog << "succ mmap " << size_ << " bytes memory";
+  DebugLog << "succ mmap " << size_ << " bytes memory";
 
   end_ = start_ + size_ - 1;
 

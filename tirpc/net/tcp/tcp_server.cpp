@@ -85,7 +85,7 @@ auto TcpAcceptor::ToAccept() -> int {
       DebugLog << "error, no new client coming, errno=" << errno << "error=" << strerror(errno);
       return -1;
     }
-    InfoLog << "New client accepted succ! port:[" << cli_addr.sin_port;
+    DebugLog << "New client accepted succ! port:[" << cli_addr.sin_port;
     peer_addr_ = std::make_shared<IPAddress>(cli_addr);
   } else if (family_ == AF_UNIX) {
     sockaddr_un cli_addr;
@@ -105,14 +105,15 @@ auto TcpAcceptor::ToAccept() -> int {
     return -1;
   }
 
-  InfoLog << "New client accepted succ! fd:[" << rt << ", addr:[" << peer_addr_->ToString() << "]";
+  DebugLog << "New client accepted succ! fd:[" << rt << ", addr:[" << peer_addr_->ToString() << "]";
+
   return rt;
 }
 
 TcpServer::TcpServer(NetAddress::ptr addr) : addr_(std::move(addr)) {
   io_pool_ = std::make_shared<IOThreadPool>(g_rpc_config->iothread_num_);
   // if (type == Http_Protocal) {
-  //   dispatcher_ = std::make_shared<HttpDispacther>();
+  //   dispatcher_ = std::make_shared<HttpDispatcher>();
   //   codec_ = std::make_shared<HttpCodeC>();
   //   protocal_type_ = Http_Protocal;
   // } else {
@@ -131,16 +132,19 @@ TcpServer::TcpServer(NetAddress::ptr addr) : addr_(std::move(addr)) {
       std::make_shared<TimerEvent>(10000, true, std::bind(&TcpServer::ClearClientTimerFunc, this));
   main_reactor_->GetTimer()->AddTimerEvent(clear_clent_timer_event_);
 
-  InfoLog << "TcpServer setup on [" << addr_->ToString() << "]";
+  DebugLog << "TcpServer setup on [" << addr_->ToString() << "]";
 }
 
 void TcpServer::Start() {
+  if (!start_info_.empty()) {
+    std::cout << start_info_ << std::endl << std::endl;
+  }
   acceptor_.reset(new TcpAcceptor(addr_));
   acceptor_->Init();
   accept_cor_ = GetCoroutinePool()->GetCoroutineInstanse();
   accept_cor_->SetCallBack(std::bind(&TcpServer::MainAcceptCorFunc, this));
 
-  InfoLog << "resume accept coroutine";
+  DebugLog << "resume accept coroutine";
   Coroutine::Resume(accept_cor_.get());
 
   // accept_cor 已经执行，但在服务器刚启动时没有其它连接（NonBlocking），所以 Yield 回来了

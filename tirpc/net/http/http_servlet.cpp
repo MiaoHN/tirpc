@@ -1,6 +1,7 @@
 #include "tirpc/net/http/http_servlet.hpp"
 
 #include <memory>
+#include <unordered_map>
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/net/http/http_define.hpp"
@@ -18,7 +19,27 @@ HttpServlet::~HttpServlet() = default;
 
 void HttpServlet::Handle(HttpRequest *req, HttpResponse *res) {
   // handleNotFound();
+  switch (req->request_method_) {
+    case HttpMethod::GET: {
+      InfoLog << "<GET> path = '" << req->request_path_ << "'";
+      HandleGet(req, res);
+      break;
+    }
+    case HttpMethod::POST: {
+      InfoLog << "<POST> path = '" << req->request_path_ << "'";
+      HandlePost(req, res);
+      break;
+    }
+    default: {
+      WarnLog << "http method not supported";
+      break;
+    }
+  }
 }
+
+void HttpServlet::HandleGet(HttpRequest *req, HttpResponse *res) { WarnLog << "<GET> not implemented"; }
+
+void HttpServlet::HandlePost(HttpRequest *req, HttpResponse *res) { WarnLog << "<POST> not implemented"; }
 
 void HttpServlet::HandleNotFound(HttpRequest *req, HttpResponse *res) {
   DebugLog << "return 404 html";
@@ -37,6 +58,38 @@ void HttpServlet::SetHttpCode(HttpResponse *res, const int code) {
 
 void HttpServlet::SetHttpContentType(HttpResponse *res, const std::string &content_type) {
   res->response_header_.maps_["Content-Type"] = content_type;
+}
+
+static auto GetContentType(const std::string &fileExtension) -> std::string {
+  static std::unordered_map<std::string, std::string> contentTypes = {{".html", "text/html;charset=utf-8"},
+                                                                      {".css", "text/css;charset=utf-8"},
+                                                                      {".js", "application/javascript;charset=utf-8"},
+                                                                      {".jpg", "image/jpeg"},
+                                                                      {".png", "image/png"},
+                                                                      {".gif", "image/gif"},
+                                                                      {".json", "application/json;charset=utf-8"},
+                                                                      {".xml", "application/xml;charset=utf-8"}};
+
+  auto it = contentTypes.find(fileExtension);
+  if (it != contentTypes.end()) {
+    return it->second;
+  }
+  return "application/octet-stream";  // 默认类型
+}
+
+void HttpServlet::SetHttpContentTypeForFile(HttpResponse *res, const std::string &filepath) {
+  // 提取文件后缀
+  size_t dotPos = filepath.rfind('.');
+  std::string fileExtension;
+  if (dotPos != std::string::npos) {
+    fileExtension = filepath.substr(dotPos);
+  }
+
+  // 获取 Content-Type
+  std::string content_type = GetContentType(fileExtension);
+
+  // 设置 Content-Type 到响应头
+  SetHttpContentType(res, content_type);
 }
 
 void HttpServlet::SetHttpBody(HttpResponse *res, const std::string &body) {

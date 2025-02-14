@@ -12,10 +12,12 @@
 #include <atomic>
 #include <cassert>
 #include <cerrno>
+#include <chrono>
 #include <csignal>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -101,18 +103,18 @@ auto LevelToString(LogLevel level) -> std::string {
       return re;
 
     case INFO:
-      re = "INFO";
+      re = " INFO";
       return re;
 
     case WARN:
-      re = "WARN";
+      re = " WARN";
       return re;
 
     case ERROR:
       re = "ERROR";
       return re;
     case NONE:
-      re = "NONE";
+      re = " NONE";
 
     default:
       return re;
@@ -154,23 +156,36 @@ auto LogTypeToString(LogType logtype) -> std::string {
   }
 }
 
+static auto GetTimeString() -> std::string {
+  // 获取当前时间点
+  auto now = std::chrono::system_clock::now();
+  // 将时间点转换为 std::time_t 类型
+  std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+  // 获取毫秒部分
+  auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+
+  // 转换为本地时间
+  std::tm *localTime = std::localtime(&currentTime);
+
+  // 用于存储格式化后的时间字符串
+  std::ostringstream oss;
+  oss << std::put_time(localTime, "%Y-%m-%d %H:%M:%S.") << std::setfill('0') << std::setw(3) << ms.count();
+
+  return oss.str();
+}
+
+// 将字符串调整到指定长度，过长则截断，过短则填充
+static auto AdjustString(const std::string &str, size_t length, char padChar = ' ') -> std::string {
+  std::string result = str;
+  if (result.length() > length) {
+    result = result.substr(0, length);
+  } else if (result.length() < length) {
+    result.append(length - result.length(), padChar);
+  }
+  return result;
+}
+
 auto LogEvent::GetSS() -> std::stringstream & {
-  // time_t now_time = timestamp_;
-
-  gettimeofday(&timeval_, nullptr);
-
-  struct tm time;
-  localtime_r(&(timeval_.tv_sec), &time);
-
-  const char *format = "%Y-%m-%d %H:%M:%S";
-  char buf[128];
-  strftime(buf, sizeof(buf), format, &time);
-
-  ss_ << "[" << buf << "." << timeval_.tv_usec << "] ";
-
-  std::string s_level = LevelToString(level_);
-  ss_ << "[" << s_level << "] ";
-
   if (g_pid == 0) {
     g_pid = getpid();
   }
@@ -180,23 +195,17 @@ auto LogEvent::GetSS() -> std::stringstream & {
     t_thread_id = GetTid();
   }
   tid_ = t_thread_id;
-
   cor_id_ = Coroutine::GetCurrentCoroutine()->GetCorId();
 
-  // ss_ << "[" << pid_ << "] ";
-  // << "[" << func_name_ << "]\t";
+  ss_ << GetTimeString() << " " << LevelToString(level_) << " " << tid_ << " --- ";
+
+  std::string field_name = "main";
   Runtime *runtime = GetCurrentRuntime();
   if (runtime != nullptr) {
-    // std::string msgno = runtime->msg_no_;
-    // if (!msgno.empty()) {
-    //   ss_ << "[" << msgno << "] ";
-    // }
-
-    std::string interface_name = runtime->interface_name_;
-    if (!interface_name.empty()) {
-      ss_ << "[" << interface_name << "] ";
-    }
+    field_name = runtime->interface_name_;
   }
+  ss_ << AdjustString(field_name, 20) << " : ";
+
   return ss_;
 }
 
@@ -385,12 +394,7 @@ auto AsyncLogger::Execute(void *arg) -> void * {
 
         // Write to console
         if (g_rpc_config->log_to_console_) {
-          // [APP] / [RPC]
-          if (ptr->type_ == APP_LOG) {
-            printf("[APP] %s", i.c_str());
-          } else {
-            printf("[RPC] %s", i.c_str());
-          }
+          std::cout << i;
         }
       }
     }

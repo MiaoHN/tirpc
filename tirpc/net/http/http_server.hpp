@@ -9,6 +9,8 @@ class HttpServer : public TcpServer {
   explicit HttpServer(NetAddress::ptr addr);
 
   auto RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool;
+
+  auto RegisterGlobHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool;
 };
 
 }  // namespace tirpc

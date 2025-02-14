@@ -231,10 +231,10 @@ void TcpConnection::Output() {
     write_buffer_->RecycleRead(rt);
     DebugLog << "recycle write index =" << write_buffer_->WriteIndex() << ", read_index =" << write_buffer_->ReadIndex()
              << "readable = " << write_buffer_->Readable();
-    InfoLog << "send[" << rt << "] bytes data to [" << peer_addr_->ToString() << "], fd [" << fd_ << "]";
+    DebugLog << "send[" << rt << "] bytes data to [" << peer_addr_->ToString() << "], fd [" << fd_ << "]";
     if (write_buffer_->Readable() <= 0) {
       // InfoLog << "send all data, now unregister write event on reactor and yield Coroutine";
-      InfoLog << "send all data, now unregister write event and break";
+      DebugLog << "send all data, now unregister write event and break";
       // fd_event_->DelListenEvents(IOEvent::WRITE);
       break;
     }
@@ -268,7 +268,8 @@ void TcpConnection::ShutdownConnection() {
     return;
   }
   SetState(HalfClosing);
-  InfoLog << "shutdown conn[" << peer_addr_->ToString() << "], fd=" << fd_;
+  DebugLog << "shutdown conn[" << peer_addr_->ToString() << "], fd=" << fd_;
+
   // call sys shutdown to send FIN
   // wait client done something, client will send FIN
   // and fd occur read event but byte count is 0

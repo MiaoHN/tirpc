@@ -5,13 +5,18 @@
 namespace tirpc {
 
 HttpServer::HttpServer(NetAddress::ptr addr) : TcpServer(addr) {
-  dispatcher_ = std::make_shared<HttpDispacther>();
+  dispatcher_ = std::make_shared<HttpDispatcher>();
   codec_ = std::make_shared<HttpCodeC>();
+  start_info_ = " View Page at: http://" + addr->ToString();
 }
 
 auto HttpServer::RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool {
   if (servlet) {
-    dynamic_cast<HttpDispacther *>(dispatcher_.get())->RegisterServlet(url_path, servlet);
+    if (url_path.back() == '*') {
+      dynamic_cast<HttpDispatcher *>(dispatcher_.get())->RegisterGlobServlet(url_path, servlet);
+    } else {
+      dynamic_cast<HttpDispatcher *>(dispatcher_.get())->RegisterServlet(url_path, servlet);
+    }
   } else {
     ErrorLog << "register http servlet error, servlet ptr is nullptr";
     return false;

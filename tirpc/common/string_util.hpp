@@ -20,4 +20,11 @@ class StringUtil {
   static void SplitStrToVector(const std::string &str, const std::string &split_str, std::vector<std::string> &res);
 };
 
+class FileUtil {
+ public:
+  static auto IsDirectory(const std::string &path) -> bool;
+
+  static auto ReadFile(const std::string &filepath, std::string &content) -> bool;
+};
+
 }  // namespace tirpc

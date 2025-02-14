@@ -39,8 +39,24 @@ void InitConfig(const char *file) {
 // void RegisterService(google::protobuf::Service* service) {
 //   g_rpc_server->registerService(service);
 // }
+static const std::string tirpc_banner[] = {  //
+    "████████╗██╗██████╗ ██████╗  ██████╗",  //
+    "╚══██╔══╝██║██╔══██╗██╔══██╗██╔════╝",  //
+    "   ██║   ██║██████╔╝██████╔╝██║     ",  //
+    "   ██║   ██║██╔══██╗██╔═══╝ ██║     ",  //
+    "   ██║   ██║██║  ██║██║     ╚██████╗",  //
+    "   ╚═╝   ╚═╝╚═╝  ╚═╝╚═╝      ╚═════╝"};
+
+static void ShowBanner() {
+  std::cout << std::endl;
+  for (const auto &line : tirpc_banner) {
+    std::cout << line << std::endl;
+  }
+  std::cout << " :: TiRPC ::        (v0.1.0.DEVELOP)\n" << std::endl;
+}
 
 void StartServer(TcpServer::ptr server) {
+  ShowBanner();
   g_rpc_server = server;
   g_rpc_logger->Start();
   g_rpc_server->Start();

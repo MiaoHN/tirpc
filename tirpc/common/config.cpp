@@ -8,8 +8,8 @@
 #include <tinyxml.h>
 
 #include "tirpc/common/log.hpp"
-#include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/base/address.hpp"
+#include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/tcp/tcp_server.hpp"
 
 namespace tirpc {
@@ -216,7 +216,7 @@ void Config::ReadConf() {
           iothread_num_, timewheel_bucket_num_, timewheel_interval_, ip.c_str(), port, protocal.c_str());
 
   std::string s(buff);
-  InfoLog << s;
+  DebugLog << s;
 
   tinyxml2::XMLElement *database_node = root->FirstChildElement("database");
 

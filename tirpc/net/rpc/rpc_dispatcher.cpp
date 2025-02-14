@@ -27,7 +27,7 @@ void RpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
   Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_ = tmp->msg_req_;
   SetCurrentRuntime(Coroutine::GetCurrentCoroutine()->GetRuntime());
 
-  InfoLog << "begin to dispatch client tinypb request, msgno=" << tmp->msg_req_;
+  DebugLog << "begin to dispatch client tinypb request, msgno=" << tmp->msg_req_;
 
   std::string service_name;
   std::string method_name;
@@ -61,7 +61,7 @@ void RpcDispacther::Dispatch(AbstractData *data, TcpConnection *conn) {
 
     conn->GetCodec()->Encode(conn->GetOutBuffer(), dynamic_cast<AbstractData *>(&reply_pk));
 
-    InfoLog << "end dispatch client tinypb request, msgno=" << tmp->msg_req_;
+    DebugLog << "end dispatch client tinypb request, msgno=" << tmp->msg_req_;
     return;
   }
 
