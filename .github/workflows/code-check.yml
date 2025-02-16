@@ -6,26 +6,25 @@ on:
 
 
 jobs:
-  code-check:
+  formatting-check:
+    name: Formatting Check
     runs-on: ubuntu-latest
-
     steps:
-    # 第一步：检出代码
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Run clang-format style check for C/C++/Protobuf programs.
+      uses: jidicula/clang-format-action@v4.14.0
+      with:
+        clang-format-version: '18'
+        check-path: 'tirpc'
 
-    # 第二步：安装必要的工具
+  cppcheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-format cppcheck
-
-    # 第三步：使用 clang-format 检查代码格式
-    - name: Check code formatting with clang-format
-      run: |
-        find ./tirpc -name '*.hpp' -o -name '*.cpp' | xargs clang-format --dry-run --Werror
-
-    # 第四步：使用 cppcheck 进行静态代码分析
+        sudo apt-get install -y cppcheck
     - name: Run cppcheck
       run: |
         cppcheck ./tirpc --quiet --enable=style,warning,performance,portability --inconclusive --error-exitcode=1
