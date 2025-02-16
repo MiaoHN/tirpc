@@ -224,10 +224,10 @@ void Reactor::Loop() {
 
     // DebugLog << "task";
     // excute tasks
-    Mutex::Locker lock(mutex_);
+    Mutex::Locker lock1(mutex_);
     std::vector<std::function<void()>> tmp_tasks;
     tmp_tasks.swap(pending_tasks_);
-    lock.Unlock();
+    lock1.Unlock();
 
     for (auto &tmp_task : tmp_tasks) {
       // DebugLog << "begin to excute task[" << i << "]";
@@ -285,9 +285,7 @@ void Reactor::Loop() {
                 // main reactor, just resume this coroutine. it is accept coroutine. and Main Reactor only have this
                 // coroutine
                 Coroutine::Resume(ptr->GetCoroutine());
-                if (first_coroutine != nullptr) {
-                  first_coroutine = nullptr;
-                }
+                first_coroutine = nullptr;
               }
 
             } else {
@@ -307,7 +305,7 @@ void Reactor::Loop() {
               }
               if ((one_event.events & EPOLLOUT) != 0U) {
                 // DebugLog << "socket [" << fd << "] occur write event";
-                Mutex::Locker lock(mutex_);
+                Mutex::Locker lock2(mutex_);
                 pending_tasks_.push_back(write_cb);
               }
             }
@@ -320,7 +318,7 @@ void Reactor::Loop() {
     std::vector<int> tmp_del;
 
     {
-      Mutex::Locker lock(mutex_);
+      Mutex::Locker lock3(mutex_);
       tmp_add.swap(pending_add_fds_);
       pending_add_fds_.clear();
 

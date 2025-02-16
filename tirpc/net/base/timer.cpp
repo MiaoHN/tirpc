@@ -128,10 +128,11 @@ void Timer::OnTimer() {
   // 取出到期并未取消的事件
   int64_t now = GetNowMs();
   RWMutex::WriteLocker lock(mutex_);
-  auto it = pending_events_.begin();
   std::vector<TimerEvent::ptr> repeated_tasks;
   std::vector<std::function<void()>> tasks;
-  for (it = pending_events_.begin(); it != pending_events_.end(); ++it) {
+
+  auto it = pending_events_.begin();
+  for (; it != pending_events_.end(); ++it) {
     if (it->first > now || it->second->is_canceled_) {
       break;
     }

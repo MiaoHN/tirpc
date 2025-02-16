@@ -12,8 +12,8 @@
 #include "tirpc/coroutine/coroutine_pool.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/base/fd_event.hpp"
-#include "tirpc/net/http/http_codec.hpp"
 #include "tirpc/net/base/timer.hpp"
+#include "tirpc/net/http/http_codec.hpp"
 #include "tirpc/net/rpc/rpc_codec.hpp"
 
 namespace tirpc {
@@ -87,10 +87,6 @@ auto TcpClient::SendAndRecvTinyPb(const std::string &msg_no, TinyPbStruct::pb_pt
         break;
       }
       ResetFd();
-      if (is_timeout) {
-        InfoLog << "connect timeout, break";
-        goto err_deal;
-      }
       if (errno == ECONNREFUSED) {
         std::stringstream ss;
         ss << "connect error, peer[ " << peer_addr_->ToString() << " ] closed.";

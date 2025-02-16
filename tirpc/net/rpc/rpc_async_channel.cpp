@@ -49,7 +49,6 @@ void RpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor *metho
   auto *rpc_controller = dynamic_cast<RpcController *>(controller);
   if (!is_pre_set_) {
     ErrorLog << "Error! must call [saveCallee()] function before [CallMethod()]";
-    auto *rpc_controller = dynamic_cast<RpcController *>(controller);
     rpc_controller->SetError(ERROR_NOT_SET_ASYNC_PRE_CALL,
                              "Error! must call [saveCallee()] function before [CallMethod()];");
     is_finished_ = true;

@@ -45,7 +45,7 @@ auto MsgReqUtil::GenMsgNumber() -> std::string {
 
   } else {
     int i = t_msg_req_nu.length() - 1;
-    while (t_msg_req_nu[i] == '9' && i >= 0) {
+    while (i >= 0 && t_msg_req_nu[i] == '9') {
       i--;
     }
     if (i >= 0) {

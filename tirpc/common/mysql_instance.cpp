@@ -136,10 +136,10 @@ int MySQLInstase::query(const std::string &sql) {
     DebugLog << "*************** will reconnect mysql ";
     reconnect();
   }
-  if (!sql_handler_) {
-    DebugLog << "reconnect error, query return -1";
-    return -1;
-  }
+  // if (!sql_handler_) {
+  //   DebugLog << "reconnect error, query return -1";
+  //   return -1;
+  // }
 
   DebugLog << "begin to excute sql[" << sql << "]";
   int rt = mysql_real_query(sql_handler_, sql.c_str(), sql.length());

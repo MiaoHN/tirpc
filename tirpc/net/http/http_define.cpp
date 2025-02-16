@@ -1,5 +1,6 @@
 #include "tirpc/net/http/http_define.hpp"
 
+#include <numeric>
 #include <sstream>
 #include <string>
 
@@ -36,18 +37,16 @@ auto HttpCodeToString(const int code) -> const char * {
 auto HttpHeaderComm::GetValue(const std::string &key) -> std::string { return maps_[key.c_str()]; }
 
 auto HttpHeaderComm::GetHeaderTotalLength() -> int {
-  int len = 0;
-  for (const auto& it : maps_) {
-    len += it.first.length() + 1 + it.second.length() + 2;
-  }
-  return len;
+  return std::accumulate(maps_.begin(), maps_.end(), 0, [](int sum, const auto &entry) {
+    return sum + entry.first.length() + 1 + entry.second.length() + 2;
+  });
 }
 
 void HttpHeaderComm::SetKeyValue(const std::string &key, const std::string &value) { maps_[key.c_str()] = value; }
 
 auto HttpHeaderComm::ToHttpString() -> std::string {
   std::stringstream ss;
-  for (const auto& it : maps_) {
+  for (const auto &it : maps_) {
     ss << it.first << ":" << it.second << "\r\n";
   }
   return ss.str();

@@ -26,16 +26,16 @@ void HttpDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
   if (!url_path.empty()) {
     auto it = servlets_.find(url_path);
     if (it == servlets_.end()) {
-      auto it = globs_.begin();
-      for (; it != globs_.end(); ++it) {
-        if (!fnmatch(it->first.c_str(), url_path.c_str(), 0)) {
+      auto glob_it = globs_.begin();
+      for (; glob_it != globs_.end(); ++glob_it) {
+        if (!fnmatch(glob_it->first.c_str(), url_path.c_str(), 0)) {
           break;
         }
       }
-      if (it != globs_.end()) {
-        Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = it->second->GetServletName();
-        it->second->SetCommParam(resquest, &response);
-        it->second->Handle(resquest, &response);
+      if (glob_it != globs_.end()) {
+        Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = glob_it->second->GetServletName();
+        glob_it->second->SetCommParam(resquest, &response);
+        glob_it->second->Handle(resquest, &response);
       } else {
         ErrorLog << "No matched servlet for url path '" << url_path << "'";
         NotFoundHttpServlet servlet;
