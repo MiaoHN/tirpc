@@ -38,8 +38,8 @@ class RpcController : public google::protobuf::RpcController {
 
   /**
    * @brief 注册一个回调函数，当 RPC 调用被取消时调用
-   * 
-   * @param callback 
+   *
+   * @param callback
    */
   void NotifyOnCancel(google::protobuf::Closure *callback) override;
 

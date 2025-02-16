@@ -1,0 +1,31 @@
+name: C++ Code Check
+
+on:
+  push:
+  pull_request:
+
+
+jobs:
+  code-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 第一步：检出代码
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 第二步：安装必要的工具
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format cppcheck
+
+    # 第三步：使用 clang-format 检查代码格式
+    - name: Check code formatting with clang-format
+      run: |
+        find ./tirpc -name '*.hpp' -o -name '*.cpp' | xargs clang-format --dry-run --Werror
+
+    # 第四步：使用 cppcheck 进行静态代码分析
+    - name: Run cppcheck
+      run: |
+        cppcheck ./tirpc --quiet --enable=style,warning,performance,portability --inconclusive --error-exitcode=1

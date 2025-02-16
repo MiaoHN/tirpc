@@ -6,8 +6,8 @@
 #include <memory>
 
 #include "tirpc/common/log.hpp"
-#include "tirpc/net/tcp/tcp_server.hpp"
 #include "tirpc/net/base/timer.hpp"
+#include "tirpc/net/tcp/tcp_server.hpp"
 
 namespace tirpc {
 
