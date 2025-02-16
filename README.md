@@ -1,6 +1,6 @@
 # TiRPC - Tiny RPC Framework
 
-![tirpc](https://img.shields.io/github/v/release/MiaoHN/tirpc?color=2&label=tirpc&logoColor=2&style=plastic) ![GitHub License](https://img.shields.io/github/license/MiaoHN/tirpc) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MiaoHN/tirpc/code-check.yml)
+![tirpc](https://img.shields.io/github/v/release/MiaoHN/tirpc?color=2&label=tirpc&logoColor=2&style=plastic) ![GitHub License](https://img.shields.io/github/license/MiaoHN/tirpc)
 
 参考 [Gooddbird/tinyrpc](https://github.com/Gooddbird/tinyrpc) 实现的轻量级多线程多协程 RPC 框架，有关核心代码的原理请参阅[原作者文章](https://www.zhihu.com/column/c_1515880656429510656)
 
