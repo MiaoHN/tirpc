@@ -6,6 +6,7 @@
 #include <cstring>
 #include <utility>
 
+#include "tirpc/common/log.hpp"
 #include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
 #include "tirpc/net/base/timer.hpp"
@@ -100,9 +101,11 @@ void TcpConnection::Input() {
   if (state == Closed || state == NotConnected) {
     return;
   }
+
   bool read_all = false;
   bool close_flag = false;
   int count = 0;
+
   while (!read_all) {
     if (read_buffer_->Writeable() == 0) {
       read_buffer_->ResizeBuffer(2 * read_buffer_->GetSize());
@@ -113,7 +116,7 @@ void TcpConnection::Input() {
 
     DebugLog << "read_buffer_ size=" << read_buffer_->GetBufferVector().size() << "rd=" << read_buffer_->ReadIndex()
              << "wd=" << read_buffer_->WriteIndex();
-    int rt = read_hook(fd_, &(read_buffer_->buffer_[write_index]), read_count);
+    int rt = recv_hook(fd_, &(read_buffer_->buffer_[write_index]), read_count, 0);
     if (rt > 0) {
       read_buffer_->RecycleWrite(rt);
     }
@@ -128,18 +131,8 @@ void TcpConnection::Input() {
     }
     if (rt <= 0) {
       DebugLog << "rt <= 0";
-      if (errno == EAGAIN || errno == EWOULDBLOCK) {
-        // 没有数据可读，稍后再试
-      } else {
-        if (errno == ECONNRESET) {
-          // 对端关闭
-        } else {
-          ErrorLog << "read empty while occur read event, fd= " << fd_ << ", sys error=" << strerror(errno);
-        }
-        // this cor can destroy
-        close_flag = true;
-        break;
-      }
+      close_flag = true;
+      break;
     }
     if (rt == read_count) {
       DebugLog << "read_count == rt";
@@ -221,7 +214,7 @@ void TcpConnection::Output() {
 
     int total_size = write_buffer_->Readable();
     int read_index = write_buffer_->ReadIndex();
-    int rt = write_hook(fd_, &(write_buffer_->buffer_[read_index]), total_size);
+    int rt = send_hook(fd_, &(write_buffer_->buffer_[read_index]), total_size, 0);
     // InfoLog << "write end";
     if (rt <= 0) {
       ErrorLog << "write empty, error=" << strerror(errno);
@@ -247,6 +240,7 @@ void TcpConnection::Output() {
 }
 
 void TcpConnection::ClearClient() {
+  DebugLog << "clear client...";
   if (GetState() == Closed) {
     DebugLog << "this client has closed";
     return;
@@ -257,7 +251,7 @@ void TcpConnection::ClearClient() {
   // stop read and write cor
   stop_ = true;
 
-  close(fd_event_->GetFd());
+  ::close(fd_event_->GetFd());
   SetState(Closed);
 }
 
