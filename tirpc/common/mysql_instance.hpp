@@ -15,7 +15,7 @@ namespace tirpc {
 
 struct MySQLOption {
  public:
-  explicit MySQLOption(IPAddress addr) : addr_(std::move(addr)){};
+  explicit MySQLOption(IPAddress addr) : addr_(std::move(addr)) {};
   ~MySQLOption() = default;
 
  public:

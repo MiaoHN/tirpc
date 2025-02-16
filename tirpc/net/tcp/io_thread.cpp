@@ -158,8 +158,8 @@ auto IOThreadPool::AddCoroutineToRandomThread(std::function<void()> cb, bool sel
   return cor;
 }
 
-auto IOThreadPool::AddCoroutineToThreadByIndex(int index, std::function<void()> cb, bool self /* = false*/)
-    -> Coroutine::ptr {
+auto IOThreadPool::AddCoroutineToThreadByIndex(int index, std::function<void()> cb,
+                                               bool self /* = false*/) -> Coroutine::ptr {
   if (index >= static_cast<int>(io_threads_.size()) || index < 0) {
     ErrorLog << "addCoroutineToThreadByIndex error, invalid iothread index[" << index << "]";
     return nullptr;
