@@ -131,7 +131,7 @@ void Config::ReadDBConfig(tinyxml2::XMLElement *node) {
     mysql_options_.insert(std::make_pair(key, option));
     char buf[512];
     sprintf(buf, "read config from file [%s], key:%s {addr: %s, user: %s, passwd: %s, select_db: %s, charset: %s}\n",
-            file_path_.c_str(), key.c_str(), option.addr_.toString().c_str(), option.user_.c_str(),
+            file_path_.c_str(), key.c_str(), option.addr_.ToString().c_str(), option.user_.c_str(),
             option.passwd_.c_str(), option.select_db_.c_str(), option.char_set_.c_str());
     std::string s(buf);
     InfoLog << s;

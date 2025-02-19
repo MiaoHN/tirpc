@@ -2,7 +2,7 @@
 
 if [ -z "$1" ]
 then
-  echo "Please input tinyrpc server name!"
+  echo "Please input tirpc server name!"
   exit -1
 fi
 
@@ -12,12 +12,12 @@ CURRENT_PATH=$(cd $(dirname $0); pwd)
 PROJECT_BIN_FILE="${CURRENT_PATH}"/"${PROJECT_NAME}"
 PROJECT_CONF_FILE="../conf/${PROJECT_NAME}.xml"
 
-echo "Shutdown tinyrpc project, name: ${PROJECT_NAME}, path: ${PROJECT_BIN_FILE}"
+echo "Shutdown tirpc project, name: ${PROJECT_NAME}, path: ${PROJECT_BIN_FILE}"
 
 # check bin file exist
 if [ ! -e ${PROJECT_BIN_FILE} ]
 then
-  echo "Shtdown tinyrpc eror, file: ${PROJECT_BIN_FILE} not exist, please check file"
+  echo "Shtdown tirpc eror, file: ${PROJECT_BIN_FILE} not exist, please check file"
   exit -1
 fi
 
