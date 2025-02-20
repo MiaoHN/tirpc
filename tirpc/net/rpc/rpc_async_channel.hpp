@@ -22,7 +22,7 @@ class RpcAsyncChannel : public google::protobuf::RpcChannel, public std::enable_
   using msg_ptr = std::shared_ptr<google::protobuf::Message>;
   using clo_ptr = std::shared_ptr<google::protobuf::Closure>;
 
-  explicit RpcAsyncChannel(NetAddress::ptr addr);
+  explicit RpcAsyncChannel(Address::ptr addr);
 
   ~RpcAsyncChannel() override;
 

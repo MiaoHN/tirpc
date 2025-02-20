@@ -22,7 +22,7 @@
 
 namespace tirpc {
 
-RpcAsyncChannel::RpcAsyncChannel(NetAddress::ptr addr) {
+RpcAsyncChannel::RpcAsyncChannel(Address::ptr addr) {
   rpc_channel_ = std::make_shared<tirpc::RpcChannel>(addr);
   current_iothread_ = IOThread::GetCurrentIOThread();
   current_cor_ = Coroutine::GetCurrentCoroutine();
@@ -56,10 +56,10 @@ void RpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor *metho
   }
   Runtime *run_time = GetCurrentRuntime();
   if (run_time != nullptr) {
-    rpc_controller->SetMsgReq(run_time->msg_no_);
+    rpc_controller->SetMsgSeq(run_time->msg_no_);
     DebugLog << "get from RunTime succ, msgno=" << run_time->msg_no_;
   } else {
-    rpc_controller->SetMsgReq(MsgReqUtil::GenMsgNumber());
+    rpc_controller->SetMsgSeq(MsgReqUtil::GenMsgNumber());
     DebugLog << "get from RunTime error, generate new msgno=" << rpc_controller->MsgSeq();
   }
 

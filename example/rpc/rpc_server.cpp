@@ -63,6 +63,8 @@ class QueryServiceImpl : public QueryService {
   }
 };
 
+
+
 auto main(int argc, char *argv[]) -> int {
  // default config file
   std::string config_file = "./conf/rpc_server.xml";

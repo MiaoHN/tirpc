@@ -51,21 +51,25 @@ class RpcController : public google::protobuf::RpcController {
 
   auto MsgSeq() const -> const std::string &;
 
-  void SetMsgReq(const std::string &msg_req);
+  void SetMsgSeq(const std::string &msg_req);
 
   void SetError(int err_code, const std::string &err_info);
 
-  void SetPeerAddr(NetAddress::ptr addr);
+  void SetPeerAddr(Address::ptr addr);
 
-  void SetLocalAddr(NetAddress::ptr addr);
+  void SetLocalAddr(Address::ptr addr);
 
-  auto PeerAddr() -> NetAddress::ptr;
+  auto PeerAddr() -> Address::ptr;
 
-  auto LocalAddr() -> NetAddress::ptr;
+  auto LocalAddr() -> Address::ptr;
 
   void SetTimeout(int timeout);
 
   auto Timeout() const -> int;
+
+  void SetMaxRetry(int max_retry);
+
+  auto GetMaxRetry() -> int;
 
   void SetMethodName(const std::string &name);
 
@@ -81,12 +85,14 @@ class RpcController : public google::protobuf::RpcController {
   std::string msg_req_;     // msg_req, identify once rpc request and response
   bool is_failed_{false};
   bool is_cancled_{false};
-  NetAddress::ptr peer_addr_;
-  NetAddress::ptr local_addr_;
+  Address::ptr peer_addr_;
+  Address::ptr local_addr_;
 
   int timeout_{5000};        // max call rpc timeout
   std::string method_name_;  // method name
   std::string full_name_;    // full name, like server.method_name
+
+  int max_retry_{3};
 };
 
 }  // namespace tirpc
