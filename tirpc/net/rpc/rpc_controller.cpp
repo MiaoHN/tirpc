@@ -30,24 +30,28 @@ auto RpcController::ErrorCode() const -> int { return error_code_; }
 
 auto RpcController::MsgSeq() const -> const std::string & { return msg_req_; }
 
-void RpcController::SetMsgReq(const std::string &msg_req) { msg_req_ = msg_req; }
+void RpcController::SetMsgSeq(const std::string &msg_req) { msg_req_ = msg_req; }
 
 void RpcController::SetError(const int err_code, const std::string &err_info) {
   SetFailed(err_info);
   SetErrorCode(err_code);
 }
 
-void RpcController::SetPeerAddr(NetAddress::ptr addr) { peer_addr_ = std::move(addr); }
+void RpcController::SetPeerAddr(Address::ptr addr) { peer_addr_ = std::move(addr); }
 
-void RpcController::SetLocalAddr(NetAddress::ptr addr) { local_addr_ = std::move(addr); }
+void RpcController::SetLocalAddr(Address::ptr addr) { local_addr_ = std::move(addr); }
 
-auto RpcController::PeerAddr() -> NetAddress::ptr { return peer_addr_; }
+auto RpcController::PeerAddr() -> Address::ptr { return peer_addr_; }
 
-auto RpcController::LocalAddr() -> NetAddress::ptr { return local_addr_; }
+auto RpcController::LocalAddr() -> Address::ptr { return local_addr_; }
 
 void RpcController::SetTimeout(const int timeout) { timeout_ = timeout; }
 
 auto RpcController::Timeout() const -> int { return timeout_; }
+
+void RpcController::SetMaxRetry(int max_retry) { max_retry_ = max_retry; }
+
+auto RpcController::GetMaxRetry() -> int { return max_retry_; }
 
 void RpcController::SetMethodName(const std::string &name) { method_name_ = name; }
 

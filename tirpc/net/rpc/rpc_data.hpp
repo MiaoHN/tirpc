@@ -17,7 +17,7 @@ class TinyPbStruct : public AbstractData {
   auto operator=(const TinyPbStruct &) -> TinyPbStruct & = default;
   TinyPbStruct(TinyPbStruct &&) = default;
   auto operator=(TinyPbStruct &&) -> TinyPbStruct & = default;
-  auto GetMsgReq() const -> std::string override { return msg_req_; }
+  auto GetMsgReq() const -> std::string override { return msg_seq_; }
 
   /*
   **  min of package is: 1 + 4 + 4 + 4 + 4 + 4 + 4 + 1 = 26 bytes
@@ -27,7 +27,7 @@ class TinyPbStruct : public AbstractData {
   // char start;                      // indentify start of a TinyPb protocal data
   int32_t pk_len_{0};              // len of all package(include start char and end char)
   int32_t msg_req_len_{0};         // len of msg_req
-  std::string msg_req_;            // msg_req, which identify a request
+  std::string msg_seq_;            // msg_req, which identify a request
   int32_t service_name_len_{0};    // len of service full name
   std::string service_full_name_;  // service full name, like QueryService.query_name
   // err_code, 0 -- call rpc success, otherwise -- call rpc failed. it only be seted by RpcController

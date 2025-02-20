@@ -57,14 +57,14 @@ auto TinyPbCodeC::EncodePbData(TinyPbStruct *data, int &len) -> const char * {
     data->encode_succ_ = false;
     return nullptr;
   }
-  if (data->msg_req_.empty()) {
-    data->msg_req_ = MsgReqUtil::GenMsgNumber();
-    data->msg_req_len_ = data->msg_req_.length();
-    DebugLog << "generate msgno = " << data->msg_req_;
+  if (data->msg_seq_.empty()) {
+    data->msg_seq_ = MsgReqUtil::GenMsgNumber();
+    data->msg_req_len_ = data->msg_seq_.length();
+    DebugLog << "generate msgno = " << data->msg_seq_;
   }
 
   int32_t pk_len = 2 * sizeof(char) + 6 * sizeof(int32_t) + data->pb_data_.length() +
-                   data->service_full_name_.length() + data->msg_req_.length() + data->err_info_.length();
+                   data->service_full_name_.length() + data->msg_seq_.length() + data->err_info_.length();
 
   DebugLog << "encode pk_len = " << pk_len;
   char *buf = reinterpret_cast<char *>(malloc(pk_len));
@@ -76,14 +76,14 @@ auto TinyPbCodeC::EncodePbData(TinyPbStruct *data, int &len) -> const char * {
   memcpy(tmp, &pk_len_net, sizeof(int32_t));
   tmp += sizeof(int32_t);
 
-  int32_t msg_req_len = data->msg_req_.length();
+  int32_t msg_req_len = data->msg_seq_.length();
   DebugLog << "msg_req_len_= " << msg_req_len;
   int32_t msg_req_len__net = htonl(msg_req_len);
   memcpy(tmp, &msg_req_len__net, sizeof(int32_t));
   tmp += sizeof(int32_t);
 
   if (msg_req_len != 0) {
-    memcpy(tmp, (data->msg_req_).data(), msg_req_len);
+    memcpy(tmp, (data->msg_seq_).data(), msg_req_len);
     tmp += msg_req_len;
   }
 
@@ -213,8 +213,8 @@ void TinyPbCodeC::Decode(TcpBuffer *buf, AbstractData *data) {
   char msg_req[50] = {0};
 
   memcpy(&msg_req[0], &tmp[msg_req_index], pb_struct->msg_req_len_);
-  pb_struct->msg_req_ = std::string(msg_req);
-  DebugLog << "msg_req_= " << pb_struct->msg_req_;
+  pb_struct->msg_seq_ = std::string(msg_req);
+  DebugLog << "msg_req_= " << pb_struct->msg_seq_;
 
   int service_name_len_index = msg_req_index + pb_struct->msg_req_len_;
   if (service_name_len_index >= end_index) {

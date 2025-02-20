@@ -11,6 +11,7 @@
 #include "tirpc/net/http/http_servlet.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/tcp/abstract_dispatcher.hpp"
+#include "tirpc/net/tcp/abstract_service_register.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
@@ -20,7 +21,7 @@ namespace tirpc {
 class TcpAcceptor {
  public:
   using ptr = std::shared_ptr<TcpAcceptor>;
-  explicit TcpAcceptor(NetAddress::ptr net_addr);
+  explicit TcpAcceptor(Address::ptr net_addr);
 
   void Init();
 
@@ -28,23 +29,23 @@ class TcpAcceptor {
 
   ~TcpAcceptor();
 
-  auto GetPeerAddr() -> NetAddress::ptr { return peer_addr_; }
+  auto GetPeerAddr() -> Address::ptr { return peer_addr_; }
 
-  auto GeLocalAddr() -> NetAddress::ptr { return local_addr_; }
+  auto GeLocalAddr() -> Address::ptr { return local_addr_; }
 
  private:
   int family_{-1};
   int fd_{-1};
 
-  NetAddress::ptr local_addr_{nullptr};
-  NetAddress::ptr peer_addr_{nullptr};
+  Address::ptr local_addr_{nullptr};
+  Address::ptr peer_addr_{nullptr};
 };
 
 class TcpServer {
  public:
   using ptr = std::shared_ptr<TcpServer>;
 
-  explicit TcpServer(NetAddress::ptr addr);
+  explicit TcpServer(Address::ptr addr);
 
   ~TcpServer();
 
@@ -61,9 +62,9 @@ class TcpServer {
 
   auto GetCodec() -> AbstractCodeC::ptr;
 
-  auto GetPeerAddr() -> NetAddress::ptr;
+  auto GetPeerAddr() -> Address::ptr;
 
-  auto GetLocalAddr() -> NetAddress::ptr;
+  auto GetLocalAddr() -> Address::ptr;
 
   auto GetIoThreadPool() -> IOThreadPool::ptr;
 
@@ -81,9 +82,11 @@ class TcpServer {
 
   std::string start_info_{};
 
- private:
-  NetAddress::ptr addr_;
+  AbstractServiceRegister::ptr register_;
 
+  Address::ptr addr_;
+
+ private:
   TcpAcceptor::ptr acceptor_;
 
   int tcp_counts_{0};

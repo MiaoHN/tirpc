@@ -445,7 +445,7 @@ void Exit(int status) {
   mysql_library_end();
 #endif
 
-  printf("It's sorry to said we start TinyRPC server error, look up log file to get more deatils!\n");
+  printf("It's sorry to said we start TiRPC server error, look up log file to get more deatils!\n");
   g_rpc_logger->Flush();
   pthread_join(g_rpc_logger->GetAsyncRpcLogger()->thread_, nullptr);
 

@@ -73,6 +73,15 @@ auto IPAddress::ToString() const -> std::string {
   return ss.str();
 }
 
+void IPAddress::SetPort(uint16_t port) {
+  port_ = port;
+  memset(&addr_, 0, sizeof(addr_));
+  addr_.sin_family = AF_INET;
+  addr_.sin_addr.s_addr = INADDR_ANY;
+  addr_.sin_port = htons(port_);
+  DebugLog << "Update port, current ip address is [" << ToString() << "]";
+}
+
 auto IPAddress::GetSockLen() const -> socklen_t { return sizeof(addr_); }
 
 UnixDomainAddress::UnixDomainAddress(std::string &path) : path_(path) {

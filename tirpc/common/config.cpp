@@ -7,6 +7,7 @@
 
 #include <tinyxml.h>
 
+#include "tirpc/common/const.hpp"
 #include "tirpc/common/log.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
@@ -131,7 +132,7 @@ void Config::ReadDBConfig(tinyxml2::XMLElement *node) {
     mysql_options_.insert(std::make_pair(key, option));
     char buf[512];
     sprintf(buf, "read config from file [%s], key:%s {addr: %s, user: %s, passwd: %s, select_db: %s, charset: %s}\n",
-            file_path_.c_str(), key.c_str(), option.addr_.toString().c_str(), option.user_.c_str(),
+            file_path_.c_str(), key.c_str(), option.addr_.ToString().c_str(), option.user_.c_str(),
             option.passwd_.c_str(), option.select_db_.c_str(), option.char_set_.c_str());
     std::string s(buf);
     InfoLog << s;
@@ -178,6 +179,16 @@ void Config::ReadConf() {
 
   timewheel_bucket_num_ = GetElementType<int>(time_wheel_node, "bucket_num");
   timewheel_interval_ = GetElementType<int>(time_wheel_node, "interval");
+
+  // NOTE: Currently only support ZooKeeper
+  tinyxml2::XMLElement *service_register_node = root->FirstChildElement("service_register");
+  std::string sr_type = GetElementType<std::string>(service_register_node, "type");
+  if (sr_type == "zk") {
+    service_register_ = ServiceRegisterCategory::Zk;
+  }
+  zk_ip_ = GetElementType<std::string>(service_register_node, "ip");
+  zk_port_ = GetElementType<int>(service_register_node, "port");
+  zk_timeout_ = GetElementType<int>(service_register_node, "timeout");
 
   tinyxml2::XMLElement *net_node = root->FirstChildElement("server");
   if (net_node == nullptr) {

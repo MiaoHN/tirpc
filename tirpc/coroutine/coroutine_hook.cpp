@@ -17,8 +17,6 @@
 #define HOOK_SYS_FUNC(name) name##_fun_ptr_t g_sys_##name##_fun = (name##_fun_ptr_t)dlsym(RTLD_NEXT, #name);
 
 HOOK_SYS_FUNC(accept);
-HOOK_SYS_FUNC(recv);
-HOOK_SYS_FUNC(send);
 HOOK_SYS_FUNC(read);
 HOOK_SYS_FUNC(write);
 HOOK_SYS_FUNC(connect);
@@ -65,7 +63,7 @@ ssize_t recv_hook(int fd, void *buf, size_t count, int flag) {
   DebugLog << "this is hook recv";
   if (tirpc::Coroutine::IsMainCoroutine()) {
     DebugLog << "hook disable, call sys recv func";
-    return g_sys_recv_fun(fd, buf, count, flag);
+    return recv(fd, buf, count, flag);
   }
 
   tirpc::Reactor::GetReactor();
@@ -87,7 +85,7 @@ ssize_t recv_hook(int fd, void *buf, size_t count, int flag) {
   // because reactor should always care read event when a connection sockfd was created
   // so if first call sys read, and read return success, this fucntion will not register read event and return
   // for this connection sockfd, reactor will never care read event
-  ssize_t n = g_sys_recv_fun(fd, buf, count, flag);
+  ssize_t n = recv(fd, buf, count, flag);
   if (n > 0) {
     return n;
   }
@@ -102,14 +100,14 @@ ssize_t recv_hook(int fd, void *buf, size_t count, int flag) {
   // fd_event->updateToReactor();
 
   DebugLog << "recv func yield back, now to call sys recv";
-  return g_sys_recv_fun(fd, buf, count, flag);
+  return recv(fd, buf, count, flag);
 }
 
 ssize_t send_hook(int fd, const void *buf, size_t count, int flag) {
   DebugLog << "this is hook send";
   if (tirpc::Coroutine::IsMainCoroutine()) {
     DebugLog << "hook disable, call sys send func";
-    return g_sys_send_fun(fd, buf, count, flag);
+    return send(fd, buf, count, flag);
   }
   tirpc::Reactor::GetReactor();
   // assert(reactor != nullptr);
@@ -121,7 +119,7 @@ ssize_t send_hook(int fd, const void *buf, size_t count, int flag) {
 
   fd_event->SetNonBlock();
 
-  ssize_t n = g_sys_send_fun(fd, buf, count, flag);
+  ssize_t n = send(fd, buf, count, flag);
   if (n > 0) {
     return n;
   }
@@ -136,7 +134,7 @@ ssize_t send_hook(int fd, const void *buf, size_t count, int flag) {
   // fd_event->updateToReactor();
 
   DebugLog << "send func yield back, now to call sys send";
-  return g_sys_send_fun(fd, buf, count, flag);
+  return send(fd, buf, count, flag);
 }
 
 ssize_t read_hook(int fd, void *buf, size_t count) {
@@ -377,22 +375,6 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     return g_sys_accept_fun(sockfd, addr, addrlen);
   } else {
     return tirpc::accept_hook(sockfd, addr, addrlen);
-  }
-}
-
-ssize_t recv(int fd, void *buf, size_t count, int flag) {
-  if (!tirpc::g_hook) {
-    return g_sys_recv_fun(fd, buf, count, flag);
-  } else {
-    return tirpc::send_hook(fd, buf, count, flag);
-  }
-}
-
-ssize_t send(int fd, const void *buf, size_t count, int flag) {
-  if (!tirpc::g_hook) {
-    return g_sys_send_fun(fd, buf, count, flag);
-  } else {
-    return tirpc::send_hook(fd, buf, count, flag);
   }
 }
 

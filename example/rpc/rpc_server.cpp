@@ -2,6 +2,7 @@
 #include <atomic>
 #include <memory>
 #include <sstream>
+#include <string>
 
 #include "rpc_server.pb.h"
 
@@ -64,14 +65,24 @@ class QueryServiceImpl : public QueryService {
 };
 
 auto main(int argc, char *argv[]) -> int {
- // default config file
+  // default config file
   std::string config_file = "./conf/rpc_server.xml";
+  int port = -1;
 
   if (argc == 2) {
     config_file = argv[1];
+  } else if (argc == 4) {
+    if (std::strcmp(argv[2], "-p") != 0) {
+      std::cout << "usage " << argv[0] << " <config> -p <port>" << std::endl;
+    }
+    config_file = argv[1];
+    port = std::stoi(argv[3]);
   }
 
   tirpc::InitConfig(config_file.c_str());
+  if (port != -1) {
+    tirpc::GetConfig()->GetAddr()->SetPort(port);
+  }
 
   auto server = std::make_shared<tirpc::RpcServer>(tirpc::GetConfig()->GetAddr());
 

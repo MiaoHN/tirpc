@@ -128,10 +128,10 @@ class Generator:
         origin_text = file.read()
 
         # parse all rpc interface method from pb.h file
-        begin = origin_text.find("virtual ~")
+        begin = origin_text.find("Service")
         i1 = origin_text[begin:].find("~")
-        i2 = origin_text[begin:].find("(")
-        self.service_name = origin_text[begin + i1 + 1 : begin + i2]
+        i2 = origin_text[begin + i1:].find("(")
+        self.service_name = origin_text[begin + i1 + 1 : begin + i1 + i2]
         print("service name is " + self.service_name)
 
         origin_text = origin_text[begin + i2 :]

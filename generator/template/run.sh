@@ -7,7 +7,7 @@ PROJECT_BIN_FILE="${CURRENT_PATH}"/"${PROJECT_NAME}"
 PROJECT_CONF_FILE="../conf/${PROJECT_NAME}.xml"
 
 
-echo "Run tinyrpc project, name: ${PROJECT_NAME}, path: ${PROJECT_BIN_FILE}"
+echo "Run tirpc project, name: ${PROJECT_NAME}, path: ${PROJECT_BIN_FILE}"
 
 if [ -z "$1" ]
 then
@@ -17,14 +17,14 @@ fi
 # check bin file exist
 if [ ! -e ${PROJECT_BIN_FILE} ]
 then
-  echo "Run tinyrpc eror, file: ${PROJECT_BIN_FILE} not exist, please check file"
+  echo "Run tirpc eror, file: ${PROJECT_BIN_FILE} not exist, please check file"
   exit -1
 fi
 
 # check config xml file exist
 if [ ! -e ${PROJECT_CONF_FILE} ]
 then
-  echo "Run tinyrpc eror, file: ${PROJECT_CONF_FILE} not exist, please check config file"
+  echo "Run tirpc eror, file: ${PROJECT_CONF_FILE} not exist, please check config file"
   exit -1
 fi
 
@@ -37,7 +37,7 @@ fi
 
 sh shutdown.sh ${PROJECT_NAME}
 nohup ./${PROJECT_NAME} ${PROJECT_CONF_FILE} & > ${PROJECT_ROOT_PATH}/log/${PROJECT_NAME}.nohup_log
-echo "Start tinyrpc server ${PROJECT_CONF_FILE} succ"
+echo "Start tirpc server ${PROJECT_CONF_FILE} succ"
 
 
 

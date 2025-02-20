@@ -37,9 +37,9 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   using ptr = std::shared_ptr<TcpConnection>;
 
   TcpConnection(tirpc::TcpServer *tcp_svr, tirpc::IOThread *io_thread, int fd, int buff_size,
-                NetAddress::ptr peer_addr);
+                Address::ptr peer_addr);
 
-  TcpConnection(tirpc::TcpClient *tcp_cli, tirpc::Reactor *reactor, int fd, int buff_size, NetAddress::ptr peer_addr);
+  TcpConnection(tirpc::TcpClient *tcp_cli, tirpc::Reactor *reactor, int fd, int buff_size, Address::ptr peer_addr);
 
   void SetUpClient();
 
@@ -101,7 +101,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   TcpConnectionState state_{TcpConnectionState::Connected};
   ConnectionType connection_type_{ServerConnection};
 
-  NetAddress::ptr peer_addr_;
+  Address::ptr peer_addr_;
 
   TcpBuffer::ptr read_buffer_;
   TcpBuffer::ptr write_buffer_;

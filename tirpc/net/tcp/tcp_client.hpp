@@ -19,7 +19,7 @@ class TcpClient {
  public:
   using ptr = std::shared_ptr<TcpClient>;
 
-  explicit TcpClient(NetAddress::ptr addr, ProtocalType type = TinyPb_Protocal);
+  explicit TcpClient(Address::ptr addr, ProtocalType type = TinyPb_Protocal);
 
   ~TcpClient();
 
@@ -39,9 +39,9 @@ class TcpClient {
 
   auto GetErrInfo() -> const std::string & { return err_info_; }
 
-  auto GetPeerAddr() const -> NetAddress::ptr { return peer_addr_; }
+  auto GetPeerAddr() const -> Address::ptr { return peer_addr_; }
 
-  auto GetLocalAddr() const -> NetAddress::ptr { return local_addr_; }
+  auto GetLocalAddr() const -> Address::ptr { return local_addr_; }
 
   auto GetCodeC() -> AbstractCodeC::ptr { return codec_; }
 
@@ -53,8 +53,8 @@ class TcpClient {
   bool is_stop_{false};
   std::string err_info_;  // error info of client
 
-  NetAddress::ptr local_addr_{nullptr};
-  NetAddress::ptr peer_addr_{nullptr};
+  Address::ptr local_addr_{nullptr};
+  Address::ptr peer_addr_{nullptr};
   Reactor *reactor_{nullptr};
   TcpConnection::ptr connection_{nullptr};
 
