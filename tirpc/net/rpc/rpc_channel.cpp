@@ -70,6 +70,7 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
 
   int max_retry = rpc_controller->GetMaxRetry();
 
+  Address::ptr addr;
   TinyPbStruct::pb_ptr res_data;
   int64_t end_call = GetNowMs() + rpc_controller->Timeout();
 
@@ -88,7 +89,7 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
       }
     }
 
-    Address::ptr addr = load_balancer_->select(addrs_, pb_struct);
+    addr = load_balancer_->select(addrs_, pb_struct);
     TcpClient::ptr client = std::make_shared<TcpClient>(addr);
     rpc_controller->SetLocalAddr(client->GetLocalAddr());
     rpc_controller->SetPeerAddr(client->GetPeerAddr());
@@ -147,6 +148,8 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
     }
     return;
   }
+
+  InfoLog << "Method called successfully, addr = [" << addr->ToString() << "]";
 
   // excute callback function
   if (done) {

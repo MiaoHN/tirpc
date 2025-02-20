@@ -27,6 +27,8 @@ class Address {
 
 class IPAddress : public Address {
  public:
+  using ptr = std::shared_ptr<IPAddress>;
+
   IPAddress(const std::string &ip, uint16_t port);
 
   explicit IPAddress(const std::string &addr);
@@ -44,6 +46,8 @@ class IPAddress : public Address {
   auto ToString() const -> std::string override;
 
   auto GetIP() const -> std::string { return ip_; }
+
+  void SetPort(uint16_t port);
 
   auto GetPort() const -> uint16_t { return port_; }
 

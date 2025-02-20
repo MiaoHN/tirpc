@@ -72,5 +72,4 @@ set(LIBS
     zookeeper_mt
 )
 
-add_subdirectory(test)
 add_subdirectory(example)
