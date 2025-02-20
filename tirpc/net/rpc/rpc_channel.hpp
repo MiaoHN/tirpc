@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "tirpc/net/base/address.hpp"
+#include "tirpc/net/tcp/load_balance.hpp"
 #include "tirpc/net/tcp/tcp_client.hpp"
 
 namespace tirpc {
@@ -16,7 +17,10 @@ namespace tirpc {
 class RpcChannel : public google::protobuf::RpcChannel {
  public:
   using ptr = std::shared_ptr<RpcChannel>;
-  explicit RpcChannel(NetAddress::ptr addr);
+  explicit RpcChannel(Address::ptr addr);
+  explicit RpcChannel(std::vector<Address::ptr> addrs,
+                        LoadBalanceCategory load_balance = LoadBalanceCategory::Random);
+
   ~RpcChannel() override = default;
 
   /**
@@ -32,7 +36,9 @@ class RpcChannel : public google::protobuf::RpcChannel {
                   google::protobuf::Closure *done) override;
 
  private:
-  NetAddress::ptr addr_;
+  std::vector<Address::ptr> addrs_;
+  std::vector<Address::ptr> origin_addrs_;
+  LoadBalanceStrategy::ptr load_balancer_;
   // TcpClient::ptr client_;
 };
 

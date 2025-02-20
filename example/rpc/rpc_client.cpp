@@ -2,16 +2,21 @@
 #include <iostream>
 
 #include "rpc_server.pb.h"
+#include "tirpc/common/const.hpp"
+#include "tirpc/common/start.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/rpc/rpc_async_channel.hpp"
 #include "tirpc/net/rpc/rpc_channel.hpp"
 #include "tirpc/net/rpc/rpc_closure.hpp"
 #include "tirpc/net/rpc/rpc_controller.hpp"
+#include "tirpc/net/tcp/abstract_service_register.hpp"
+#include "tirpc/net/tcp/service_register.hpp"
 
 void TestClient() {
-  tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);
+  tirpc::AbstractServiceRegister::ptr center = tirpc::ServiceRegister::Query(tirpc::ServiceRegisterCategory::Zk);
+  std::vector<tirpc::IPAddress::ptr> addrs = center->Discover("QueryService");
 
-  tirpc::RpcChannel channel(addr);
+  tirpc::RpcChannel channel(addrs);
   QueryService_Stub stub(&channel);
 
   tirpc::RpcController rpc_controller;
@@ -20,8 +25,6 @@ void TestClient() {
   queryAgeReq rpc_req;
   queryAgeRes rpc_res;
 
-  std::cout << "Send to tirpc server " << addr->ToString() << ", requeset body: " << rpc_req.ShortDebugString()
-            << std::endl;
   stub.query_age(&rpc_controller, &rpc_req, &rpc_res, nullptr);
 
   if (rpc_controller.ErrorCode() != 0) {
@@ -30,11 +33,19 @@ void TestClient() {
     return;
   }
 
-  std::cout << "Success get response from tirpc server " << addr->ToString()
-            << ", response body: " << rpc_res.ShortDebugString() << std::endl;
+  std::cout << "Success get response from tirpc server, response body: " << rpc_res.ShortDebugString() << std::endl;
 }
 
 auto main(int argc, char *argv[]) -> int {
+  // default config file
+  std::string config_file = "./conf/rpc_client.xml";
+
+  if (argc == 2) {
+    config_file = argv[1];
+  }
+
+  tirpc::InitConfig(config_file.c_str());
+
   TestClient();
 
   return 0;

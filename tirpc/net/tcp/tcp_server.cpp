@@ -21,7 +21,7 @@ namespace tirpc {
 
 extern tirpc::Config::ptr g_rpc_config;
 
-TcpAcceptor::TcpAcceptor(NetAddress::ptr net_addr) : local_addr_(std::move(net_addr)) {
+TcpAcceptor::TcpAcceptor(Address::ptr net_addr) : local_addr_(std::move(net_addr)) {
   family_ = local_addr_->GetFamily();
 }
 
@@ -110,7 +110,7 @@ auto TcpAcceptor::ToAccept() -> int {
   return rt;
 }
 
-TcpServer::TcpServer(NetAddress::ptr addr) : addr_(std::move(addr)) {
+TcpServer::TcpServer(Address::ptr addr) : addr_(std::move(addr)) {
   io_pool_ = std::make_shared<IOThreadPool>(g_rpc_config->iothread_num_);
   // if (type == Http_Protocal) {
   //   dispatcher_ = std::make_shared<HttpDispatcher>();
@@ -155,6 +155,9 @@ void TcpServer::Start() {
 
 TcpServer::~TcpServer() {
   GetCoroutinePool()->ReturnCoroutine(accept_cor_);
+  if (register_) {
+    register_->Clear();
+  }
   DebugLog << "~TcpServer";
 }
 
@@ -219,9 +222,9 @@ void TcpServer::ClearClientTimerFunc() {
   }
 }
 
-auto TcpServer::GetPeerAddr() -> NetAddress::ptr { return acceptor_->GetPeerAddr(); }
+auto TcpServer::GetPeerAddr() -> Address::ptr { return acceptor_->GetPeerAddr(); }
 
-auto TcpServer::GetLocalAddr() -> NetAddress::ptr { return addr_; }
+auto TcpServer::GetLocalAddr() -> Address::ptr { return addr_; }
 
 auto TcpServer::GetTimeWheel() -> TcpTimeWheel::ptr { return time_wheel_; }
 

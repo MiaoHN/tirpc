@@ -12,9 +12,11 @@
 - 正确处理 `TcpConnection` 中 `read_hook` 为空的逻辑
 - 使用从 `TcpServer` 继承的方式区分 RPC 服务器和 HTTP 服务器，解耦代码
 - 完善 `HttpServer`，目前支持通过 GET 请求从服务器正确读取多种文本文件
+- Zookeeper 服务注册/服务发现，一致性哈希负载均衡
 
 ## 待办列表
 
+- [x] 添加基于 Zookeeper 的服务注册和服务发现（参考 [corpc](https://github.com/LoveBettygirl/corpc.git)）
 - [ ] 支持新的 RPC 协议，比如 json（参考 [jrpc](https://github.com/guangqianpeng/jrpc)）
 - [ ] 实现基于 Raft 的分布式治理框架（参考 [ACID](https://github.com/zavier-wong/acid/tree/main)）
 
@@ -24,7 +26,13 @@
 
 ### RPC 服务调用
 
-![rpc_service](https://cdn.jsdelivr.net/gh/MiaoHN/image-host@master/images/202502142213545.png)
+本项目实现了基于 ZooKeeper 的服务注册和服务发现，可同时开启多个服务器来处理请求。由于运行服务器需要不同的端口，可通过命令行来对端口进行设置：
+
+```bash
+./rpc_server <config> -p <port>
+```
+
+![zookeeper](https://cdn.jsdelivr.net/gh/MiaoHN/image-host@master/images/202502202146294.png)
 
 ### HTTP 服务器
 

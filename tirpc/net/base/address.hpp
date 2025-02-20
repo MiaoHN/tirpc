@@ -12,9 +12,9 @@
 
 namespace tirpc {
 
-class NetAddress {
+class Address {
  public:
-  using ptr = std::shared_ptr<NetAddress>;
+  using ptr = std::shared_ptr<Address>;
 
   virtual auto GetSockAddr() -> sockaddr * = 0;
 
@@ -25,8 +25,10 @@ class NetAddress {
   virtual auto GetSockLen() const -> socklen_t = 0;
 };
 
-class IPAddress : public NetAddress {
+class IPAddress : public Address {
  public:
+  using ptr = std::shared_ptr<IPAddress>;
+
   IPAddress(const std::string &ip, uint16_t port);
 
   explicit IPAddress(const std::string &addr);
@@ -45,6 +47,8 @@ class IPAddress : public NetAddress {
 
   auto GetIP() const -> std::string { return ip_; }
 
+  void SetPort(uint16_t port);
+
   auto GetPort() const -> uint16_t { return port_; }
 
  public:
@@ -56,7 +60,7 @@ class IPAddress : public NetAddress {
   sockaddr_in addr_;
 };
 
-class UnixDomainAddress : public NetAddress {
+class UnixDomainAddress : public Address {
  public:
   explicit UnixDomainAddress(std::string &path);
 

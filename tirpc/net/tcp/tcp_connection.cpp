@@ -20,7 +20,7 @@
 
 namespace tirpc {
 
-TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, int buff_size, NetAddress::ptr peer_addr)
+TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, int buff_size, Address::ptr peer_addr)
     : io_thread_(io_thread), fd_(fd), peer_addr_(std::move(peer_addr)) {
   reactor_ = io_thread_->GetReactor();
 
@@ -36,7 +36,7 @@ TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, in
   DebugLog << "succ create tcp connection[" << state_ << "], fd=" << fd;
 }
 
-TcpConnection::TcpConnection(TcpClient *tcp_cli, Reactor *reactor, int fd, int buff_size, NetAddress::ptr peer_addr)
+TcpConnection::TcpConnection(TcpClient *tcp_cli, Reactor *reactor, int fd, int buff_size, Address::ptr peer_addr)
     : fd_(fd), state_(NotConnected), connection_type_(ClientConnection), peer_addr_(std::move(peer_addr)) {
   reactor_ = reactor;
 
@@ -190,7 +190,7 @@ void TcpConnection::Execute() {
     } else if (connection_type_ == ClientConnection) {
       std::shared_ptr<TinyPbStruct> tmp = std::dynamic_pointer_cast<TinyPbStruct>(data);
       if (tmp) {
-        reply_datas_.insert(std::make_pair(tmp->msg_req_, tmp));
+        reply_datas_.insert(std::make_pair(tmp->msg_seq_, tmp));
       }
     }
   }

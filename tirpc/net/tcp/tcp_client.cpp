@@ -18,7 +18,7 @@
 
 namespace tirpc {
 
-TcpClient::TcpClient(NetAddress::ptr addr, ProtocalType type /*= TinyPb_Protocal*/) : peer_addr_(std::move(addr)) {
+TcpClient::TcpClient(Address::ptr addr, ProtocalType type /*= TinyPb_Protocal*/) : peer_addr_(std::move(addr)) {
   family_ = peer_addr_->GetFamily();
   fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (fd_ == -1) {

@@ -7,6 +7,7 @@
 
 #include <tinyxml.h>
 
+#include "tirpc/common/const.hpp"
 #include "tirpc/common/log.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
@@ -178,6 +179,16 @@ void Config::ReadConf() {
 
   timewheel_bucket_num_ = GetElementType<int>(time_wheel_node, "bucket_num");
   timewheel_interval_ = GetElementType<int>(time_wheel_node, "interval");
+
+  // NOTE: Currently only support ZooKeeper
+  tinyxml2::XMLElement *service_register_node = root->FirstChildElement("service_register");
+  std::string sr_type = GetElementType<std::string>(service_register_node, "type");
+  if (sr_type == "zk") {
+    service_register_ = ServiceRegisterCategory::Zk;
+  }
+  zk_ip_ = GetElementType<std::string>(service_register_node, "ip");
+  zk_port_ = GetElementType<int>(service_register_node, "port");
+  zk_timeout_ = GetElementType<int>(service_register_node, "timeout");
 
   tinyxml2::XMLElement *net_node = root->FirstChildElement("server");
   if (net_node == nullptr) {

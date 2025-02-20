@@ -3,6 +3,8 @@
 #include <tinyxml2.h>
 #include <memory>
 #include <string>
+
+#include "tirpc/common/const.hpp"
 #include "tirpc/net/base/address.hpp"
 
 #ifdef DECLARE_MYSQL_PLUGIN
@@ -58,6 +60,13 @@ class Config {
 #endif
 
   IPAddress::ptr addr_;
+
+  ServiceRegisterCategory service_register_;
+
+  /// Zookeeper
+  std::string zk_ip_{"127.0.0.1"};
+  int zk_port_{2181};
+  int zk_timeout_{30000};
 
  private:
   std::string file_path_;

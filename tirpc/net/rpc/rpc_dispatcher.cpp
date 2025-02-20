@@ -24,23 +24,23 @@ void RpcDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
     ErrorLog << "dynamic_cast error";
     return;
   }
-  Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_ = tmp->msg_req_;
+  Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_ = tmp->msg_seq_;
   SetCurrentRuntime(Coroutine::GetCurrentCoroutine()->GetRuntime());
 
-  DebugLog << "begin to dispatch client tinypb request, msgno=" << tmp->msg_req_;
+  DebugLog << "begin to dispatch client tinypb request, msgno=" << tmp->msg_seq_;
 
   std::string service_name;
   std::string method_name;
 
   TinyPbStruct reply_pk;
   reply_pk.service_full_name_ = tmp->service_full_name_;
-  reply_pk.msg_req_ = tmp->msg_req_;
-  if (reply_pk.msg_req_.empty()) {
-    reply_pk.msg_req_ = MsgReqUtil::GenMsgNumber();
+  reply_pk.msg_seq_ = tmp->msg_seq_;
+  if (reply_pk.msg_seq_.empty()) {
+    reply_pk.msg_seq_ = MsgReqUtil::GenMsgNumber();
   }
 
   if (!ParseServiceFullName(tmp->service_full_name_, service_name, method_name)) {
-    ErrorLog << reply_pk.msg_req_ << "|parse service name " << tmp->service_full_name_ << "error";
+    ErrorLog << reply_pk.msg_seq_ << "|parse service name " << tmp->service_full_name_ << "error";
 
     reply_pk.err_code_ = ERROR_PARSE_SERVICE_NAME;
     std::stringstream ss;
@@ -56,12 +56,12 @@ void RpcDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
     reply_pk.err_code_ = ERROR_SERVICE_NOT_FOUND;
     std::stringstream ss;
     ss << "not found service_name:[" << service_name << "]";
-    ErrorLog << reply_pk.msg_req_ << "|" << ss.str();
+    ErrorLog << reply_pk.msg_seq_ << "|" << ss.str();
     reply_pk.err_info_ = ss.str();
 
     conn->GetCodec()->Encode(conn->GetOutBuffer(), dynamic_cast<AbstractData *>(&reply_pk));
 
-    DebugLog << "end dispatch client tinypb request, msgno=" << tmp->msg_req_;
+    DebugLog << "end dispatch client tinypb request, msgno=" << tmp->msg_seq_;
     return;
   }
 
@@ -72,21 +72,21 @@ void RpcDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
     reply_pk.err_code_ = ERROR_METHOD_NOT_FOUND;
     std::stringstream ss;
     ss << "not found method_name:[" << method_name << "]";
-    ErrorLog << reply_pk.msg_req_ << "|" << ss.str();
+    ErrorLog << reply_pk.msg_seq_ << "|" << ss.str();
     reply_pk.err_info_ = ss.str();
     conn->GetCodec()->Encode(conn->GetOutBuffer(), dynamic_cast<AbstractData *>(&reply_pk));
     return;
   }
 
   google::protobuf::Message *request = service->GetRequestPrototype(method).New();
-  DebugLog << reply_pk.msg_req_ << "|request.name = " << request->GetDescriptor()->full_name();
+  DebugLog << reply_pk.msg_seq_ << "|request.name = " << request->GetDescriptor()->full_name();
 
   if (!request->ParseFromString(tmp->pb_data_)) {
     reply_pk.err_code_ = ERROR_FAILED_SERIALIZE;
     std::stringstream ss;
     ss << "faild to parse request data, request.name:[" << request->GetDescriptor()->full_name() << "]";
     reply_pk.err_info_ = ss.str();
-    ErrorLog << reply_pk.msg_req_ << "|" << ss.str();
+    ErrorLog << reply_pk.msg_seq_ << "|" << ss.str();
     delete request;
     conn->GetCodec()->Encode(conn->GetOutBuffer(), dynamic_cast<AbstractData *>(&reply_pk));
     return;
@@ -94,10 +94,10 @@ void RpcDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
 
   google::protobuf::Message *response = service->GetResponsePrototype(method).New();
 
-  DebugLog << reply_pk.msg_req_ << "|response.name = " << response->GetDescriptor()->full_name();
+  DebugLog << reply_pk.msg_seq_ << "|response.name = " << response->GetDescriptor()->full_name();
 
   RpcController rpc_controller;
-  rpc_controller.SetMsgReq(reply_pk.msg_req_);
+  rpc_controller.SetMsgSeq(reply_pk.msg_seq_);
   rpc_controller.SetMethodName(method_name);
   rpc_controller.SetMethodFullName(tmp->service_full_name_);
 
@@ -110,7 +110,7 @@ void RpcDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
 
   if (!(response->SerializeToString(&(reply_pk.pb_data_)))) {
     reply_pk.pb_data_ = "";
-    ErrorLog << reply_pk.msg_req_ << "|reply error! encode reply package error";
+    ErrorLog << reply_pk.msg_seq_ << "|reply error! encode reply package error";
     reply_pk.err_code_ = ERROR_FAILED_SERIALIZE;
     reply_pk.err_info_ = "failed to serilize relpy data";
   }
