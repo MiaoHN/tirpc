@@ -15,6 +15,7 @@
 
 ## 待办列表
 
+- [ ] 添加基于 Zookeeper 的服务注册和服务发现（参考 [corpc](https://github.com/LoveBettygirl/corpc.git)）
 - [ ] 支持新的 RPC 协议，比如 json（参考 [jrpc](https://github.com/guangqianpeng/jrpc)）
 - [ ] 实现基于 Raft 的分布式治理框架（参考 [ACID](https://github.com/zavier-wong/acid/tree/main)）
 
