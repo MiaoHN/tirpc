@@ -11,6 +11,9 @@ enable_language(ASM)
 find_library(ZOOKEEPER_LIBRARY zookeeper_mt)
 find_path(ZOOKEEPER_INCLUDE_DIR zookeeper/zookeeper.h)
 
+# 查找 yaml-cpp 库
+find_package(yaml-cpp REQUIRED)
+
 # 检查是否找到 ZooKeeper 库和头文件
 if(NOT ZOOKEEPER_LIBRARY OR NOT ZOOKEEPER_INCLUDE_DIR)
     message(FATAL_ERROR "ZooKeeper library not found!")
@@ -61,6 +64,7 @@ target_link_libraries(tirpc
     dl
     pthread
     zookeeper_mt
+    yaml-cpp
 )
 
 set(LIBS
@@ -70,6 +74,7 @@ set(LIBS
     dl
     pthread
     zookeeper_mt
+    yaml-cpp
 )
 
 add_subdirectory(example)

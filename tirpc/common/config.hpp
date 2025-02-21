@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tinyxml2.h>
+#include <yaml-cpp/yaml.h>
 #include <memory>
 #include <string>
 
@@ -19,17 +20,13 @@ class Config {
  public:
   using ptr = std::shared_ptr<Config>;
 
-  explicit Config(const char *file_path);
+  explicit Config(const std::string &file_path);
 
   ~Config();
 
   void ReadConf();
 
-  void ReadDBConfig(tinyxml2::XMLElement *node);
-
-  void ReadLogConfig(tinyxml2::XMLElement *node);
-
-  auto GetXmlNode(const std::string &name) -> tinyxml2::XMLElement *;
+  void ReadLogConfig(const YAML::Node &node);
 
   auto GetAddr() -> IPAddress::ptr { return addr_; }
 
@@ -71,7 +68,7 @@ class Config {
  private:
   std::string file_path_;
 
-  tinyxml2::XMLDocument *xml_file_;
+  YAML::Node yaml_;
 };
 
 }  // namespace tirpc

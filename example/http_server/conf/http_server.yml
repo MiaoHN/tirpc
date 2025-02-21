@@ -1,0 +1,42 @@
+# log config
+log:
+  # identify path of log file
+  log_path: ./
+  log_prefix: http_server
+  # identify max size of single log file, MB
+  log_max_file_size: 5
+  # log level: DEBUG < INFO < WARN < ERROR < NONE(don't print log)
+  rpc_log_level: INFO
+  app_log_level: INFO
+  # interval that put log info to async logger, ms
+  log_sync_interval: 200
+  # console enable: 1-enable, 0-disable
+  log_to_console: 1
+
+# coroutine
+coroutine:
+  # coroutine stack size (KB)
+  coroutine_stack_size: 256
+  # default coroutine pool size
+  coroutine_pool_size: 1000
+
+# 消息请求长度
+msg_req_len: 20
+
+# max time when call connect, s
+max_connect_timeout: 75
+
+# count of io threads, at least 1
+iothread_num: 4
+
+# 时间轮配置
+time_wheel:
+  bucket_num: 5
+  # interval that destroy bad TcpConnection, s
+  interval: 5
+
+# 服务器配置
+server:
+  ip: 127.0.0.1
+  port: 19999
+  protocal: HTTP
