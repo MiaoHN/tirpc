@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(tirpc VERSION 0.1.0)
+project(tirpc VERSION 1.0.1)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -10,6 +10,9 @@ enable_language(ASM)
 # 查找 ZooKeeper 库
 find_library(ZOOKEEPER_LIBRARY zookeeper_mt)
 find_path(ZOOKEEPER_INCLUDE_DIR zookeeper/zookeeper.h)
+
+# 查找 yaml-cpp 库
+find_package(yaml-cpp REQUIRED)
 
 # 检查是否找到 ZooKeeper 库和头文件
 if(NOT ZOOKEEPER_LIBRARY OR NOT ZOOKEEPER_INCLUDE_DIR)
@@ -23,22 +26,6 @@ if (${PROTOBUF_FOUND})
 else ()
     message(FATAL_ERROR "Cannot find Protobuf")
 endif ()
-
-include(FetchContent)
-
-FetchContent_Declare(
-    tinyxml2
-    GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-    GIT_TAG 10.0.0
-)
-
-FetchContent_GetProperties(tinyxml2)
-
-if (NOT tinyxml2_POPULATED)
-    FetchContent_Populate(tinyxml2)
-    add_subdirectory(${tinyxml2_SOURCE_DIR} ${tinyxml2_BINARY_DIR})
-endif ()
-
 
 include_directories(${PROJECT_SOURCE_DIR} ${ZOOKEEPER_INCLUDE_DIR})
 
@@ -57,19 +44,19 @@ add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NETBASE} ${SERVICE} ${HTTP} $
 
 target_link_libraries(tirpc
     protobuf
-    tinyxml2
     dl
     pthread
     zookeeper_mt
+    yaml-cpp
 )
 
 set(LIBS
     tirpc
     protobuf
-    tinyxml2
     dl
     pthread
     zookeeper_mt
+    yaml-cpp
 )
 
 add_subdirectory(example)

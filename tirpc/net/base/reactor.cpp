@@ -196,21 +196,13 @@ void Reactor::Loop() {
   is_looping_ = true;
   stop_ = false;
 
-  Coroutine *first_coroutine = nullptr;
-
   while (!stop_) {
     const int max_events = 10;
     epoll_event re_events[max_events + 1];
 
-    if (first_coroutine != nullptr) {
-      Coroutine::Resume(first_coroutine);
-      first_coroutine = nullptr;
-    }
-
-    // main reactor need't to resume coroutine in global CoroutineTaskQueue, only io thread do this work
-    if (type_ != MainReactor) {
+    // 先处理完队列中的任务（只有 IOThread 做）
+    if (type_ == SubReactor) {
       FdEvent *ptr = nullptr;
-      // ptr->setReactor(NULL);
       while (true) {
         ptr = CoroutineTaskQueue::GetCoroutineTaskQueue()->Pop();
         if (ptr != nullptr) {
@@ -222,97 +214,92 @@ void Reactor::Loop() {
       }
     }
 
-    // DebugLog << "task";
-    // excute tasks
+    // 执行 pending_tasks_ 中的任务
     Mutex::Locker lock1(mutex_);
     std::vector<std::function<void()>> tmp_tasks;
     tmp_tasks.swap(pending_tasks_);
     lock1.Unlock();
 
     for (auto &tmp_task : tmp_tasks) {
-      // DebugLog << "begin to excute task[" << i << "]";
       if (tmp_task) {
         tmp_task();
       }
-      // DebugLog << "end excute tasks[" << i << "]";
     }
-    // DebugLog << "to epoll_wait";
-    int rt = epoll_wait(epfd_, re_events, max_events, t_max_epoll_timeout);
 
-    // DebugLog << "epoll_wait back";
+    // epoll 等待事件
+    int rt = epoll_wait(epfd_, re_events, max_events, t_max_epoll_timeout);
 
     if (rt < 0) {
       ErrorLog << "epoll_wait error, skip, errno=" << strerror(errno);
       continue;
     }
-    // DebugLog << "epoll_wait back, rt = " << rt;
-    for (int i = 0; i < rt; ++i) {
-      epoll_event one_event = re_events[i];
 
-      if (one_event.data.fd == wakeup_fd_ && ((one_event.events & READ) != 0U)) {
-        // wakeup
-        // DebugLog << "epoll wakeup, fd=[" << wakeup_fd_ << "]";
+    for (int i = 0; i < rt; ++i) {
+      epoll_event event = re_events[i];
+
+      if (event.data.fd == wakeup_fd_ && (event.events & READ)) {
+        // Wakeup 事件，将缓冲中的内容读完即可
         char buf[8];
         while (true) {
           if ((g_sys_read_fun(wakeup_fd_, buf, 8) == -1) && errno == EAGAIN) {
             break;
           }
         }
+        continue;
+      }
+      auto *ptr = static_cast<FdEvent *>(event.data.ptr);
 
-      } else {
-        auto *ptr = static_cast<FdEvent *>(one_event.data.ptr);
-        if (ptr != nullptr) {
-          int fd = ptr->GetFd();
+      if (ptr == nullptr) {
+        continue;
+      }
 
-          if (((one_event.events & EPOLLIN) == 0U) && ((one_event.events & EPOLLOUT) == 0U)) {
-            ErrorLog << "socket [" << fd << "] occur other unknow event:[" << one_event.events
-                     << "], need unregister this socket";
-            DelEventInLoopThread(fd);
-          } else {
-            // if register coroutine, pengding coroutine to common coroutine_tasks
-            if (ptr->GetCoroutine() != nullptr) {
-              // the first one coroutine when epoll_wait back, just directly resume by this thread, not add to global
-              // CoroutineTaskQueue because every operate CoroutineTaskQueue should add mutex lock
-              if (first_coroutine == nullptr) {
-                first_coroutine = ptr->GetCoroutine();
-                continue;
-              }
-              if (type_ == SubReactor) {
-                DelEventInLoopThread(fd);
-                ptr->SetReactor(nullptr);
-                CoroutineTaskQueue::GetCoroutineTaskQueue()->Push(ptr);
-              } else {
-                // main reactor, just resume this coroutine. it is accept coroutine. and Main Reactor only have this
-                // coroutine
-                Coroutine::Resume(ptr->GetCoroutine());
-                first_coroutine = nullptr;
-              }
+      int fd = ptr->GetFd();
 
-            } else {
-              std::function<void()> read_cb;
-              std::function<void()> write_cb;
-              read_cb = ptr->GetCallBack(READ);
-              write_cb = ptr->GetCallBack(WRITE);
-              // if timer event, direct excute
-              if (fd == timer_fd_) {
-                read_cb();
-                continue;
-              }
-              if ((one_event.events & EPOLLIN) != 0U) {
-                // DebugLog << "socket [" << fd << "] occur read event";
-                Mutex::Locker lock(mutex_);
-                pending_tasks_.push_back(read_cb);
-              }
-              if ((one_event.events & EPOLLOUT) != 0U) {
-                // DebugLog << "socket [" << fd << "] occur write event";
-                Mutex::Locker lock2(mutex_);
-                pending_tasks_.push_back(write_cb);
-              }
-            }
-          }
+      // 错误事件
+      if (!(event.events & EPOLLIN) && !(event.events & EPOLLOUT)) {
+        ErrorLog << "socket [" << fd << "] occur other unknow event:[" << event.events
+                 << "], need unregister this socket";
+        DelEventInLoopThread(fd);
+        continue;
+      }
+
+      // 协程事件
+      if (ptr->GetCoroutine() != nullptr) {
+        if (type_ == SubReactor) {
+          DelEventInLoopThread(fd);
+          ptr->SetReactor(nullptr);
+          CoroutineTaskQueue::GetCoroutineTaskQueue()->Push(ptr);
+        } else {
+          // main reactor, just resume this coroutine. it is accept coroutine. and Main Reactor only have this
+          // coroutine
+          Coroutine::Resume(ptr->GetCoroutine());
         }
+        continue;
+      }
+
+      // 定时事件
+
+      if (fd == timer_fd_) {
+        ptr->GetCallBack(READ)();
+        continue;
+      }
+
+      std::function<void()> read_cb;
+      std::function<void()> write_cb;
+      read_cb = ptr->GetCallBack(READ);
+      write_cb = ptr->GetCallBack(WRITE);
+
+      if ((event.events & EPOLLIN) != 0U) {
+        Mutex::Locker lock(mutex_);
+        pending_tasks_.push_back(read_cb);
+      }
+      if ((event.events & EPOLLOUT) != 0U) {
+        Mutex::Locker lock2(mutex_);
+        pending_tasks_.push_back(write_cb);
       }
     }
+
+    // 遍历完 re_events
 
     std::map<int, epoll_event> tmp_add;
     std::vector<int> tmp_del;
@@ -326,15 +313,12 @@ void Reactor::Loop() {
       pending_del_fds_.clear();
     }
     for (auto &i : tmp_add) {
-      // DebugLog << "fd[" << (*i).first <<"] need to add";
       AddEventInLoopThread(i.first, i.second);
     }
     for (int &i : tmp_del) {
-      // DebugLog << "fd[" << (*i) <<"] need to del";
       DelEventInLoopThread(i);
     }
   }
-  DebugLog << "reactor loop end";
   is_looping_ = false;
 }
 

@@ -112,15 +112,6 @@ auto TcpAcceptor::ToAccept() -> int {
 
 TcpServer::TcpServer(Address::ptr addr) : addr_(std::move(addr)) {
   io_pool_ = std::make_shared<IOThreadPool>(g_rpc_config->iothread_num_);
-  // if (type == Http_Protocal) {
-  //   dispatcher_ = std::make_shared<HttpDispatcher>();
-  //   codec_ = std::make_shared<HttpCodeC>();
-  //   protocal_type_ = Http_Protocal;
-  // } else {
-  //   dispatcher_ = std::make_shared<RpcDispatcher>();
-  //   codec_ = std::make_shared<TinyPbCodeC>();
-  //   protocal_type_ = TinyPb_Protocal;
-  // }
 
   main_reactor_ = Reactor::GetReactor();
   main_reactor_->SetReactorType(MainReactor);

@@ -1,10 +1,13 @@
 #include "tirpc/coroutine/coroutine_hook.hpp"
 
+#include <asm-generic/errno-base.h>
+#include <asm-generic/errno.h>
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cassert>
 #include <cstring>
+#include <iostream>
 
 #include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
@@ -67,17 +70,11 @@ ssize_t recv_hook(int fd, void *buf, size_t count, int flag) {
   }
 
   tirpc::Reactor::GetReactor();
-  // assert(reactor != nullptr);
 
   tirpc::FdEvent::ptr fd_event = tirpc::FdEventContainer::GetFdContainer()->GetFdEvent(fd);
   if (fd_event->GetReactor() == nullptr) {
     fd_event->SetReactor(tirpc::Reactor::GetReactor());
   }
-
-  // if (fd_event->isNonBlock()) {
-  // DebugLog << "user set nonblock, call sys func";
-  // return g_sys_read_fun(fd, buf, count);
-  // }
 
   fd_event->SetNonBlock();
 
@@ -97,7 +94,6 @@ ssize_t recv_hook(int fd, void *buf, size_t count, int flag) {
 
   fd_event->DelListenEvents(tirpc::IOEvent::READ);
   fd_event->ClearCoroutine();
-  // fd_event->updateToReactor();
 
   DebugLog << "recv func yield back, now to call sys recv";
   return recv(fd, buf, count, flag);
