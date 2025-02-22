@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "tirpc/common/lock_free_queue.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 
@@ -90,17 +91,8 @@ class Reactor {
   ReactorType type_{ReactorType::SubReactor};
 };
 
-class CoroutineTaskQueue {
- public:
-  static auto GetCoroutineTaskQueue() -> CoroutineTaskQueue *;
+using CoroutineTaskQueue = LockFreeQueue<FdEvent *>;
 
-  void Push(FdEvent *fd);
-
-  auto Pop() -> FdEvent *;
-
- private:
-  std::queue<FdEvent *> tasks_;
-  Mutex mutex_;
-};
+auto GetCoroutineTaskQueue() -> CoroutineTaskQueue *;
 
 }  // namespace tirpc

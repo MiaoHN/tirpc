@@ -204,13 +204,13 @@ void Reactor::Loop() {
     if (type_ == SubReactor) {
       FdEvent *ptr = nullptr;
       while (true) {
-        ptr = CoroutineTaskQueue::GetCoroutineTaskQueue()->Pop();
-        if (ptr != nullptr) {
-          ptr->SetReactor(this);
-          Coroutine::Resume(ptr->GetCoroutine());
-        } else {
+        bool res = GetCoroutineTaskQueue()->dequeue(ptr);
+        if (res == false || ptr == nullptr) {
           break;
         }
+        // ptr = GetCoroutineTaskQueue()->pop();
+        ptr->SetReactor(this);
+        Coroutine::Resume(ptr->GetCoroutine());
       }
     }
 
@@ -268,7 +268,8 @@ void Reactor::Loop() {
         if (type_ == SubReactor) {
           DelEventInLoopThread(fd);
           ptr->SetReactor(nullptr);
-          CoroutineTaskQueue::GetCoroutineTaskQueue()->Push(ptr);
+          while (!GetCoroutineTaskQueue()->enqueue(ptr)) {
+          }
         } else {
           // main reactor, just resume this coroutine. it is accept coroutine. and Main Reactor only have this
           // coroutine
@@ -370,30 +371,12 @@ auto Reactor::GetTid() -> pid_t { return tid_; }
 
 void Reactor::SetReactorType(ReactorType type) { type_ = type; }
 
-auto CoroutineTaskQueue::GetCoroutineTaskQueue() -> CoroutineTaskQueue * {
+auto GetCoroutineTaskQueue() -> CoroutineTaskQueue * {
   if (t_couroutine_task_queue != nullptr) {
     return t_couroutine_task_queue;
   }
   t_couroutine_task_queue = new CoroutineTaskQueue();
   return t_couroutine_task_queue;
-}
-
-void CoroutineTaskQueue::Push(FdEvent *cor) {
-  Mutex::Locker lock(mutex_);
-  tasks_.push(cor);
-  lock.Unlock();
-}
-
-auto CoroutineTaskQueue::Pop() -> FdEvent * {
-  FdEvent *re = nullptr;
-  Mutex::Locker lock(mutex_);
-  if (!tasks_.empty()) {
-    re = tasks_.front();
-    tasks_.pop();
-  }
-  lock.Unlock();
-
-  return re;
 }
 
 }  // namespace tirpc
