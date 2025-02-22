@@ -22,9 +22,9 @@ TcpClient::TcpClient(Address::ptr addr, ProtocalType type /*= TinyPb_Protocal*/)
   family_ = peer_addr_->GetFamily();
   fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (fd_ == -1) {
-    ErrorLog << "call socket error, fd=-1, sys error=" << strerror(errno);
+    LOG_ERROR << "call socket error, fd=-1, sys error=" << strerror(errno);
   }
-  DebugLog << "TcpClient() create fd = " << fd_;
+  LOG_DEBUG << "TcpClient() create fd = " << fd_;
   local_addr_ = std::make_shared<IPAddress>("127.0.0.1", 0);
   reactor_ = Reactor::GetReactor();
 
@@ -41,7 +41,7 @@ TcpClient::~TcpClient() {
   if (fd_ > 0) {
     FdEventContainer::GetFdContainer()->GetFdEvent(fd_)->UnregisterFromReactor();
     close(fd_);
-    DebugLog << "~TcpClient() close fd = " << fd_;
+    LOG_DEBUG << "~TcpClient() close fd = " << fd_;
   }
 }
 
@@ -58,7 +58,7 @@ void TcpClient::ResetFd() {
   close(fd_);
   fd_ = socket(AF_INET, SOCK_STREAM, 0);
   if (fd_ == -1) {
-    ErrorLog << "call socket error, fd=-1, sys error=" << strerror(errno);
+    LOG_ERROR << "call socket error, fd=-1, sys error=" << strerror(errno);
   } else {
   }
 }
@@ -67,7 +67,7 @@ auto TcpClient::SendAndRecvTinyPb(const std::string &msg_no, TinyPbStruct::pb_pt
   bool is_timeout = false;
   Coroutine *cur_cor = Coroutine::GetCurrentCoroutine();
   auto timer_cb = [this, &is_timeout, cur_cor]() {
-    InfoLog << "TcpClient timer out event occur";
+    LOG_INFO << "TcpClient timer out event occur";
     is_timeout = true;
     this->connection_->SetOverTimeFlag(true);
     Coroutine::Resume(cur_cor);
@@ -75,14 +75,14 @@ auto TcpClient::SendAndRecvTinyPb(const std::string &msg_no, TinyPbStruct::pb_pt
   TimerEvent::ptr event = std::make_shared<TimerEvent>(max_timeout_, false, timer_cb);
   reactor_->GetTimer()->AddTimerEvent(event);
 
-  DebugLog << "add rpc timer event, timeout on " << event->arrive_time_;
+  LOG_DEBUG << "add rpc timer event, timeout on " << event->arrive_time_;
 
   while (!is_timeout) {
-    DebugLog << "begin to connect";
+    LOG_DEBUG << "begin to connect";
     if (connection_->GetState() != Connected) {
       int rt = connect_hook(fd_, reinterpret_cast<sockaddr *>(peer_addr_->GetSockAddr()), peer_addr_->GetSockLen());
       if (rt == 0) {
-        DebugLog << "connect [" << peer_addr_->ToString() << "] succ!";
+        LOG_DEBUG << "connect [" << peer_addr_->ToString() << "] succ!";
         connection_->SetUpClient();
         break;
       }
@@ -91,7 +91,7 @@ auto TcpClient::SendAndRecvTinyPb(const std::string &msg_no, TinyPbStruct::pb_pt
         std::stringstream ss;
         ss << "connect error, peer[ " << peer_addr_->ToString() << " ] closed.";
         err_info_ = ss.str();
-        ErrorLog << "cancle overtime event, err info=" << err_info_;
+        LOG_ERROR << "cancle overtime event, err info=" << err_info_;
         reactor_->GetTimer()->DelTimerEvent(event);
         return ERROR_PEER_CLOSED;
       }
@@ -99,7 +99,7 @@ auto TcpClient::SendAndRecvTinyPb(const std::string &msg_no, TinyPbStruct::pb_pt
         std::stringstream ss;
         ss << "connect cur sys ror, errinfo is " << std::string(strerror(errno)) << " ] closed.";
         err_info_ = ss.str();
-        ErrorLog << "cancle overtime event, err info=" << err_info_;
+        LOG_ERROR << "cancle overtime event, err info=" << err_info_;
         reactor_->GetTimer()->DelTimerEvent(event);
         return ERROR_CONNECT_SYS_ERR;
       }
@@ -119,22 +119,22 @@ auto TcpClient::SendAndRecvTinyPb(const std::string &msg_no, TinyPbStruct::pb_pt
   connection_->SetUpClient();
   connection_->Output();
   if (connection_->GetOverTimerFlag()) {
-    InfoLog << "send data over time";
+    LOG_INFO << "send data over time";
     is_timeout = true;
     goto err_deal;
   }
 
   while (!connection_->GetResPackageData(msg_no, res)) {
-    DebugLog << "redo getResPackageData";
+    LOG_DEBUG << "redo getResPackageData";
     connection_->Input();
 
     if (connection_->GetOverTimerFlag()) {
-      InfoLog << "read data over time";
+      LOG_INFO << "read data over time";
       is_timeout = true;
       goto err_deal;
     }
     if (connection_->GetState() == Closed) {
-      InfoLog << "peer close";
+      LOG_INFO << "peer close";
       goto err_deal;
     }
 

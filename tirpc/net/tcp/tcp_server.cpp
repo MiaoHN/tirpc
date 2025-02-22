@@ -28,36 +28,36 @@ TcpAcceptor::TcpAcceptor(Address::ptr net_addr) : local_addr_(std::move(net_addr
 void TcpAcceptor::Init() {
   fd_ = socket(local_addr_->GetFamily(), SOCK_STREAM, 0);
   if (fd_ < 0) {
-    ErrorLog << "start server error. socket error, sys error=" << strerror(errno);
+    LOG_ERROR << "start server error. socket error, sys error=" << strerror(errno);
     Exit(0);
   }
   // assert(fd_ != -1);
-  DebugLog << "create listenfd succ, listenfd=" << fd_;
+  LOG_DEBUG << "create listenfd succ, listenfd=" << fd_;
 
   // int flag = fcntl(fd_, F_GETFL, 0);
   // int rt = fcntl(fd_, F_SETFL, flag | O_NONBLOCK);
 
   // if (rt != 0) {
-  // ErrorLog << "fcntl set nonblock error, errno=" << errno << ", error=" << strerror(errno);
+  // LOG_ERROR << "fcntl set nonblock error, errno=" << errno << ", error=" << strerror(errno);
   // }
 
   int val = 1;
   if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) < 0) {
-    ErrorLog << "set REUSEADDR error";
+    LOG_ERROR << "set REUSEADDR error";
   }
 
   socklen_t len = local_addr_->GetSockLen();
   int rt = bind(fd_, local_addr_->GetSockAddr(), len);
   if (rt != 0) {
-    ErrorLog << "start server error. bind error, errno=" << errno << ", error=" << strerror(errno);
+    LOG_ERROR << "start server error. bind error, errno=" << errno << ", error=" << strerror(errno);
     Exit(0);
   }
   // assert(rt == 0);
 
-  DebugLog << "set REUSEADDR succ";
+  LOG_DEBUG << "set REUSEADDR succ";
   rt = listen(fd_, 10);
   if (rt != 0) {
-    ErrorLog << "start server error. listen error, fd= " << fd_ << ", errno=" << errno << ", error=" << strerror(errno);
+    LOG_ERROR << "start server error. listen error, fd= " << fd_ << ", errno=" << errno << ", error=" << strerror(errno);
     Exit(0);
   }
   // assert(rt == 0);
@@ -82,10 +82,10 @@ auto TcpAcceptor::ToAccept() -> int {
     // call hook accept
     rt = accept_hook(fd_, reinterpret_cast<sockaddr *>(&cli_addr), &len);
     if (rt == -1) {
-      DebugLog << "error, no new client coming, errno=" << errno << "error=" << strerror(errno);
+      LOG_DEBUG << "error, no new client coming, errno=" << errno << "error=" << strerror(errno);
       return -1;
     }
-    DebugLog << "New client accepted succ! port:[" << cli_addr.sin_port;
+    LOG_DEBUG << "New client accepted succ! port:[" << cli_addr.sin_port;
     peer_addr_ = std::make_shared<IPAddress>(cli_addr);
   } else if (family_ == AF_UNIX) {
     sockaddr_un cli_addr;
@@ -94,18 +94,18 @@ auto TcpAcceptor::ToAccept() -> int {
     // call hook accept
     rt = accept_hook(fd_, reinterpret_cast<sockaddr *>(&cli_addr), &len);
     if (rt == -1) {
-      DebugLog << "error, no new client coming, errno=" << errno << "error=" << strerror(errno);
+      LOG_DEBUG << "error, no new client coming, errno=" << errno << "error=" << strerror(errno);
       return -1;
     }
     peer_addr_ = std::make_shared<UnixDomainAddress>(cli_addr);
 
   } else {
-    ErrorLog << "unknown type protocol!";
+    LOG_ERROR << "unknown type protocol!";
     close(rt);
     return -1;
   }
 
-  DebugLog << "New client accepted succ! fd:[" << rt << ", addr:[" << peer_addr_->ToString() << "]";
+  LOG_DEBUG << "New client accepted succ! fd:[" << rt << ", addr:[" << peer_addr_->ToString() << "]";
 
   return rt;
 }
@@ -123,7 +123,7 @@ TcpServer::TcpServer(Address::ptr addr) : addr_(std::move(addr)) {
       std::make_shared<TimerEvent>(10000, true, std::bind(&TcpServer::ClearClientTimerFunc, this));
   main_reactor_->GetTimer()->AddTimerEvent(clear_clent_timer_event_);
 
-  DebugLog << "TcpServer setup on [" << addr_->ToString() << "]";
+  LOG_DEBUG << "TcpServer setup on [" << addr_->ToString() << "]";
 }
 
 void TcpServer::Start() {
@@ -135,7 +135,7 @@ void TcpServer::Start() {
   accept_cor_ = GetCoroutinePool()->GetCoroutineInstanse();
   accept_cor_->SetCallBack(std::bind(&TcpServer::MainAcceptCorFunc, this));
 
-  DebugLog << "resume accept coroutine";
+  LOG_DEBUG << "resume accept coroutine";
   Coroutine::Resume(accept_cor_.get());
 
   // accept_cor 已经执行，但在服务器刚启动时没有其它连接（NonBlocking），所以 Yield 回来了
@@ -149,7 +149,7 @@ TcpServer::~TcpServer() {
   if (register_) {
     register_->Clear();
   }
-  DebugLog << "~TcpServer";
+  LOG_DEBUG << "~TcpServer";
 }
 
 void TcpServer::MainAcceptCorFunc() {
@@ -162,11 +162,11 @@ void TcpServer::MainAcceptCorFunc() {
     IOThread *io_thread = io_pool_->GetIoThread();
     TcpConnection::ptr conn = AddClient(io_thread, fd);
     conn->InitServer();
-    DebugLog << "tcpconnection address is " << conn.get() << ", and fd is" << fd;
+    LOG_DEBUG << "tcpconnection address is " << conn.get() << ", and fd is" << fd;
 
     io_thread->GetReactor()->AddCoroutine(conn->GetCoroutine());
     tcp_counts_++;
-    DebugLog << "current tcp connection count is [" << tcp_counts_ << "]";
+    LOG_DEBUG << "current tcp connection count is [" << tcp_counts_ << "]";
   }
 }
 
@@ -177,11 +177,11 @@ auto TcpServer::AddClient(IOThread *io_thread, int fd) -> TcpConnection::ptr {
   if (it != clients_.end()) {
     it->second.reset();
     // set new Tcpconnection
-    DebugLog << "fd " << fd << "have exist, reset it";
+    LOG_DEBUG << "fd " << fd << "have exist, reset it";
     it->second = std::make_shared<TcpConnection>(this, io_thread, fd, 128, GetPeerAddr());
     return it->second;
   }
-  DebugLog << "fd " << fd << "did't exist, new it";
+  LOG_DEBUG << "fd " << fd << "did't exist, new it";
   TcpConnection::ptr conn = std::make_shared<TcpConnection>(this, io_thread, fd, 128, GetPeerAddr());
   clients_.insert(std::make_pair(fd, conn));
   return conn;
@@ -196,17 +196,17 @@ void TcpServer::FreshTcpConnection(TcpTimeWheel::TcpConnectionSlot::ptr slot) {
 }
 
 void TcpServer::ClearClientTimerFunc() {
-  // DebugLog << "this IOThread loop timer excute";
+  // LOG_DEBUG << "this IOThread loop timer excute";
 
   // delete Closed TcpConnection per loop
   // for free memory
-  // DebugLog << "clients_.size=" << clients_.size();
+  // LOG_DEBUG << "clients_.size=" << clients_.size();
   for (auto &i : clients_) {
     // TcpConnection::ptr s_conn = i.second;
-    // DebugLog << "state = " << s_conn->GetState();
+    // LOG_DEBUG << "state = " << s_conn->GetState();
     if (i.second && i.second.use_count() > 0 && i.second->GetState() == Closed) {
       // need to delete TcpConnection
-      DebugLog << "TcpConection [fd:" << i.first << "] will delete, state=" << i.second->GetState();
+      LOG_DEBUG << "TcpConection [fd:" << i.first << "] will delete, state=" << i.second->GetState();
       (i.second).reset();
       // s_conn.reset();
     }

@@ -47,15 +47,15 @@ auto FormatString(const char *fmt, Args... args) -> std::string {
         "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" +                                      \
         tirpc::FormatString(str, ##__VA_ARGS__) + "\n");
 
-#define DebugLog LOG_LEVEL(DEBUG)
-#define InfoLog LOG_LEVEL(INFO)
-#define WarnLog LOG_LEVEL(WARN)
-#define ErrorLog LOG_LEVEL(ERROR)
+#define LOG_DEBUG LOG_LEVEL(DEBUG)
+#define LOG_INFO LOG_LEVEL(INFO)
+#define LOG_WARN LOG_LEVEL(WARN)
+#define LOG_ERROR LOG_LEVEL(ERROR)
 
-#define AppDebugLog(str, ...) APP_LOG_LEVEL(DEBUG, str, ##__VA_ARGS__)
-#define AppInfoLog(str, ...) APP_LOG_LEVEL(INFO, str, ##__VA_ARGS__)
-#define AppWarnLog(str, ...) APP_LOG_LEVEL(WARN, str, ##__VA_ARGS__)
-#define AppErrorLog(str, ...) APP_LOG_LEVEL(ERROR, str, ##__VA_ARGS__)
+#define APP_LOG_DEBUG(str, ...) APP_LOG_LEVEL(DEBUG, str, ##__VA_ARGS__)
+#define APP_LOG_INFO(str, ...) APP_LOG_LEVEL(INFO, str, ##__VA_ARGS__)
+#define APP_LOG_WARN(str, ...) APP_LOG_LEVEL(WARN, str, ##__VA_ARGS__)
+#define APP_LOG_ERROR(str, ...) APP_LOG_LEVEL(ERROR, str, ##__VA_ARGS__)
 
 enum LogType { RPC_LOG = 1, APP_LOG = 2 };
 

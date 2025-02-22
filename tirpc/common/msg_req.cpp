@@ -32,7 +32,7 @@ auto MsgReqUtil::GenMsgNumber() -> std::string {
     }
     std::string res(t_msg_req_len, 0);
     if (read(g_random_fd, &res[0], t_msg_req_len) != t_msg_req_len) {
-      ErrorLog << "read /dev/urandom data less " << t_msg_req_len << " bytes";
+      LOG_ERROR << "read /dev/urandom data less " << t_msg_req_len << " bytes";
       return "";
     }
     t_max_msg_req_nu = "";
@@ -55,7 +55,7 @@ auto MsgReqUtil::GenMsgNumber() -> std::string {
       }
     }
   }
-  // DebugLog << "get msg_req_nu is " << t_msg_req_nu;
+  // LOG_DEBUG << "get msg_req_nu is " << t_msg_req_nu;
   return t_msg_req_nu;
 }
 

@@ -33,7 +33,7 @@ class BlockCallHttpServlet : public tirpc::HttpServlet {
 
     queryAgeReq rpc_req;
     queryAgeRes rpc_res;
-    AppDebugLog("now to call QueryServer tirPC server to query who's id is %s", req->query_maps_["id"].c_str());
+    APP_LOG_DEBUG("now to call QueryServer tirPC server to query who's id is %s", req->query_maps_["id"].c_str());
     rpc_req.set_id(std::atoi(req->query_maps_["id"].c_str()));
 
     tirpc::RpcChannel channel(addr);
@@ -42,9 +42,9 @@ class BlockCallHttpServlet : public tirpc::HttpServlet {
     tirpc::RpcController rpc_controller;
     rpc_controller.SetTimeout(5000);
 
-    AppDebugLog("BlockCallHttpServlet end to call RPC");
+    APP_LOG_DEBUG("BlockCallHttpServlet end to call RPC");
     stub.query_age(&rpc_controller, &rpc_req, &rpc_res, nullptr);
-    AppDebugLog("BlockCallHttpServlet end to call RPC");
+    APP_LOG_DEBUG("BlockCallHttpServlet end to call RPC");
 
     if (rpc_controller.ErrorCode() != 0) {
       char buf[512];
@@ -57,7 +57,7 @@ class BlockCallHttpServlet : public tirpc::HttpServlet {
       std::stringstream ss;
       ss << "QueryServer rpc server return bad result, ret = " << rpc_res.ret_code()
          << ", and res_info = " << rpc_res.res_info();
-      AppDebugLog(ss.str().c_str());
+      APP_LOG_DEBUG(ss.str().c_str());
       char buf[512];
       sprintf(buf, html, ss.str().c_str());
       SetHttpBody(res, std::string(buf));
@@ -86,18 +86,18 @@ class NonBlockCallHttpServlet : public tirpc::HttpServlet {
 
     auto rpc_req = std::make_shared<queryAgeReq>();
     auto rpc_res = std::make_shared<queryAgeRes>();
-    AppDebugLog("now to call QueryServer tirPC server to query who's id is %s", req->query_maps_["id"].c_str());
+    APP_LOG_DEBUG("now to call QueryServer tirPC server to query who's id is %s", req->query_maps_["id"].c_str());
     rpc_req->set_id(std::atoi(req->query_maps_["id"].c_str()));
 
     auto rpc_controller = std::make_shared<tirpc::RpcController>();
     rpc_controller->SetTimeout(10000);
 
-    AppDebugLog("NonBlockCallHttpServlet begin to call RPC async");
+    APP_LOG_DEBUG("NonBlockCallHttpServlet begin to call RPC async");
 
     auto async_channel = std::make_shared<tirpc::RpcAsyncChannel>(addr);
 
     auto cb = [rpc_res]() {
-      AppDebugLog("NonBlockCallHttpServlet async call end, res=%s", rpc_res->ShortDebugString().c_str());
+      APP_LOG_DEBUG("NonBlockCallHttpServlet async call end, res=%s", rpc_res->ShortDebugString().c_str());
     };
 
     auto closure = std::make_shared<tirpc::RpcClosure>(cb);
@@ -106,13 +106,13 @@ class NonBlockCallHttpServlet : public tirpc::HttpServlet {
     QueryService_Stub stub(async_channel.get());
 
     stub.query_age(rpc_controller.get(), rpc_req.get(), rpc_res.get(), nullptr);
-    AppDebugLog("NonBlockCallHttpServlet async end, now you can to some another thing");
+    APP_LOG_DEBUG("NonBlockCallHttpServlet async end, now you can to some another thing");
 
     async_channel->Wait();
-    AppDebugLog("wait() back, now to check is rpc call succ");
+    APP_LOG_DEBUG("wait() back, now to check is rpc call succ");
 
     if (rpc_controller->ErrorCode() != 0) {
-      AppDebugLog("failed to call QueryServer rpc server");
+      APP_LOG_DEBUG("failed to call QueryServer rpc server");
       char buf[512];
       sprintf(buf, html, "failed to call QueryServer rpc server");
       SetHttpBody(res, std::string(buf));
@@ -154,7 +154,7 @@ class QPSHttpServlet : public tirpc::HttpServlet {
     char buf[512];
     sprintf(buf, html, ss.str().c_str());
     SetHttpBody(res, std::string(buf));
-    AppDebugLog(ss.str().c_str());
+    APP_LOG_DEBUG(ss.str().c_str());
   }
 
   auto GetServletName() -> std::string override { return "QPSHttpServlet"; }
@@ -163,14 +163,28 @@ class QPSHttpServlet : public tirpc::HttpServlet {
 auto main(int argc, char *argv[]) -> int {
   // default config file
   std::string config_file = "./conf/http_server.yml";
+  bool use_lockfree = false;
 
   if (argc == 2) {
-    config_file = argv[1];
+    if (argv[1][0] != '-') {
+      config_file = argv[1];
+    } else {
+      if (!strcmp(argv[1], "--use-locked-queue")) {
+        use_lockfree = false;
+      } else if (!strcmp(argv[1], "--use-lock-free-queue")) {
+        use_lockfree = true;
+      } else {
+        std::cerr << "unknown argv[1]: " << argv[1] << std::endl;
+        exit(0);
+      }
+    }
   }
+
+  std::cout << "use_lockfree: " << use_lockfree << std::endl;
 
   tirpc::InitConfig(config_file.c_str());
 
-  AppInfoLog("use config file %s", config_file.c_str());
+  tirpc::GetConfig()->use_look_free_ = use_lockfree;
 
   auto server = std::make_shared<tirpc::HttpServer>(tirpc::GetConfig()->GetAddr());
 

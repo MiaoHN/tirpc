@@ -28,9 +28,9 @@ auto GetNowMs() -> int64_t {
 
 Timer::Timer(Reactor *reactor) : FdEvent(reactor) {
   fd_ = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
-  DebugLog << "timer fd = " << fd_;
+  LOG_DEBUG << "timer fd = " << fd_;
   if (fd_ == -1) {
-    ErrorLog << "timerfd_create error";
+    LOG_ERROR << "timerfd_create error";
   }
   read_callback_ = std::bind(&Timer::OnTimer, this);
   AddListenEvents(READ);
@@ -56,7 +56,7 @@ void Timer::AddTimerEvent(TimerEvent::ptr event, bool need_reset) {
   lock.Unlock();
 
   if (is_reset && need_reset) {
-    DebugLog << "need reset timer";
+    LOG_DEBUG << "need reset timer";
     ResetArriveTime();
   }
 }
@@ -70,7 +70,7 @@ void Timer::DelTimerEvent(TimerEvent::ptr event) {
   auto it = begin;
   for (; it != end; it++) {
     if (it->second == event) {
-      DebugLog << "find timer event, now delete it. src arrive time=" << event->arrive_time_;
+      LOG_DEBUG << "find timer event, now delete it. src arrive time=" << event->arrive_time_;
       break;
     }
   }
@@ -78,7 +78,7 @@ void Timer::DelTimerEvent(TimerEvent::ptr event) {
     pending_events_.erase(it);
   }
   lock.Unlock();
-  DebugLog << "del timer event succ, origin arrive time=" << event->arrive_time_;
+  LOG_DEBUG << "del timer event succ, origin arrive time=" << event->arrive_time_;
 }
 
 void Timer::ResetArriveTime() {
@@ -87,14 +87,14 @@ void Timer::ResetArriveTime() {
   lock.Unlock();
 
   if (tmp.empty()) {
-    DebugLog << "no timer event, return";
+    LOG_DEBUG << "no timer event, return";
     return;
   }
 
   int64_t now = GetNowMs();
   auto it = tmp.rbegin();
   if (it->first < now) {
-    DebugLog << "all timer events have expired, now=" << now << ", last=" << it->first;
+    LOG_DEBUG << "all timer events have expired, now=" << now << ", last=" << it->first;
     return;
   }
   int64_t interval = it->first - now;
@@ -112,7 +112,7 @@ void Timer::ResetArriveTime() {
   int rt = timerfd_settime(fd_, 0, &new_value, nullptr);
 
   if (rt != 0) {
-    ErrorLog << "timerfd_settime error, interval=" << interval;
+    LOG_ERROR << "timerfd_settime error, interval=" << interval;
   }
 }
 
@@ -146,7 +146,7 @@ void Timer::OnTimer() {
   lock.Unlock();
 
   for (auto &task : repeated_tasks) {
-    // DebugLog << "excute timer event on " << (*i)->m_arrive_time;
+    // LOG_DEBUG << "excute timer event on " << (*i)->m_arrive_time;
     task->Reset();
     AddTimerEvent(task, false);
   }

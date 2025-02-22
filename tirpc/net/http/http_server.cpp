@@ -18,7 +18,7 @@ auto HttpServer::RegisterHttpServlet(const std::string &url_path, HttpServlet::p
       dynamic_cast<HttpDispatcher *>(dispatcher_.get())->RegisterServlet(url_path, servlet);
     }
   } else {
-    ErrorLog << "register http servlet error, servlet ptr is nullptr";
+    LOG_ERROR << "register http servlet error, servlet ptr is nullptr";
     return false;
   }
   return true;

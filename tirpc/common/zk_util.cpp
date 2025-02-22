@@ -20,7 +20,7 @@ void ZkClient::globalWatcher(zhandle_t *zh, int type, int state, const char *pat
       ZkClient *cli = (ZkClient *)zoo_get_context(zh);
       sem_post(&cli->sem_);                           // 连接成功
     } else if (state == ZOO_EXPIRED_SESSION_STATE) {  // 会话超时，重新连接
-      ErrorLog << "Trying to reconnect zk......";
+      LOG_ERROR << "Trying to reconnect zk......";
       ZkClient *cli = (ZkClient *)zoo_get_context(zh);
       cli->start();
     }
@@ -30,7 +30,7 @@ void ZkClient::globalWatcher(zhandle_t *zh, int type, int state, const char *pat
 ZkClient::ZkClient(const std::string &ip, int port, int timeout) {
   zhandle_ = nullptr;
   connstr_ = ip + ":" + std::to_string(port);
-  InfoLog << "connstr_ is '" << connstr_ << "'";
+  LOG_INFO << "connstr_ is '" << connstr_ << "'";
   timeout_ = timeout;
 }
 
@@ -56,7 +56,7 @@ void ZkClient::start() {
   zhandle_ = zookeeper_init(connstr_.c_str(), globalWatcher, timeout_, nullptr, nullptr, 0);
   // 返回表示句柄创建成功，不代表连接成功了
   if (nullptr == zhandle_) {
-    ErrorLog << "zookeeper_init error!";
+    LOG_ERROR << "zookeeper_init error!";
     Exit(0);
   }
 
@@ -64,7 +64,7 @@ void ZkClient::start() {
 
   sem_wait(&sem_);
 
-  InfoLog << "zookeeper_init success! connstr = '" << connstr_ << "', timeout = " << timeout_;
+  LOG_INFO << "zookeeper_init success! connstr = '" << connstr_ << "', timeout = " << timeout_;
 }
 
 // 断开zkclient与zkserver的连接
@@ -72,7 +72,7 @@ void ZkClient::stop() {
   if (zhandle_ != nullptr) {
     zookeeper_close(zhandle_);  // 关闭句柄，释放资源  MySQL_Conn
     zhandle_ = nullptr;
-    InfoLog << "zookeeper connection close success!";
+    LOG_INFO << "zookeeper connection close success!";
   }
 }
 
@@ -89,10 +89,10 @@ void ZkClient::create(const char *path, const char *data, int datalen, int state
     flag =
         zoo_create(zhandle_, path, data, datalen, &ZOO_OPEN_ACL_UNSAFE, state, path_buffer, bufferlen);  // 也是同步的
     if (flag == ZOK) {
-      InfoLog << "znode create success... path: " << path;
+      LOG_INFO << "znode create success... path: " << path;
     } else {
-      ErrorLog << "flag: " << flag;
-      ErrorLog << "znode create error... path: " << path;
+      LOG_ERROR << "flag: " << flag;
+      LOG_ERROR << "znode create error... path: " << path;
     }
   }
 }
@@ -105,10 +105,10 @@ void ZkClient::deleteNode(const char *path) {
   if (ZNONODE != flag) {                          // 表示path的znode节点不存在
     flag = zoo_delete(zhandle_, path, -1);        // 也是同步的
     if (flag == ZOK) {
-      InfoLog << "znode delete success... path: " << path;
+      LOG_INFO << "znode delete success... path: " << path;
     } else {
-      ErrorLog << "flag: " << flag;
-      ErrorLog << "znode delete error... path: " << path;
+      LOG_ERROR << "flag: " << flag;
+      LOG_ERROR << "znode delete error... path: " << path;
     }
   }
 }
@@ -120,7 +120,7 @@ std::string ZkClient::getData(const char *path) {
   // 以同步的方式获取znode节点的值
   int flag = zoo_get(zhandle_, path, 0, buffer, &bufferlen, nullptr);
   if (flag != ZOK) {
-    ErrorLog << "get znode error... path: " << path;
+    LOG_ERROR << "get znode error... path: " << path;
     return "";
   }
   return buffer;
@@ -142,7 +142,7 @@ std::vector<std::string> ZkClient::getChildren(const char *path) {
   zoo_set_context(zhandle_, this);
   std::vector<std::string> result;
   if (flag != ZOK) {
-    ErrorLog << "get znode children error... path: " << path;
+    LOG_ERROR << "get znode children error... path: " << path;
   } else {
     int size = node_vec.count;
     for (int i = 0; i < size; ++i) {

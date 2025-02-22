@@ -29,7 +29,7 @@ RpcAsyncChannel::RpcAsyncChannel(Address::ptr addr) {
 }
 
 RpcAsyncChannel::~RpcAsyncChannel() {
-  // DebugLog << "~RpcAsyncChannel(), return coroutine";
+  // LOG_DEBUG << "~RpcAsyncChannel(), return coroutine";
   GetCoroutinePool()->ReturnCoroutine(pending_cor_);
 }
 
@@ -48,7 +48,7 @@ void RpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor *metho
                                  google::protobuf::Message *response, google::protobuf::Closure *done) {
   auto *rpc_controller = dynamic_cast<RpcController *>(controller);
   if (!is_pre_set_) {
-    ErrorLog << "Error! must call [saveCallee()] function before [CallMethod()]";
+    LOG_ERROR << "Error! must call [saveCallee()] function before [CallMethod()]";
     rpc_controller->SetError(ERROR_NOT_SET_ASYNC_PRE_CALL,
                              "Error! must call [saveCallee()] function before [CallMethod()];");
     is_finished_ = true;
@@ -57,23 +57,23 @@ void RpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor *metho
   Runtime *run_time = GetCurrentRuntime();
   if (run_time != nullptr) {
     rpc_controller->SetMsgSeq(run_time->msg_no_);
-    DebugLog << "get from RunTime succ, msgno=" << run_time->msg_no_;
+    LOG_DEBUG << "get from RunTime succ, msgno=" << run_time->msg_no_;
   } else {
     rpc_controller->SetMsgSeq(MsgReqUtil::GenMsgNumber());
-    DebugLog << "get from RunTime error, generate new msgno=" << rpc_controller->MsgSeq();
+    LOG_DEBUG << "get from RunTime error, generate new msgno=" << rpc_controller->MsgSeq();
   }
 
   std::shared_ptr<RpcAsyncChannel> s_ptr = shared_from_this();
 
   auto cb = [s_ptr, method]() mutable {
-    DebugLog << "now excute rpc call method by this thread";
+    LOG_DEBUG << "now excute rpc call method by this thread";
     s_ptr->GetRpcChannel()->CallMethod(method, s_ptr->GetControllerPtr(), s_ptr->GetRequestPtr(),
                                        s_ptr->GetResponsePtr(), nullptr);
 
-    DebugLog << "excute rpc call method by this thread finish";
+    LOG_DEBUG << "excute rpc call method by this thread finish";
 
     auto call_back = [s_ptr]() mutable {
-      DebugLog << "async excute rpc call method back old thread";
+      LOG_DEBUG << "async excute rpc call method back old thread";
       // callback function excute in origin thread
       if (s_ptr->GetClosurePtr() != nullptr) {
         s_ptr->GetClosurePtr()->Run();
@@ -81,7 +81,7 @@ void RpcAsyncChannel::CallMethod(const google::protobuf::MethodDescriptor *metho
       s_ptr->SetFinished(true);
 
       if (s_ptr->GetNeedResume()) {
-        DebugLog << "async excute rpc call method back old thread, need resume";
+        LOG_DEBUG << "async excute rpc call method back old thread, need resume";
         Coroutine::Resume(s_ptr->GetCurrentCoroutine());
       }
       s_ptr.reset();

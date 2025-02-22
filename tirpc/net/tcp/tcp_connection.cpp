@@ -24,7 +24,7 @@ TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, in
     : io_thread_(io_thread), fd_(fd), peer_addr_(std::move(peer_addr)) {
   reactor_ = io_thread_->GetReactor();
 
-  // DebugLog << "state_=[" << state_ << "], =" << fd;
+  // LOG_DEBUG << "state_=[" << state_ << "], =" << fd;
   tcp_svr_ = tcp_svr;
 
   codec_ = tcp_svr_->GetCodec();
@@ -33,7 +33,7 @@ TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, in
   InitBuffer(buff_size);
   loop_cor_ = GetCoroutinePool()->GetCoroutineInstanse();
   state_ = Connected;
-  DebugLog << "succ create tcp connection[" << state_ << "], fd=" << fd;
+  LOG_DEBUG << "succ create tcp connection[" << state_ << "], fd=" << fd;
 }
 
 TcpConnection::TcpConnection(TcpClient *tcp_cli, Reactor *reactor, int fd, int buff_size, Address::ptr peer_addr)
@@ -48,7 +48,7 @@ TcpConnection::TcpConnection(TcpClient *tcp_cli, Reactor *reactor, int fd, int b
   fd_event_->SetReactor(reactor_);
   InitBuffer(buff_size);
 
-  DebugLog << "succ create tcp connection[NotConnected]";
+  LOG_DEBUG << "succ create tcp connection[NotConnected]";
 }
 
 void TcpConnection::InitServer() {
@@ -72,7 +72,7 @@ TcpConnection::~TcpConnection() {
     GetCoroutinePool()->ReturnCoroutine(loop_cor_);
   }
 
-  DebugLog << "~TcpConnection, fd=" << fd_;
+  LOG_DEBUG << "~TcpConnection, fd=" << fd_;
 }
 
 void TcpConnection::InitBuffer(int size) {
@@ -89,12 +89,12 @@ void TcpConnection::MainServerLoopCorFunc() {
 
     Output();
   }
-  InfoLog << "this connection has already end loop";
+  LOG_INFO << "this connection has already end loop";
 }
 
 void TcpConnection::Input() {
   if (is_over_time_) {
-    InfoLog << "over timer, skip input progress";
+    LOG_INFO << "over timer, skip input progress";
     return;
   }
   TcpConnectionState state = GetState();
@@ -114,33 +114,33 @@ void TcpConnection::Input() {
     int read_count = read_buffer_->Writeable();
     int write_index = read_buffer_->WriteIndex();
 
-    DebugLog << "read_buffer_ size=" << read_buffer_->GetBufferVector().size() << "rd=" << read_buffer_->ReadIndex()
+    LOG_DEBUG << "read_buffer_ size=" << read_buffer_->GetBufferVector().size() << "rd=" << read_buffer_->ReadIndex()
              << "wd=" << read_buffer_->WriteIndex();
     int rt = recv_hook(fd_, &(read_buffer_->buffer_[write_index]), read_count, 0);
     if (rt > 0) {
       read_buffer_->RecycleWrite(rt);
     }
-    DebugLog << "read_buffer_ size=" << read_buffer_->GetBufferVector().size() << "rd=" << read_buffer_->ReadIndex()
+    LOG_DEBUG << "read_buffer_ size=" << read_buffer_->GetBufferVector().size() << "rd=" << read_buffer_->ReadIndex()
              << "wd=" << read_buffer_->WriteIndex();
 
-    DebugLog << "read data back, fd=" << fd_;
+    LOG_DEBUG << "read data back, fd=" << fd_;
     count += rt;
     if (is_over_time_) {
-      InfoLog << "over timer, now break read function";
+      LOG_INFO << "over timer, now break read function";
       break;
     }
     if (rt <= 0) {
-      DebugLog << "rt <= 0";
+      LOG_DEBUG << "rt <= 0";
       close_flag = true;
       break;
     }
     if (rt == read_count) {
-      DebugLog << "read_count == rt";
+      LOG_DEBUG << "read_count == rt";
       // is is possible read more data, should continue read
       continue;
     }
     if (rt < read_count) {
-      DebugLog << "read_count > rt";
+      LOG_DEBUG << "read_count > rt";
       // read all data in socket buffer, skip out loop
       read_all = true;
       break;
@@ -148,7 +148,7 @@ void TcpConnection::Input() {
   }
   if (close_flag) {
     ClearClient();
-    DebugLog << "peer close, now yield current coroutine, wait main thread clear this TcpConnection";
+    LOG_DEBUG << "peer close, now yield current coroutine, wait main thread clear this TcpConnection";
     Coroutine::GetCurrentCoroutine()->SetCanResume(false);
     Coroutine::Yield();
     // return;
@@ -159,7 +159,7 @@ void TcpConnection::Input() {
   }
 
   if (!read_all) {
-    ErrorLog << "not read all data in socket buffer";
+    LOG_ERROR << "not read all data in socket buffer";
   }
   if (connection_type_ == ServerConnection) {
     TcpTimeWheel::TcpConnectionSlot::ptr tmp = weak_slot_.lock();
@@ -170,23 +170,23 @@ void TcpConnection::Input() {
 }
 
 void TcpConnection::Execute() {
-  // DebugLog << "begin to do execute";
+  // LOG_DEBUG << "begin to do execute";
 
   // it only server do this
   while (read_buffer_->Readable() > 0) {
     auto data = codec_->GenDataPtr();
 
     codec_->Decode(read_buffer_.get(), data.get());
-    // DebugLog << "parse service_name=" << pb_struct.service_full_name;
+    // LOG_DEBUG << "parse service_name=" << pb_struct.service_full_name;
     if (!data->decode_succ_) {
-      ErrorLog << "it parse request error of fd " << fd_;
+      LOG_ERROR << "it parse request error of fd " << fd_;
       break;
     }
-    // DebugLog << "it parse request success";
+    // LOG_DEBUG << "it parse request success";
     if (connection_type_ == ServerConnection) {
-      // DebugLog << "to dispatch this package";
+      // LOG_DEBUG << "to dispatch this package";
       tcp_svr_->GetDispatcher()->Dispatch(data.get(), this);
-      // DebugLog << "contine parse next package";
+      // LOG_DEBUG << "contine parse next package";
     } else if (connection_type_ == ClientConnection) {
       std::shared_ptr<TinyPbStruct> tmp = std::dynamic_pointer_cast<TinyPbStruct>(data);
       if (tmp) {
@@ -198,7 +198,7 @@ void TcpConnection::Execute() {
 
 void TcpConnection::Output() {
   if (is_over_time_) {
-    InfoLog << "over timer, skip output progress";
+    LOG_INFO << "over timer, skip output progress";
     return;
   }
   while (true) {
@@ -208,41 +208,41 @@ void TcpConnection::Output() {
     }
 
     if (write_buffer_->Readable() == 0) {
-      DebugLog << "app buffer of fd[" << fd_ << "] no data to write, to yiled this coroutine";
+      LOG_DEBUG << "app buffer of fd[" << fd_ << "] no data to write, to yiled this coroutine";
       break;
     }
 
     int total_size = write_buffer_->Readable();
     int read_index = write_buffer_->ReadIndex();
     int rt = send_hook(fd_, &(write_buffer_->buffer_[read_index]), total_size, 0);
-    // InfoLog << "write end";
+    // LOG_INFO << "write end";
     if (rt <= 0) {
-      ErrorLog << "write empty, error=" << strerror(errno);
+      LOG_ERROR << "write empty, error=" << strerror(errno);
     }
 
-    DebugLog << "succ write " << rt << " bytes";
+    LOG_DEBUG << "succ write " << rt << " bytes";
     write_buffer_->RecycleRead(rt);
-    DebugLog << "recycle write index =" << write_buffer_->WriteIndex() << ", read_index =" << write_buffer_->ReadIndex()
+    LOG_DEBUG << "recycle write index =" << write_buffer_->WriteIndex() << ", read_index =" << write_buffer_->ReadIndex()
              << "readable = " << write_buffer_->Readable();
-    DebugLog << "send[" << rt << "] bytes data to [" << peer_addr_->ToString() << "], fd [" << fd_ << "]";
+    LOG_DEBUG << "send[" << rt << "] bytes data to [" << peer_addr_->ToString() << "], fd [" << fd_ << "]";
     if (write_buffer_->Readable() <= 0) {
-      // InfoLog << "send all data, now unregister write event on reactor and yield Coroutine";
-      DebugLog << "send all data, now unregister write event and break";
+      // LOG_INFO << "send all data, now unregister write event on reactor and yield Coroutine";
+      LOG_DEBUG << "send all data, now unregister write event and break";
       // fd_event_->DelListenEvents(IOEvent::WRITE);
       break;
     }
 
     if (is_over_time_) {
-      InfoLog << "over timer, now break write function";
+      LOG_INFO << "over timer, now break write function";
       break;
     }
   }
 }
 
 void TcpConnection::ClearClient() {
-  DebugLog << "clear client...";
+  LOG_DEBUG << "clear client...";
   if (GetState() == Closed) {
-    DebugLog << "this client has closed";
+    LOG_DEBUG << "this client has closed";
     return;
   }
   // first unregister epoll event
@@ -258,11 +258,11 @@ void TcpConnection::ClearClient() {
 void TcpConnection::ShutdownConnection() {
   TcpConnectionState state = GetState();
   if (state == Closed || state == NotConnected) {
-    DebugLog << "this client has closed";
+    LOG_DEBUG << "this client has closed";
     return;
   }
   SetState(HalfClosing);
-  DebugLog << "shutdown conn[" << peer_addr_->ToString() << "], fd=" << fd_;
+  LOG_DEBUG << "shutdown conn[" << peer_addr_->ToString() << "], fd=" << fd_;
 
   // call sys shutdown to send FIN
   // wait client done something, client will send FIN
@@ -279,30 +279,25 @@ auto TcpConnection::GetOutBuffer() -> TcpBuffer * { return write_buffer_.get(); 
 auto TcpConnection::GetResPackageData(const std::string &msg_req, TinyPbStruct::pb_ptr &pb_struct) -> bool {
   auto it = reply_datas_.find(msg_req);
   if (it != reply_datas_.end()) {
-    DebugLog << "return a resdata";
+    LOG_DEBUG << "return a resdata";
     pb_struct = it->second;
     reply_datas_.erase(it);
     return true;
   }
-  DebugLog << msg_req << "|reply data not exist";
+  LOG_DEBUG << msg_req << "|reply data not exist";
   return false;
 }
 
 auto TcpConnection::GetCodec() const -> AbstractCodeC::ptr { return codec_; }
 
 auto TcpConnection::GetState() -> TcpConnectionState {
-  TcpConnectionState state;
   RWMutex::ReadLocker lock(mutex_);
-  state = state_;
-  lock.Unlock();
-
-  return state;
+  return state_;
 }
 
 void TcpConnection::SetState(const TcpConnectionState &state) {
   RWMutex::WriteLocker lock(mutex_);
-  state_ = state;
-  lock.Unlock();
+  state_ = std::move(state);
 }
 
 void TcpConnection::SetOverTimeFlag(bool value) { is_over_time_ = value; }

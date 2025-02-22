@@ -91,8 +91,21 @@ class Reactor {
   ReactorType type_{ReactorType::SubReactor};
 };
 
-using CoroutineTaskQueue = LockFreeQueue<FdEvent *>;
+using LockFreeTaskQueue = LockFreeQueue<FdEvent *>;
 
-auto GetCoroutineTaskQueue() -> CoroutineTaskQueue *;
+auto GetLockFreeTaskQueue() -> LockFreeTaskQueue *;
+
+class CoroutineTaskQueue {
+ public:
+  static auto GetCoroutineTaskQueue() -> CoroutineTaskQueue *;
+
+  void Push(FdEvent *fd);
+
+  auto Pop() -> FdEvent *;
+
+ private:
+  std::queue<FdEvent *> tasks_;
+  Mutex mutex_;
+};
 
 }  // namespace tirpc

@@ -22,15 +22,15 @@ TcpTimeWheel::TcpTimeWheel(Reactor *reactor, int bucket_count, int interval /*= 
 TcpTimeWheel::~TcpTimeWheel() { reactor_->GetTimer()->DelTimerEvent(event_); }
 
 void TcpTimeWheel::LoopFunc() {
-  // DebugLog << "pop src bucket";
+  // LOG_DEBUG << "pop src bucket";
   wheel_.pop();
   std::vector<TcpConnectionSlot::ptr> tmp;
   wheel_.push(tmp);
-  // DebugLog << "push new bucket";
+  // LOG_DEBUG << "push new bucket";
 }
 
 void TcpTimeWheel::Fresh(TcpConnectionSlot::ptr slot) {
-  DebugLog << "fresh connection";
+  LOG_DEBUG << "fresh connection";
   wheel_.back().emplace_back(slot);
 }
 

@@ -22,7 +22,7 @@ auto RpcServer::RegisterService(std::shared_ptr<google::protobuf::Service> servi
     }
     register_->Register(service, addr_);
   } else {
-    ErrorLog << "register service error, service ptr is nullptr";
+    LOG_ERROR << "register service error, service ptr is nullptr";
     return false;
   }
   return true;

@@ -22,7 +22,7 @@ CoroutineMutex::~CoroutineMutex() {
 
 void CoroutineMutex::Lock() {
   if (Coroutine::IsMainCoroutine()) {
-    ErrorLog << "main coroutine can't use coroutine mutex";
+    LOG_ERROR << "main coroutine can't use coroutine mutex";
     return;
   }
 
@@ -31,14 +31,14 @@ void CoroutineMutex::Lock() {
   Mutex::Locker lock(mutex_);
   if (!lock_) {
     lock_ = true;
-    DebugLog << "coroutine succ get coroutine mutex";
+    LOG_DEBUG << "coroutine succ get coroutine mutex";
     lock.Unlock();
   } else {
     sleep_cors_.push(cor);
     auto tmp = sleep_cors_;
     lock.Unlock();
 
-    DebugLog << "coroutine yield, pending coroutine mutex, current sleep queue exist [" << tmp.size() << "] coroutines";
+    LOG_DEBUG << "coroutine yield, pending coroutine mutex, current sleep queue exist [" << tmp.size() << "] coroutines";
 
     Coroutine::Yield();
   }
@@ -46,7 +46,7 @@ void CoroutineMutex::Lock() {
 
 void CoroutineMutex::Unlock() {
   if (Coroutine::IsMainCoroutine()) {
-    ErrorLog << "main coroutine can't use coroutine mutex";
+    LOG_ERROR << "main coroutine can't use coroutine mutex";
     return;
   }
 
@@ -63,7 +63,7 @@ void CoroutineMutex::Unlock() {
 
     if (cor != nullptr) {
       // wakeup the first cor in sleep queue
-      DebugLog << "coroutine unlock, now to resume coroutine[" << cor->GetCorId() << "]";
+      LOG_DEBUG << "coroutine unlock, now to resume coroutine[" << cor->GetCorId() << "]";
 
       Reactor::GetReactor()->AddTask([cor]() { Coroutine::Resume(cor); }, true);
     }

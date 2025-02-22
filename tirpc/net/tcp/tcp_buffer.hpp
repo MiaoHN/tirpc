@@ -21,8 +21,6 @@ class TcpBuffer {
 
   auto WriteIndex() const -> int;
 
-  // int readFormSocket(char* buf, int size);
-
   void WriteToBuffer(const char *buf, int size);
 
   void ReadFromBuffer(std::vector<char> &re, int size);
@@ -32,8 +30,6 @@ class TcpBuffer {
   void ClearBuffer();
 
   auto GetSize() -> int;
-
-  // const char* getBuffer();
 
   auto GetBufferVector() -> std::vector<char>;
 

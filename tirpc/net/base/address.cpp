@@ -26,14 +26,14 @@ IPAddress::IPAddress(const std::string &ip, uint16_t port) : port_(port) {
   addr_.sin_addr.s_addr = inet_addr(ip_.c_str());
   addr_.sin_port = htons(port_);
 
-  DebugLog << "create ipv4 address succ [" << ToString() << "]";
+  LOG_DEBUG << "create ipv4 address succ [" << ToString() << "]";
 }
 
 IPAddress::IPAddress(sockaddr_in addr) : addr_(addr) {
   // if (addr_.sin_family != AF_INET) {
-  // ErrorLog << "err family, this address is valid";
+  // LOG_ERROR << "err family, this address is valid";
   // }
-  DebugLog << "ip[" << ip_ << "], port[" << addr.sin_port;
+  LOG_DEBUG << "ip[" << ip_ << "], port[" << addr.sin_port;
   ip_ = std::string(inet_ntoa(addr_.sin_addr));
   port_ = ntohs(addr_.sin_port);
 }
@@ -41,7 +41,7 @@ IPAddress::IPAddress(sockaddr_in addr) : addr_(addr) {
 IPAddress::IPAddress(const std::string &addr) {
   size_t i = addr.find_first_of(':');
   if (i == std::string::npos) {
-    ErrorLog << "invalid addr[" << addr << "]";
+    LOG_ERROR << "invalid addr[" << addr << "]";
     return;
   }
   ip_ = addr.substr(0, i);
@@ -51,7 +51,7 @@ IPAddress::IPAddress(const std::string &addr) {
   addr_.sin_family = AF_INET;
   addr_.sin_addr.s_addr = inet_addr(ip_.c_str());
   addr_.sin_port = htons(port_);
-  DebugLog << "create ipv4 address succ [" << ToString() << "]";
+  LOG_DEBUG << "create ipv4 address succ [" << ToString() << "]";
 }
 
 IPAddress::IPAddress(uint16_t port) : port_(port) {
@@ -60,7 +60,7 @@ IPAddress::IPAddress(uint16_t port) : port_(port) {
   addr_.sin_addr.s_addr = INADDR_ANY;
   addr_.sin_port = htons(port_);
 
-  DebugLog << "create ipv4 address succ [" << ToString() << "]";
+  LOG_DEBUG << "create ipv4 address succ [" << ToString() << "]";
 }
 
 auto IPAddress::GetFamily() const -> int { return addr_.sin_family; }
@@ -79,7 +79,7 @@ void IPAddress::SetPort(uint16_t port) {
   addr_.sin_family = AF_INET;
   addr_.sin_addr.s_addr = INADDR_ANY;
   addr_.sin_port = htons(port_);
-  DebugLog << "Update port, current ip address is [" << ToString() << "]";
+  LOG_DEBUG << "Update port, current ip address is [" << ToString() << "]";
 }
 
 auto IPAddress::GetSockLen() const -> socklen_t { return sizeof(addr_); }

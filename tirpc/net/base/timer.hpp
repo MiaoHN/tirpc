@@ -23,7 +23,7 @@ class TimerEvent {
   TimerEvent(int64_t interval, bool is_repeated, std::function<void()> task)
       : interval_(interval), is_repeated_(is_repeated), task_(std::move(task)) {
     arrive_time_ = GetNowMs() + interval_;
-    DebugLog << "timeevent will occur at " << arrive_time_;
+    LOG_DEBUG << "timeevent will occur at " << arrive_time_;
   }
 
   void Reset() {

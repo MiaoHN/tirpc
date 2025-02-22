@@ -14,6 +14,13 @@ set(rpc_server
 add_executable(rpc_server ${rpc_server})
 target_link_libraries(rpc_server ${LIBS})
 
+set(rpc_benchmark
+  ${CMAKE_CURRENT_SOURCE_DIR}/rpc_benchmark.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/rpc_server.pb.cc
+)
+add_executable(rpc_benchmark ${rpc_benchmark})
+target_link_libraries(rpc_benchmark ${LIBS})
+
 set(rpc_client
   ${CMAKE_CURRENT_SOURCE_DIR}/rpc_client.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rpc_server.pb.cc

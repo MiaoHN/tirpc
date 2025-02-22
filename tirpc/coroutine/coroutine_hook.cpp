@@ -40,32 +40,21 @@ void SetHook(bool value) { g_hook = value; }
 void toEpoll(tirpc::FdEvent::ptr fd_event, int events) {
   tirpc::Coroutine *cur_cor = tirpc::Coroutine::GetCurrentCoroutine();
   if (events & tirpc::IOEvent::READ) {
-    DebugLog << "fd:[" << fd_event->GetFd() << "], register read event to epoll";
-    // fd_event->setCallBack(tirpc::IOEvent::READ,
-    // 	[cur_cor, fd_event]() {
-    // 		tirpc::Coroutine::Resume(cur_cor);
-    // 	}
-    // );
+    LOG_DEBUG << "fd:[" << fd_event->GetFd() << "], register read event to epoll";
     fd_event->SetCoroutine(cur_cor);
     fd_event->AddListenEvents(tirpc::IOEvent::READ);
   }
   if (events & tirpc::IOEvent::WRITE) {
-    DebugLog << "fd:[" << fd_event->GetFd() << "], register write event to epoll";
-    // fd_event->setCallBack(tirpc::IOEvent::WRITE,
-    // 	[cur_cor]() {
-    // 		tirpc::Coroutine::Resume(cur_cor);
-    // 	}
-    // );
+    LOG_DEBUG << "fd:[" << fd_event->GetFd() << "], register write event to epoll";
     fd_event->SetCoroutine(cur_cor);
     fd_event->AddListenEvents(tirpc::IOEvent::WRITE);
   }
-  // fd_event->updateToReactor();
 }
 
 ssize_t recv_hook(int fd, void *buf, size_t count, int flag) {
-  DebugLog << "this is hook recv";
+  LOG_DEBUG << "this is hook recv";
   if (tirpc::Coroutine::IsMainCoroutine()) {
-    DebugLog << "hook disable, call sys recv func";
+    LOG_DEBUG << "hook disable, call sys recv func";
     return recv(fd, buf, count, flag);
   }
 
@@ -89,20 +78,20 @@ ssize_t recv_hook(int fd, void *buf, size_t count, int flag) {
 
   toEpoll(fd_event, tirpc::IOEvent::READ);
 
-  DebugLog << "recv func to yield";
+  LOG_DEBUG << "recv func to yield";
   tirpc::Coroutine::Yield();
 
   fd_event->DelListenEvents(tirpc::IOEvent::READ);
   fd_event->ClearCoroutine();
 
-  DebugLog << "recv func yield back, now to call sys recv";
+  LOG_DEBUG << "recv func yield back, now to call sys recv";
   return recv(fd, buf, count, flag);
 }
 
 ssize_t send_hook(int fd, const void *buf, size_t count, int flag) {
-  DebugLog << "this is hook send";
+  LOG_DEBUG << "this is hook send";
   if (tirpc::Coroutine::IsMainCoroutine()) {
-    DebugLog << "hook disable, call sys send func";
+    LOG_DEBUG << "hook disable, call sys send func";
     return send(fd, buf, count, flag);
   }
   tirpc::Reactor::GetReactor();
@@ -122,21 +111,21 @@ ssize_t send_hook(int fd, const void *buf, size_t count, int flag) {
 
   toEpoll(fd_event, tirpc::IOEvent::WRITE);
 
-  DebugLog << "send func to yield";
+  LOG_DEBUG << "send func to yield";
   tirpc::Coroutine::Yield();
 
   fd_event->DelListenEvents(tirpc::IOEvent::WRITE);
   fd_event->ClearCoroutine();
   // fd_event->updateToReactor();
 
-  DebugLog << "send func yield back, now to call sys send";
+  LOG_DEBUG << "send func yield back, now to call sys send";
   return send(fd, buf, count, flag);
 }
 
 ssize_t read_hook(int fd, void *buf, size_t count) {
-  DebugLog << "this is hook read";
+  LOG_DEBUG << "this is hook read";
   if (tirpc::Coroutine::IsMainCoroutine()) {
-    DebugLog << "hook disable, call sys read func";
+    LOG_DEBUG << "hook disable, call sys read func";
     return g_sys_read_fun(fd, buf, count);
   }
 
@@ -149,7 +138,7 @@ ssize_t read_hook(int fd, void *buf, size_t count) {
   }
 
   // if (fd_event->isNonBlock()) {
-  // DebugLog << "user set nonblock, call sys func";
+  // LOG_DEBUG << "user set nonblock, call sys func";
   // return g_sys_read_fun(fd, buf, count);
   // }
 
@@ -166,21 +155,21 @@ ssize_t read_hook(int fd, void *buf, size_t count) {
 
   toEpoll(fd_event, tirpc::IOEvent::READ);
 
-  DebugLog << "read func to yield";
+  LOG_DEBUG << "read func to yield";
   tirpc::Coroutine::Yield();
 
   fd_event->DelListenEvents(tirpc::IOEvent::READ);
   fd_event->ClearCoroutine();
   // fd_event->updateToReactor();
 
-  DebugLog << "read func yield back, now to call sys read";
+  LOG_DEBUG << "read func yield back, now to call sys read";
   return g_sys_read_fun(fd, buf, count);
 }
 
 int accept_hook(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
-  DebugLog << "this is hook accept";
+  LOG_DEBUG << "this is hook accept";
   if (tirpc::Coroutine::IsMainCoroutine()) {
-    DebugLog << "hook disable, call sys accept func";
+    LOG_DEBUG << "hook disable, call sys accept func";
     return g_sys_accept_fun(sockfd, addr, addrlen);
   }
   tirpc::Reactor::GetReactor();
@@ -192,7 +181,7 @@ int accept_hook(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
   }
 
   // if (fd_event->isNonBlock()) {
-  // DebugLog << "user set nonblock, call sys func";
+  // LOG_DEBUG << "user set nonblock, call sys func";
   // return g_sys_accept_fun(sockfd, addr, addrlen);
   // }
 
@@ -205,20 +194,20 @@ int accept_hook(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
 
   toEpoll(fd_event, tirpc::IOEvent::READ);
 
-  DebugLog << "accept func to yield";
+  LOG_DEBUG << "accept func to yield";
   tirpc::Coroutine::Yield();
 
   fd_event->DelListenEvents(tirpc::IOEvent::READ);
   fd_event->ClearCoroutine();
 
-  DebugLog << "accept func yield back, now to call sys accept";
+  LOG_DEBUG << "accept func yield back, now to call sys accept";
   return g_sys_accept_fun(sockfd, addr, addrlen);
 }
 
 ssize_t write_hook(int fd, const void *buf, size_t count) {
-  DebugLog << "this is hook write";
+  LOG_DEBUG << "this is hook write";
   if (tirpc::Coroutine::IsMainCoroutine()) {
-    DebugLog << "hook disable, call sys write func";
+    LOG_DEBUG << "hook disable, call sys write func";
     return g_sys_write_fun(fd, buf, count);
   }
   tirpc::Reactor::GetReactor();
@@ -230,7 +219,7 @@ ssize_t write_hook(int fd, const void *buf, size_t count) {
   }
 
   // if (fd_event->isNonBlock()) {
-  // DebugLog << "user set nonblock, call sys func";
+  // LOG_DEBUG << "user set nonblock, call sys func";
   // return g_sys_write_fun(fd, buf, count);
   // }
 
@@ -243,21 +232,21 @@ ssize_t write_hook(int fd, const void *buf, size_t count) {
 
   toEpoll(fd_event, tirpc::IOEvent::WRITE);
 
-  DebugLog << "write func to yield";
+  LOG_DEBUG << "write func to yield";
   tirpc::Coroutine::Yield();
 
   fd_event->DelListenEvents(tirpc::IOEvent::WRITE);
   fd_event->ClearCoroutine();
   // fd_event->updateToReactor();
 
-  DebugLog << "write func yield back, now to call sys write";
+  LOG_DEBUG << "write func yield back, now to call sys write";
   return g_sys_write_fun(fd, buf, count);
 }
 
 int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
-  DebugLog << "this is hook connect";
+  LOG_DEBUG << "this is hook connect";
   if (tirpc::Coroutine::IsMainCoroutine()) {
-    DebugLog << "hook disable, call sys connect func";
+    LOG_DEBUG << "hook disable, call sys connect func";
     return g_sys_connect_fun(sockfd, addr, addrlen);
   }
   tirpc::Reactor *reactor = tirpc::Reactor::GetReactor();
@@ -270,21 +259,21 @@ int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
   tirpc::Coroutine *cur_cor = tirpc::Coroutine::GetCurrentCoroutine();
 
   // if (fd_event->isNonBlock()) {
-  // DebugLog << "user set nonblock, call sys func";
+  // LOG_DEBUG << "user set nonblock, call sys func";
   // return g_sys_connect_fun(sockfd, addr, addrlen);
   // }
 
   fd_event->SetNonBlock();
   int n = g_sys_connect_fun(sockfd, addr, addrlen);
   if (n == 0) {
-    DebugLog << "direct connect succ, return";
+    LOG_DEBUG << "direct connect succ, return";
     return n;
   } else if (errno != EINPROGRESS) {
-    DebugLog << "connect error and errno is't EINPROGRESS, errno=" << errno << ",error=" << strerror(errno);
+    LOG_DEBUG << "connect error and errno is't EINPROGRESS, errno=" << errno << ",error=" << strerror(errno);
     return n;
   }
 
-  DebugLog << "errno == EINPROGRESS";
+  LOG_DEBUG << "errno == EINPROGRESS";
 
   toEpoll(fd_event, tirpc::IOEvent::WRITE);
 
@@ -315,23 +304,23 @@ int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
   n = g_sys_connect_fun(sockfd, addr, addrlen);
   if ((n < 0 && errno == EISCONN) || n == 0) {
-    DebugLog << "connect succ";
+    LOG_DEBUG << "connect succ";
     return 0;
   }
 
   if (is_timeout) {
-    ErrorLog << "connect error,  timeout[ " << g_rpc_config->max_connect_timeout_ << "ms]";
+    LOG_ERROR << "connect error,  timeout[ " << g_rpc_config->max_connect_timeout_ << "ms]";
     errno = ETIMEDOUT;
   }
 
-  DebugLog << "connect error and errno=" << errno << ", error=" << strerror(errno);
+  LOG_DEBUG << "connect error and errno=" << errno << ", error=" << strerror(errno);
   return -1;
 }
 
 unsigned int sleep_hook(unsigned int seconds) {
-  DebugLog << "this is hook sleep";
+  LOG_DEBUG << "this is hook sleep";
   if (tirpc::Coroutine::IsMainCoroutine()) {
-    DebugLog << "hook disable, call sys sleep func";
+    LOG_DEBUG << "hook disable, call sys sleep func";
     return g_sys_sleep_fun(seconds);
   }
 
@@ -339,7 +328,7 @@ unsigned int sleep_hook(unsigned int seconds) {
 
   bool is_timeout = false;
   auto timeout_cb = [cur_cor, &is_timeout]() {
-    DebugLog << "onTime, now resume sleep cor";
+    LOG_DEBUG << "onTime, now resume sleep cor";
     is_timeout = true;
     // 设置超时标志，然后唤醒协程
     tirpc::Coroutine::Resume(cur_cor);
@@ -349,7 +338,7 @@ unsigned int sleep_hook(unsigned int seconds) {
 
   tirpc::Reactor::GetReactor()->GetTimer()->AddTimerEvent(event);
 
-  DebugLog << "now to yield sleep";
+  LOG_DEBUG << "now to yield sleep";
   // beacuse read or wirte maybe resume this coroutine, so when this cor be resumed, must check is timeout, otherwise
   // should yield again
   while (!is_timeout) {

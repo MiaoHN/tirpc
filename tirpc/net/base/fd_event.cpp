@@ -13,7 +13,7 @@ static FdEventContainer *g_fd_container = nullptr;
 
 FdEvent::FdEvent(Reactor *reactor, int fd) : fd_(fd), reactor_(reactor) {
   if (reactor == nullptr) {
-    ErrorLog << "create reactor first";
+    LOG_ERROR << "create reactor first";
   }
 }
 
@@ -30,7 +30,7 @@ void FdEvent::HandleEvent(int flag) {
     write_callback_();
   }
 
-  ErrorLog << "unknow event";
+  LOG_ERROR << "unknow event";
 }
 
 void FdEvent::SetCallBack(IOEvent flag, std::function<void()> cb) {
@@ -39,7 +39,7 @@ void FdEvent::SetCallBack(IOEvent flag, std::function<void()> cb) {
   } else if (flag == WRITE) {
     write_callback_ = cb;
   } else {
-    ErrorLog << "unknow event";
+    LOG_ERROR << "unknow event";
   }
 }
 
@@ -50,13 +50,13 @@ auto FdEvent::GetCallBack(IOEvent flag) const -> std::function<void()> {
   if (flag == WRITE) {
     return write_callback_;
   }
-  ErrorLog << "unknow event";
+  LOG_ERROR << "unknow event";
   return nullptr;
 }
 
 void FdEvent::AddListenEvents(IOEvent event) {
   if (listen_events_ & event) {
-    DebugLog << "already has this event, skip";
+    LOG_DEBUG << "already has this event, skip";
     return;
   }
   listen_events_ |= event;
@@ -65,12 +65,12 @@ void FdEvent::AddListenEvents(IOEvent event) {
 
 void FdEvent::DelListenEvents(IOEvent event) {
   if ((listen_events_ & event) != 0U) {
-    DebugLog << "delete succ";
+    LOG_DEBUG << "delete succ";
     listen_events_ &= ~event;
     UpdateToReactor();
     return;
   }
-  DebugLog << "this event not exist, skip";
+  LOG_DEBUG << "this event not exist, skip";
 }
 
 void FdEvent::UpdateToReactor() {
@@ -106,28 +106,28 @@ void FdEvent::SetReactor(Reactor *r) { reactor_ = r; }
 
 void FdEvent::SetNonBlock() {
   if (fd_ == -1) {
-    ErrorLog << "fd is -1";
+    LOG_ERROR << "fd is -1";
     return;
   }
 
   int flag = fcntl(fd_, F_GETFL, 0);
   if (flag & O_NONBLOCK) {
-    DebugLog << "already nonblock";
+    LOG_DEBUG << "already nonblock";
     return;
   }
 
   fcntl(fd_, F_SETFL, flag | O_NONBLOCK);
   flag = fcntl(fd_, F_GETFL, 0);
   if (flag & O_NONBLOCK) {
-    DebugLog << "set nonblock succ";
+    LOG_DEBUG << "set nonblock succ";
   } else {
-    ErrorLog << "set nonblock fail";
+    LOG_ERROR << "set nonblock fail";
   }
 }
 
 auto FdEvent::IsNonBlock() -> bool {
   if (fd_ == -1) {
-    ErrorLog << "fd is -1";
+    LOG_ERROR << "fd is -1";
     return false;
   }
 

@@ -23,40 +23,42 @@ static thread_local Reactor *t_reactor_ptr = nullptr;
 
 static thread_local int t_max_epoll_timeout = 10000;  // ms
 
-static CoroutineTaskQueue *t_couroutine_task_queue = nullptr;
+static LockFreeTaskQueue *t_lockfree_task_queue = nullptr;
+
+static CoroutineTaskQueue *t_coroutine_task_queue = nullptr;
 
 Reactor::Reactor() {
   // one thread can't create more than one reactor object!!
   // assert(t_reactor_ptr == nullptr);
   if (t_reactor_ptr != nullptr) {
-    ErrorLog << "this thread has already create a reactor";
+    LOG_ERROR << "this thread has already create a reactor";
     Exit(0);
   }
 
   tid_ = tirpc::GetTid();
 
-  DebugLog << "thread[" << tid_ << "] succ create a reactor object";
+  LOG_DEBUG << "thread[" << tid_ << "] succ create a reactor object";
   t_reactor_ptr = this;
 
   if ((epfd_ = epoll_create(1)) <= 0) {
-    ErrorLog << "start server error. epoll_create error, sys error=" << strerror(errno);
+    LOG_ERROR << "start server error. epoll_create error, sys error=" << strerror(errno);
     Exit(0);
   } else {
-    DebugLog << "epfd_ = " << epfd_;
+    LOG_DEBUG << "epfd_ = " << epfd_;
   }
   // assert(epfd_ > 0);
 
   if ((wakeup_fd_ = eventfd(0, EFD_NONBLOCK)) <= 0) {
-    ErrorLog << "start server error. event_fd error, sys error=" << strerror(errno);
+    LOG_ERROR << "start server error. event_fd error, sys error=" << strerror(errno);
     Exit(0);
   }
-  DebugLog << "wakefd = " << wakeup_fd_;
+  LOG_DEBUG << "wakefd = " << wakeup_fd_;
   // assert(wakeup_fd_ > 0);
   AddWakeupFd();
 }
 
 Reactor::~Reactor() {
-  DebugLog << "~Reactor";
+  LOG_DEBUG << "~Reactor";
   close(epfd_);
   if (timer_ != nullptr) {
     delete timer_;
@@ -67,17 +69,17 @@ Reactor::~Reactor() {
 
 auto Reactor::GetReactor() -> Reactor * {
   if (t_reactor_ptr == nullptr) {
-    DebugLog << "Create new Reactor";
+    LOG_DEBUG << "Create new Reactor";
     t_reactor_ptr = new Reactor();
   }
-  // DebugLog << "t_reactor_ptr = " << t_reactor_ptr;
+  // LOG_DEBUG << "t_reactor_ptr = " << t_reactor_ptr;
   return t_reactor_ptr;
 }
 
 // call by other threads, need lock
 void Reactor::AddEvent(int fd, epoll_event event, bool is_wakeup /*=true*/) {
   if (fd == -1) {
-    ErrorLog << "add error. fd invalid, fd = -1";
+    LOG_ERROR << "add error. fd invalid, fd = -1";
     return;
   }
   if (IsLoopThread()) {
@@ -96,7 +98,7 @@ void Reactor::AddEvent(int fd, epoll_event event, bool is_wakeup /*=true*/) {
 // call by other threads, need lock
 void Reactor::DelEvent(int fd, bool is_wakeup /*=true*/) {
   if (fd == -1) {
-    ErrorLog << "add error. fd invalid, fd = -1";
+    LOG_ERROR << "add error. fd invalid, fd = -1";
     return;
   }
 
@@ -122,7 +124,7 @@ void Reactor::Wakeup() {
   uint64_t tmp = 1;
   uint64_t *p = &tmp;
   if (g_sys_write_fun(wakeup_fd_, p, 8) != 8) {
-    ErrorLog << "write wakeupfd[" << wakeup_fd_ << "] error";
+    LOG_ERROR << "write wakeupfd[" << wakeup_fd_ << "] error";
   }
 }
 
@@ -135,7 +137,7 @@ void Reactor::AddWakeupFd() {
   event.data.fd = wakeup_fd_;
   event.events = EPOLLIN;
   if ((epoll_ctl(epfd_, op, wakeup_fd_, &event)) != 0) {
-    ErrorLog << "epoo_ctl error, fd[" << wakeup_fd_ << "], errno=" << errno << ", err=" << strerror(errno);
+    LOG_ERROR << "epoo_ctl error, fd[" << wakeup_fd_ << "], errno=" << errno << ", err=" << strerror(errno);
   }
   fds_.push_back(wakeup_fd_);
 }
@@ -158,13 +160,13 @@ void Reactor::AddEventInLoopThread(int fd, epoll_event event) {
   // event.events = fd_event->getListenEvents();
 
   if (epoll_ctl(epfd_, op, fd, &event) != 0) {
-    ErrorLog << "epoo_ctl error, fd[" << fd << "], sys errinfo = " << strerror(errno);
+    LOG_ERROR << "epoo_ctl error, fd[" << fd << "], sys errinfo = " << strerror(errno);
     return;
   }
   if (is_add) {
     fds_.push_back(fd);
   }
-  DebugLog << "epoll_ctl add succ, fd[" << fd << "]";
+  LOG_DEBUG << "epoll_ctl add succ, fd[" << fd << "]";
 }
 
 // need't mutex, only this thread call
@@ -173,23 +175,23 @@ void Reactor::DelEventInLoopThread(int fd) {
 
   auto it = find(fds_.begin(), fds_.end(), fd);
   if (it == fds_.end()) {
-    DebugLog << "fd[" << fd << "] not in this loop";
+    LOG_DEBUG << "fd[" << fd << "] not in this loop";
     return;
   }
   int op = EPOLL_CTL_DEL;
 
   if ((epoll_ctl(epfd_, op, fd, nullptr)) != 0) {
-    ErrorLog << "epoo_ctl error, fd[" << fd << "], sys errinfo = " << strerror(errno);
+    LOG_ERROR << "epoo_ctl error, fd[" << fd << "], sys errinfo = " << strerror(errno);
   }
 
   fds_.erase(it);
-  DebugLog << "del succ, fd[" << fd << "]";
+  LOG_DEBUG << "del succ, fd[" << fd << "]";
 }
 
 void Reactor::Loop() {
   assert(IsLoopThread());
   if (is_looping_) {
-    // DebugLog << "this reactor is looping!";
+    // LOG_DEBUG << "this reactor is looping!";
     return;
   }
 
@@ -204,13 +206,26 @@ void Reactor::Loop() {
     if (type_ == SubReactor) {
       FdEvent *ptr = nullptr;
       while (true) {
-        bool res = GetCoroutineTaskQueue()->dequeue(ptr);
-        if (res == false || ptr == nullptr) {
-          break;
+        if (g_rpc_config->use_look_free_) {
+          if (GetLockFreeTaskQueue()->empty()) {
+            break;
+          }
+          bool res = GetLockFreeTaskQueue()->dequeue(ptr);
+          if (res == false || ptr == nullptr) {
+            break;
+          }
+          // ptr = GetCoroutineTaskQueue()->pop();
+          ptr->SetReactor(this);
+          Coroutine::Resume(ptr->GetCoroutine());
+        } else {
+          ptr = CoroutineTaskQueue::GetCoroutineTaskQueue()->Pop();
+          if (ptr != nullptr) {
+            ptr->SetReactor(this);
+            Coroutine::Resume(ptr->GetCoroutine());
+          } else {
+            break;
+          }
         }
-        // ptr = GetCoroutineTaskQueue()->pop();
-        ptr->SetReactor(this);
-        Coroutine::Resume(ptr->GetCoroutine());
       }
     }
 
@@ -230,7 +245,7 @@ void Reactor::Loop() {
     int rt = epoll_wait(epfd_, re_events, max_events, t_max_epoll_timeout);
 
     if (rt < 0) {
-      ErrorLog << "epoll_wait error, skip, errno=" << strerror(errno);
+      LOG_ERROR << "epoll_wait error, skip, errno=" << strerror(errno);
       continue;
     }
 
@@ -257,7 +272,7 @@ void Reactor::Loop() {
 
       // 错误事件
       if (!(event.events & EPOLLIN) && !(event.events & EPOLLOUT)) {
-        ErrorLog << "socket [" << fd << "] occur other unknow event:[" << event.events
+        LOG_ERROR << "socket [" << fd << "] occur other unknow event:[" << event.events
                  << "], need unregister this socket";
         DelEventInLoopThread(fd);
         continue;
@@ -268,8 +283,13 @@ void Reactor::Loop() {
         if (type_ == SubReactor) {
           DelEventInLoopThread(fd);
           ptr->SetReactor(nullptr);
-          while (!GetCoroutineTaskQueue()->enqueue(ptr)) {
+          if (g_rpc_config->use_look_free_) {
+            while (!GetLockFreeTaskQueue()->enqueue(ptr)) {
+            }
+          } else {
+            CoroutineTaskQueue::GetCoroutineTaskQueue()->Push(ptr);
           }
+
         } else {
           // main reactor, just resume this coroutine. it is accept coroutine. and Main Reactor only have this
           // coroutine
@@ -371,12 +391,38 @@ auto Reactor::GetTid() -> pid_t { return tid_; }
 
 void Reactor::SetReactorType(ReactorType type) { type_ = type; }
 
-auto GetCoroutineTaskQueue() -> CoroutineTaskQueue * {
-  if (t_couroutine_task_queue != nullptr) {
-    return t_couroutine_task_queue;
+auto GetLockFreeTaskQueue() -> LockFreeTaskQueue * {
+  if (t_lockfree_task_queue != nullptr) {
+    return t_lockfree_task_queue;
   }
-  t_couroutine_task_queue = new CoroutineTaskQueue();
-  return t_couroutine_task_queue;
+  t_lockfree_task_queue = new LockFreeTaskQueue();
+  return t_lockfree_task_queue;
+}
+
+auto CoroutineTaskQueue::GetCoroutineTaskQueue() -> CoroutineTaskQueue * {
+  if (t_coroutine_task_queue != nullptr) {
+    return t_coroutine_task_queue;
+  }
+  t_coroutine_task_queue = new CoroutineTaskQueue();
+  return t_coroutine_task_queue;
+}
+
+void CoroutineTaskQueue::Push(FdEvent *cor) {
+  Mutex::Locker lock(mutex_);
+  tasks_.push(cor);
+  lock.Unlock();
+}
+
+auto CoroutineTaskQueue::Pop() -> FdEvent * {
+  FdEvent *re = nullptr;
+  Mutex::Locker lock(mutex_);
+  if (!tasks_.empty()) {
+    re = tasks_.front();
+    tasks_.pop();
+  }
+  lock.Unlock();
+
+  return re;
 }
 
 }  // namespace tirpc

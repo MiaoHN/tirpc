@@ -18,7 +18,7 @@ namespace tirpc {
 void StringUtil::SplitStrToMap(const std::string &str, const std::string &split_str, const std::string &joiner,
                                std::map<std::string, std::string> &res) {
   if (str.empty() || split_str.empty() || joiner.empty()) {
-    DebugLog << "str or split_str or joiner_str is empty";
+    LOG_DEBUG << "str or split_str or joiner_str is empty";
     return;
   }
   const std::string &tmp = str;
@@ -31,7 +31,7 @@ void StringUtil::SplitStrToMap(const std::string &str, const std::string &split_
       if (j != std::basic_string<char>::npos && j != 0) {
         std::string key = i.substr(0, j);
         std::string value = i.substr(j + joiner.length(), i.length() - j - joiner.length());
-        DebugLog << "insert key=" << key << ", value=" << value;
+        LOG_DEBUG << "insert key=" << key << ", value=" << value;
         res[key.c_str()] = value;
       }
     }
@@ -40,7 +40,7 @@ void StringUtil::SplitStrToMap(const std::string &str, const std::string &split_
 
 void StringUtil::SplitStrToVector(const std::string &str, const std::string &split_str, std::vector<std::string> &res) {
   if (str.empty() || split_str.empty()) {
-    // DebugLog << "str or split_str is empty";
+    // LOG_DEBUG << "str or split_str is empty";
     return;
   }
   std::string tmp = str;
@@ -74,14 +74,14 @@ auto FileUtil::IsDirectory(const std::string &path) -> bool {
 
 bool FileUtil::ReadFile(const std::string &filepath, std::string &content) {
   if (IsDirectory(filepath)) {
-    ErrorLog << "Directory '" << filepath << "' cannot be read as file!";
+    LOG_ERROR << "Directory '" << filepath << "' cannot be read as file!";
     return false;
   }
   // 以只读模式打开文件
   int fd = open(filepath.c_str(), O_RDONLY);
   if (fd == -1) {
     // 打开文件失败，输出错误信息
-    ErrorLog << "Failed to open file '" << filepath << "'";
+    LOG_ERROR << "Failed to open file '" << filepath << "'";
     return false;
   }
 
@@ -89,7 +89,7 @@ bool FileUtil::ReadFile(const std::string &filepath, std::string &content) {
   struct stat file_stat;
   if (fstat(fd, &file_stat) == -1) {
     // 获取文件状态失败，关闭文件并返回 false
-    ErrorLog << "Failed to get file status for '" << filepath << "'";
+    LOG_ERROR << "Failed to get file status for '" << filepath << "'";
     close(fd);
     return false;
   }
@@ -102,7 +102,7 @@ bool FileUtil::ReadFile(const std::string &filepath, std::string &content) {
   ssize_t bytes_read = g_sys_read_fun(fd, &content[0], file_size);
   if (bytes_read == -1) {
     // 读取文件失败，关闭文件并返回 false
-    ErrorLog << "Failed to read file '" << filepath << "'";
+    LOG_ERROR << "Failed to read file '" << filepath << "'";
     close(fd);
     return false;
   }

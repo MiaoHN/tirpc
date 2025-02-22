@@ -22,7 +22,7 @@ class FileHttpServlet : public tirpc::HttpServlet {
       SetHttpBody(res, content);
     } else {
       // 文件未找到，返回 404
-      ErrorLog << "File '" << filepath << "' not found";
+      LOG_ERROR << "File '" << filepath << "' not found";
       HandleNotFound(req, res);
     }
   }

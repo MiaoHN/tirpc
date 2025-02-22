@@ -30,11 +30,11 @@ IOThread::IOThread() {
 
   pthread_create(&thread_, nullptr, &IOThread::Main, this);
 
-  DebugLog << "semaphore begin to wait until new thread frinish IOThread::main() to init";
+  LOG_DEBUG << "semaphore begin to wait until new thread frinish IOThread::main() to init";
   // wait until new thread finish IOThread::main() func to init
   rt = sem_wait(&init_semaphore_);
   assert(rt == 0);
-  DebugLog << "semaphore wait end, finish create io thread";
+  LOG_DEBUG << "semaphore wait end, finish create io thread";
 
   sem_destroy(&init_semaphore_);
 }
@@ -75,7 +75,7 @@ auto IOThread::Main(void *arg) -> void * {
 
   Coroutine::GetCurrentCoroutine();
 
-  DebugLog << "finish iothread init, now post semaphore";
+  LOG_DEBUG << "finish iothread init, now post semaphore";
   sem_post(&thread->init_semaphore_);
 
   // wait for main thread post start_semaphore_ to start iothread loop
@@ -161,7 +161,7 @@ auto IOThreadPool::AddCoroutineToRandomThread(std::function<void()> cb, bool sel
 auto IOThreadPool::AddCoroutineToThreadByIndex(int index, std::function<void()> cb,
                                                bool self /* = false*/) -> Coroutine::ptr {
   if (index >= static_cast<int>(io_threads_.size()) || index < 0) {
-    ErrorLog << "addCoroutineToThreadByIndex error, invalid iothread index[" << index << "]";
+    LOG_ERROR << "addCoroutineToThreadByIndex error, invalid iothread index[" << index << "]";
     return nullptr;
   }
   Coroutine::ptr cor = GetCoroutinePool()->GetCoroutineInstanse();

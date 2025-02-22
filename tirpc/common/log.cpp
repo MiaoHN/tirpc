@@ -60,12 +60,12 @@ void CoredumpHandler(int signal_no) {
   if (signal_no == SIGINT) {
     std::cout << "\nReceived Ctrl+C signal, preparing for graceful exit..." << std::endl;
   } else {
-    ErrorLog << "progress receive invalid signal, will exit";
+    LOG_ERROR << "progress receive invalid signal, will exit";
     printf("progress receive invalid signal, will exit\n");
 
     std::string bt = BacktraceToString();
 
-    ErrorLog << "coredump stack:\n" << bt;
+    LOG_ERROR << "coredump stack:\n" << bt;
 
     printf("coredump stack:\n%s\n", bt.c_str());
   }

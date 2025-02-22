@@ -33,7 +33,7 @@ void HttpServlet::Handle(HttpRequest *req, HttpResponse *res) {
   // handleNotFound();
   switch (req->request_method_) {
     case HttpMethod::GET: {
-      InfoLog << "<GET> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
+      LOG_INFO << "<GET> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
       if (req->request_version_ == "HTTP/1.0") {
         is_close = true;
       }
@@ -41,7 +41,7 @@ void HttpServlet::Handle(HttpRequest *req, HttpResponse *res) {
       break;
     }
     case HttpMethod::POST: {
-      InfoLog << "<POST> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
+      LOG_INFO << "<POST> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
       if (req->request_version_ == "HTTP/1.0") {
         is_close = true;
       }
@@ -49,18 +49,18 @@ void HttpServlet::Handle(HttpRequest *req, HttpResponse *res) {
       break;
     }
     default: {
-      WarnLog << "http method not supported";
+      LOG_WARN << "http method not supported";
       break;
     }
   }
 }
 
-void HttpServlet::HandleGet(HttpRequest *req, HttpResponse *res) { WarnLog << "<GET> not implemented"; }
+void HttpServlet::HandleGet(HttpRequest *req, HttpResponse *res) { LOG_WARN << "<GET> not implemented"; }
 
-void HttpServlet::HandlePost(HttpRequest *req, HttpResponse *res) { WarnLog << "<POST> not implemented"; }
+void HttpServlet::HandlePost(HttpRequest *req, HttpResponse *res) { LOG_WARN << "<POST> not implemented"; }
 
 void HttpServlet::HandleNotFound(HttpRequest *req, HttpResponse *res) {
-  DebugLog << "return 404 html";
+  LOG_DEBUG << "return 404 html";
   SetHttpCode(res, HTTP_NOTFOUND);
   char buf[512];
   sprintf(buf, default_html_template, std::to_string(HTTP_NOTFOUND).c_str(), HttpCodeToString(HTTP_NOTFOUND));
@@ -116,7 +116,7 @@ void HttpServlet::SetHttpBody(HttpResponse *res, const std::string &body) {
 }
 
 void HttpServlet::SetCommParam(HttpRequest *req, HttpResponse *res) {
-  DebugLog << "set response version=" << req->request_version_;
+  LOG_DEBUG << "set response version=" << req->request_version_;
   res->response_version_ = req->request_version_;
   res->response_header_.maps_["Connection"] = req->requeset_header_.maps_["Connection"];
 }

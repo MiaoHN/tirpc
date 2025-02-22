@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "tirpc/common/lock_free_queue.hpp"
 #include "tirpc/common/mutex.hpp"
 
 namespace tirpc {
@@ -40,6 +41,8 @@ class Memory {
   std::vector<bool> blocks_;
 
   Mutex mutex_;
+
+  LockFreeQueue<char *, 1024> available_blocks_;
 };
 
 }  // namespace tirpc

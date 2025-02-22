@@ -52,6 +52,8 @@ class Config {
   int timewheel_bucket_num_{0};
   int timewheel_interval_{0};
 
+  bool use_look_free_{false};
+
 #ifdef DECLARE_MYSQL_PLUGIN
   std::map<std::string, MySQLOption> mysql_options_;
 #endif

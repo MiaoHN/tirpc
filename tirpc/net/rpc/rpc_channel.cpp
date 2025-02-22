@@ -36,7 +36,7 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
   TinyPbStruct pb_struct;
   auto *rpc_controller = dynamic_cast<RpcController *>(controller);
   if (!rpc_controller) {
-    ErrorLog << "call failed. falid to dynamic cast RpcController";
+    LOG_ERROR << "call failed. falid to dynamic cast RpcController";
     if (done) {
       done->Run();
     }
@@ -44,9 +44,9 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
   }
 
   pb_struct.service_full_name_ = method->full_name();
-  DebugLog << "call service_name = " << pb_struct.service_full_name_;
+  LOG_DEBUG << "call service_name = " << pb_struct.service_full_name_;
   if (!request->SerializeToString(&(pb_struct.pb_data_))) {
-    ErrorLog << "serialize send package error";
+    LOG_ERROR << "serialize send package error";
     if (done) {
       done->Run();
     }
@@ -60,10 +60,10 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
     Runtime *run_time = GetCurrentRuntime();
     if (run_time != nullptr && !run_time->msg_no_.empty()) {
       pb_struct.msg_seq_ = run_time->msg_no_;
-      DebugLog << "get from RunTime succ, msgno = " << pb_struct.msg_seq_;
+      LOG_DEBUG << "get from RunTime succ, msgno = " << pb_struct.msg_seq_;
     } else {
       pb_struct.msg_seq_ = MsgReqUtil::GenMsgNumber();
-      DebugLog << "get from RunTime error, generate new msgno = " << pb_struct.msg_seq_;
+      LOG_DEBUG << "get from RunTime error, generate new msgno = " << pb_struct.msg_seq_;
     }
     rpc_controller->SetMsgSeq(pb_struct.msg_seq_);
   }
@@ -79,7 +79,7 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
       addrs_ = origin_addrs_;
       if (addrs_.empty()) {
         rpc_controller->SetError(ERROR_SERVICE_NOT_FOUND, "not found address of service");
-        ErrorLog << pb_struct.msg_seq_
+        LOG_ERROR << pb_struct.msg_seq_
                  << "|call rpc occur client error, serviceFullName=" << pb_struct.service_full_name_
                  << ", error_code=" << ERROR_SERVICE_NOT_FOUND << ", errorInfo = not found address of service";
         if (done) {
@@ -120,12 +120,12 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
       if (it != addrs_.end()) {
         addrs_.erase(it);
       }
-      ErrorLog << pb_struct.msg_seq_ << "|call rpc occur client error, serviceFullName=" << pb_struct.service_full_name_
+      LOG_ERROR << pb_struct.msg_seq_ << "|call rpc occur client error, serviceFullName=" << pb_struct.service_full_name_
                << ", error_code=" << ret << ", errorInfo = " << client->GetErrInfo() << ", to retry......";
       continue;
     } else {
       rpc_controller->SetError(ret, client->GetErrInfo());
-      ErrorLog << pb_struct.msg_seq_ << "|call rpc occur client error, serviceFullName=" << pb_struct.service_full_name_
+      LOG_ERROR << pb_struct.msg_seq_ << "|call rpc occur client error, serviceFullName=" << pb_struct.service_full_name_
                << ", error_code=" << ret << ", errorInfo = " << client->GetErrInfo();
       if (done) {
         done->Run();
@@ -136,11 +136,11 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
 
   if (!response->ParseFromString(res_data->pb_data_)) {
     rpc_controller->SetError(ERROR_FAILED_DESERIALIZE, "failed to deserialize data from server");
-    ErrorLog << pb_struct.msg_seq_ << "|failed to deserialize data";
+    LOG_ERROR << pb_struct.msg_seq_ << "|failed to deserialize data";
     return;
   }
   if (res_data->err_code_ != 0) {
-    ErrorLog << pb_struct.msg_seq_ << "|server reply error_code=" << res_data->err_code_
+    LOG_ERROR << pb_struct.msg_seq_ << "|server reply error_code=" << res_data->err_code_
              << ", err_info=" << res_data->err_info_;
     // rpc_controller->SetError(res_data->err_code_, res_data->err_info_);
     if (done) {
@@ -149,7 +149,7 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
     return;
   }
 
-  InfoLog << "Method called successfully, addr = [" << addr->ToString() << "]";
+  LOG_INFO << "Method called successfully, addr = [" << addr->ToString() << "]";
 
   // excute callback function
   if (done) {

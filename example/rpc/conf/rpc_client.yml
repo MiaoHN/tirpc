@@ -6,8 +6,8 @@ log:
   # identify max size of single log file, MB
   log_max_file_size: 5
   # log level: DEBUG < INFO < WARN < ERROR
-  rpc_log_level: INFO
-  app_log_level: INFO
+  rpc_log_level: NONE
+  app_log_level: NONE
   # interval that put log info to async logger, ms
   log_sync_interval: 500
   log_to_console: 1
@@ -21,6 +21,8 @@ coroutine:
 
 # 消息请求长度
 msg_req_len: 20
+
+use_lockfree: 1
 
 # max time when call connect, s
 max_connect_timeout: 75

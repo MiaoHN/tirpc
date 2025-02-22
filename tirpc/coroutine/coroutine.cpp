@@ -71,12 +71,12 @@ Coroutine::Coroutine(int size, char *stack_ptr, std::function<void()> cb) : stac
 
 auto Coroutine::SetCallBack(std::function<void()> cb) -> bool {
   if (this == t_main_coroutine) {
-    ErrorLog << "main coroutine cannot set callback";
+    LOG_ERROR << "main coroutine cannot set callback";
     return false;
   }
 
   if (is_in_cofunc_) {
-    ErrorLog << "this corroutine is in CoFunction";
+    LOG_ERROR << "this corroutine is in CoFunction";
     return false;
   }
 
@@ -122,12 +122,12 @@ auto Coroutine::IsMainCoroutine() -> bool {
 
 void Coroutine::Yield() {
   if (t_main_coroutine == nullptr) {
-    ErrorLog << "main coroutine is nullptr";
+    LOG_ERROR << "main coroutine is nullptr";
     return;
   }
 
   if (t_current_coroutine == t_main_coroutine) {
-    ErrorLog << "cannot yield main coroutine";
+    LOG_ERROR << "cannot yield main coroutine";
     return;
   }
 
@@ -139,22 +139,22 @@ void Coroutine::Yield() {
 
 void Coroutine::Resume(Coroutine *co) {
   if (t_current_coroutine != t_main_coroutine) {
-    ErrorLog << "swap error, current coroutine is not main coroutine";
+    LOG_ERROR << "swap error, current coroutine is not main coroutine";
     return;
   }
 
   if (t_main_coroutine == nullptr) {
-    ErrorLog << "main coroutine is nullptr";
+    LOG_ERROR << "main coroutine is nullptr";
     return;
   }
 
   if ((co == nullptr) || !co->can_resume_) {
-    ErrorLog << "pennding coroutine is nullptr or cannot resume";
+    LOG_ERROR << "pennding coroutine is nullptr or cannot resume";
     return;
   }
 
   if (t_current_coroutine == co) {
-    ErrorLog << "current coroutine is pending cor, need't resume";
+    LOG_ERROR << "current coroutine is pending cor, need't resume";
     return;
   }
 

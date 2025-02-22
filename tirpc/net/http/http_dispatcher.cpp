@@ -14,63 +14,67 @@
 namespace tirpc {
 
 void HttpDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
-  auto *resquest = dynamic_cast<HttpRequest *>(data);
+  auto *request = dynamic_cast<HttpRequest *>(data);
+  if (!request) {
+    LOG_ERROR << "Failed to cast AbstractData to HttpRequest";
+    return;
+  }
+
   HttpResponse response;
-  Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_ = MsgReqUtil::GenMsgNumber();
-  SetCurrentRuntime(Coroutine::GetCurrentCoroutine()->GetRuntime());
+  auto runtime = Coroutine::GetCurrentCoroutine()->GetRuntime();
+  runtime->msg_no_ = MsgReqUtil::GenMsgNumber();
+  SetCurrentRuntime(runtime);
 
-  DebugLog << "begin to dispatch client http request, msgno="
-           << Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_;
+  LOG_DEBUG << "begin to dispatch client http request, msgno=" << runtime->msg_no_;
 
-  std::string url_path = resquest->request_path_;
-  if (!url_path.empty()) {
-    auto it = servlets_.find(url_path);
-    if (it == servlets_.end()) {
-      auto glob_it = globs_.begin();
-      for (; glob_it != globs_.end(); ++glob_it) {
-        if (!fnmatch(glob_it->first.c_str(), url_path.c_str(), 0)) {
-          break;
-        }
-      }
-      if (glob_it != globs_.end()) {
-        Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = glob_it->second->GetServletName();
-        glob_it->second->SetCommParam(resquest, &response);
-        glob_it->second->Handle(resquest, &response);
-        if (glob_it->second->is_close) {
-          conn->ShutdownConnection();
-        }
-      } else {
-        ErrorLog << "No matched servlet for url path '" << url_path << "'";
-        NotFoundHttpServlet servlet;
-        Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = servlet.GetServletName();
-        servlet.SetCommParam(resquest, &response);
-        servlet.Handle(resquest, &response);
-        if (servlet.is_close) {
-          conn->ShutdownConnection();
-        }
-      }
-    } else {
-      Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = it->second->GetServletName();
-      it->second->SetCommParam(resquest, &response);
-      it->second->Handle(resquest, &response);
-      if (it->second->is_close) {
-        conn->ShutdownConnection();
+  std::string url_path = request->request_path_;
+  if (url_path.empty()) {
+    LOG_ERROR << "Empty URL path in HTTP request";
+    return;
+  }
+
+  auto it = servlets_.find(url_path);
+  HttpServlet::ptr servlet = nullptr;
+
+  if (it != servlets_.end()) {
+    servlet = it->second;
+  } else {
+    // servlets_ 未找到，在 globs_ 中找最匹配的
+    auto glob_it = globs_.begin();
+    for (; glob_it != globs_.end(); ++glob_it) {
+      if (!fnmatch(glob_it->first.c_str(), url_path.c_str(), 0)) {
+        servlet = glob_it->second;
+        break;
       }
     }
+
+    if (!servlet) {
+      // 如果都未找到，使用 NotFoundHttpServlet
+      servlet = std::make_shared<NotFoundHttpServlet>();
+    }
+  }
+
+  // 设置接口名称并处理请求
+  runtime->interface_name_ = servlet->GetServletName();
+  servlet->SetCommParam(request, &response);
+  servlet->Handle(request, &response);
+
+  if (servlet->is_close) {
+    conn->ShutdownConnection();
   }
 
   conn->GetCodec()->Encode(conn->GetOutBuffer(), &response);
 
-  DebugLog << "end dispatch client http request, msgno=" << Coroutine::GetCurrentCoroutine()->GetRuntime()->msg_no_;
+  LOG_DEBUG << "end dispatch client http request, msgno=" << runtime->msg_no_;
 }
 
 void HttpDispatcher::RegisterServlet(const std::string &path, HttpServlet::ptr servlet) {
   auto it = servlets_.find(path);
   if (it == servlets_.end()) {
-    DebugLog << "register servlet success to path {" << path << "}";
+    LOG_DEBUG << "register servlet success to path {" << path << "}";
     servlets_[path] = std::move(servlet);
   } else {
-    ErrorLog << "failed to register, beacuse path {" << path << "} has already register sertlet";
+    LOG_ERROR << "failed to register, beacuse path {" << path << "} has already register sertlet";
   }
 }
 
