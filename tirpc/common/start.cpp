@@ -52,7 +52,7 @@ static void ShowBanner() {
   for (const auto &line : tirpc_banner) {
     std::cout << line << std::endl;
   }
-  std::cout << " :: TiRPC ::        (v1.0.0.RELEASE)\n" << std::endl;
+  std::cout << " :: TiRPC ::        (v1.0.1.DEVELOP)\n" << std::endl;
 }
 
 void StartServer(TcpServer::ptr server) {

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(tirpc VERSION 0.1.0)
+project(tirpc VERSION 1.0.1)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -27,22 +27,6 @@ else ()
     message(FATAL_ERROR "Cannot find Protobuf")
 endif ()
 
-include(FetchContent)
-
-FetchContent_Declare(
-    tinyxml2
-    GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-    GIT_TAG 10.0.0
-)
-
-FetchContent_GetProperties(tinyxml2)
-
-if (NOT tinyxml2_POPULATED)
-    FetchContent_Populate(tinyxml2)
-    add_subdirectory(${tinyxml2_SOURCE_DIR} ${tinyxml2_BINARY_DIR})
-endif ()
-
-
 include_directories(${PROJECT_SOURCE_DIR} ${ZOOKEEPER_INCLUDE_DIR})
 
 # *.cc
@@ -60,7 +44,6 @@ add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NETBASE} ${SERVICE} ${HTTP} $
 
 target_link_libraries(tirpc
     protobuf
-    tinyxml2
     dl
     pthread
     zookeeper_mt
@@ -70,7 +53,6 @@ target_link_libraries(tirpc
 set(LIBS
     tirpc
     protobuf
-    tinyxml2
     dl
     pthread
     zookeeper_mt

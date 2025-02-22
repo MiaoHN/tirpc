@@ -34,6 +34,8 @@ class HttpServlet : public std::enable_shared_from_this<HttpServlet> {
   void SetHttpBody(HttpResponse *res, const std::string &body);
 
   void SetCommParam(HttpRequest *req, HttpResponse *res);
+
+  bool is_close{false};
 };
 
 class NotFoundHttpServlet : public HttpServlet {

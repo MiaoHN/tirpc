@@ -36,17 +36,26 @@ void HttpDispatcher::Dispatch(AbstractData *data, TcpConnection *conn) {
         Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = glob_it->second->GetServletName();
         glob_it->second->SetCommParam(resquest, &response);
         glob_it->second->Handle(resquest, &response);
+        if (glob_it->second->is_close) {
+          conn->ShutdownConnection();
+        }
       } else {
         ErrorLog << "No matched servlet for url path '" << url_path << "'";
         NotFoundHttpServlet servlet;
         Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = servlet.GetServletName();
         servlet.SetCommParam(resquest, &response);
         servlet.Handle(resquest, &response);
+        if (servlet.is_close) {
+          conn->ShutdownConnection();
+        }
       }
     } else {
       Coroutine::GetCurrentCoroutine()->GetRuntime()->interface_name_ = it->second->GetServletName();
       it->second->SetCommParam(resquest, &response);
       it->second->Handle(resquest, &response);
+      if (it->second->is_close) {
+        conn->ShutdownConnection();
+      }
     }
   }
 

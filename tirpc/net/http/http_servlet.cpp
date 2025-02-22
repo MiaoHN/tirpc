@@ -34,11 +34,17 @@ void HttpServlet::Handle(HttpRequest *req, HttpResponse *res) {
   switch (req->request_method_) {
     case HttpMethod::GET: {
       InfoLog << "<GET> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
+      if (req->request_version_ == "HTTP/1.0") {
+        is_close = true;
+      }
       HandleGet(req, res);
       break;
     }
     case HttpMethod::POST: {
       InfoLog << "<POST> path = '" << req->request_path_ << "'" << GetParamsStr(req->query_maps_);
+      if (req->request_version_ == "HTTP/1.0") {
+        is_close = true;
+      }
       HandlePost(req, res);
       break;
     }
