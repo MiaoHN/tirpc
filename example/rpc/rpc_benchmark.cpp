@@ -51,9 +51,14 @@ void RunBenchmark(int numClients, int duration) {
   for (int i = 0; i < numClients; ++i) {
     singleChannelThreads.emplace_back(SingleChannelWorker, center, std::ref(singleChannelSuccessCount), duration);
   }
+  int total = singleChannelThreads.size();
+  int joined = 0;
   for (auto &thread : singleChannelThreads) {
+    joined++;
     thread.join();
+    std::cout << "\r[" << joined << "/" << total << "] joined!";
   }
+  std::cout << std::endl;
 
   double singleChannelQPS = static_cast<double>(singleChannelSuccessCount) / static_cast<double>(duration);
   std::cout << "Total clients: " << numClients << ", Total time: " << duration << " s" << std::endl;
@@ -65,12 +70,11 @@ void RunBenchmark(int numClients, int duration) {
 
 auto main(int argc, char *argv[]) -> int {
   // default config file
-  std::string config_file = "./conf/rpc_client.yml";
   int numClients = 1;
   int duration = 10;
 
   int opt;
-  while ((opt = getopt(argc, argv, "c:t:")) != -1) {
+  while ((opt = getopt(argc, argv, "c:t")) != -1) {
     switch (opt) {
       case 'c':
         numClients = std::stoi(optarg);
@@ -79,16 +83,13 @@ auto main(int argc, char *argv[]) -> int {
         duration = std::stoi(optarg);
         break;
       default:
-        std::cerr << "Usage: " << argv[0] << " [-c num_clients] [-t duration] [config_file]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " [-c num_clients] [-t duration]" << std::endl;
         return 1;
     }
   }
 
-  if (optind < argc) {
-    config_file = argv[optind];
-  }
-
-  tirpc::InitConfig(config_file.c_str());
+  std::cout << "Start benchmark!" << std::endl;
+  std::cout << "Client: " << numClients << ", Duration: " << duration << "s" << std::endl;
 
   RunBenchmark(numClients, duration);
 

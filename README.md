@@ -68,6 +68,10 @@ wrk -c 1000 -t 8 -d 30 --latency 'http://127.0.0.1:19999/qps?id=1'
 
 后续会测试在多个 client 并发的情况下无锁队列的效果
 
+下面是使用 [concurrentqueue](https://github.com/cameron314/concurrentqueue) 实现的无锁队列的测试情况：
+
+![lock-free-queue](./imgs/csingle_performance.png)
+
 ## 参考资料
 
 - [libco](https://github.com/Tencent/libco)

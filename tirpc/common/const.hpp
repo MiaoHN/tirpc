@@ -12,9 +12,7 @@ enum class LoadBalanceCategory {
 };
 
 enum class ServiceRegisterCategory {
-  // 不进行服务注册
   None,
-  // zk
   Zk,
 };
 

@@ -52,7 +52,7 @@ auto Memory::GetEnd() -> char * { return end_; }
 auto Memory::GetBlock() -> char * {
   if (g_rpc_config->use_look_free_) {
     char *block = nullptr;
-    if (available_blocks_.dequeue(block)) {
+    if (available_blocks_.try_dequeue(block)) {
       ref_count_++;
       return block;
     }

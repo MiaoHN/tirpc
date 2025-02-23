@@ -20,7 +20,8 @@ auto ServiceRegister::Query(ServiceRegisterCategory category) -> AbstractService
       return s_noneServiceRegister;
     case ServiceRegisterCategory::Zk:
       if (!s_zkServiceRegister) {
-        s_zkServiceRegister = std::make_shared<ZkServiceRegister>();
+        // TODO: 更灵活
+        s_zkServiceRegister = std::make_shared<ZkServiceRegister>("127.0.0.1", 2181, 30000);
       }
       return s_zkServiceRegister;
     default:

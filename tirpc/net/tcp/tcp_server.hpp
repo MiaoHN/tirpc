@@ -1,7 +1,7 @@
 #pragma once
 
 #include <google/protobuf/service.h>
-#include <map>
+#include <unordered_map>
 
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/base/fd_event.hpp"
@@ -105,7 +105,7 @@ class TcpServer {
    */
   TcpTimeWheel::ptr time_wheel_;
 
-  std::map<int, std::shared_ptr<TcpConnection>> clients_;
+  std::unordered_map<int, std::shared_ptr<TcpConnection>> clients_;
 
   TimerEvent::ptr clear_clent_timer_event_{nullptr};
 };

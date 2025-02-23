@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "tirpc/common/concurrentqueue.hpp"
 #include "tirpc/common/lock_free_queue.hpp"
 #include "tirpc/common/mutex.hpp"
 
@@ -42,7 +43,7 @@ class Memory {
 
   Mutex mutex_;
 
-  LockFreeQueue<char *, 1024> available_blocks_;
+  moodycamel::ConcurrentQueue<char *> available_blocks_;
 };
 
 }  // namespace tirpc

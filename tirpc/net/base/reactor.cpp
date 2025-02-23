@@ -207,10 +207,7 @@ void Reactor::Loop() {
       FdEvent *ptr = nullptr;
       while (true) {
         if (g_rpc_config->use_look_free_) {
-          if (GetLockFreeTaskQueue()->empty()) {
-            break;
-          }
-          bool res = GetLockFreeTaskQueue()->dequeue(ptr);
+          bool res = GetLockFreeTaskQueue()->try_dequeue(ptr);
           if (res == false || ptr == nullptr) {
             break;
           }
@@ -273,7 +270,7 @@ void Reactor::Loop() {
       // 错误事件
       if (!(event.events & EPOLLIN) && !(event.events & EPOLLOUT)) {
         LOG_ERROR << "socket [" << fd << "] occur other unknow event:[" << event.events
-                 << "], need unregister this socket";
+                  << "], need unregister this socket";
         DelEventInLoopThread(fd);
         continue;
       }
