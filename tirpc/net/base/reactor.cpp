@@ -25,6 +25,8 @@ static thread_local int t_max_epoll_timeout = 10000;  // ms
 
 static CoroutineTaskQueue *t_couroutine_task_queue = nullptr;
 
+extern Config::ptr g_rpc_config;
+
 Reactor::Reactor() {
   // one thread can't create more than one reactor object!!
   // assert(t_reactor_ptr == nullptr);
@@ -202,14 +204,24 @@ void Reactor::Loop() {
 
     // 先处理完队列中的任务（只有 IOThread 做）
     if (type_ == SubReactor) {
-      FdEvent *ptr = nullptr;
-      while (true) {
-        ptr = CoroutineTaskQueue::GetCoroutineTaskQueue()->Pop();
-        if (ptr != nullptr) {
-          ptr->SetReactor(this);
-          Coroutine::Resume(ptr->GetCoroutine());
-        } else {
-          break;
+      if (CoroutineTaskQueue::GetCoroutineTaskQueue()->Empty(thread_idx_)) {
+        auto steal_tasks = CoroutineTaskQueue::GetCoroutineTaskQueue()->Steal(thread_idx_, 16);
+        for (auto &task : steal_tasks) {
+          if (task != nullptr) {
+            task->SetReactor(this);
+            Coroutine::Resume(task->GetCoroutine());
+          }
+        }
+      } else {
+        while (true) {
+          auto tasks = CoroutineTaskQueue::GetCoroutineTaskQueue()->PopSome(thread_idx_, 16);
+          if (tasks.empty()) {
+            break;
+          }
+          for (auto &task : tasks) {
+            task->SetReactor(this);
+            Coroutine::Resume(task->GetCoroutine());
+          }
         }
       }
     }
@@ -268,7 +280,7 @@ void Reactor::Loop() {
         if (type_ == SubReactor) {
           DelEventInLoopThread(fd);
           ptr->SetReactor(nullptr);
-          CoroutineTaskQueue::GetCoroutineTaskQueue()->Push(ptr);
+          CoroutineTaskQueue::GetCoroutineTaskQueue()->Push(thread_idx_, ptr);
         } else {
           // main reactor, just resume this coroutine. it is accept coroutine. and Main Reactor only have this
           // coroutine
@@ -370,6 +382,11 @@ auto Reactor::GetTid() -> pid_t { return tid_; }
 
 void Reactor::SetReactorType(ReactorType type) { type_ = type; }
 
+CoroutineTaskQueue::CoroutineTaskQueue() {
+  tasks_.resize(g_rpc_config->iothread_num_);
+  mutexs_.resize(g_rpc_config->iothread_num_);
+}
+
 auto CoroutineTaskQueue::GetCoroutineTaskQueue() -> CoroutineTaskQueue * {
   if (t_couroutine_task_queue != nullptr) {
     return t_couroutine_task_queue;
@@ -378,22 +395,47 @@ auto CoroutineTaskQueue::GetCoroutineTaskQueue() -> CoroutineTaskQueue * {
   return t_couroutine_task_queue;
 }
 
-void CoroutineTaskQueue::Push(FdEvent *cor) {
-  Mutex::Locker lock(mutex_);
-  tasks_.push(cor);
+void CoroutineTaskQueue::Push(int thread_idx, FdEvent *cor) {
+  Mutex::Locker lock(mutexs_[thread_idx]);
+  tasks_[thread_idx].push(cor);
   lock.Unlock();
 }
 
-auto CoroutineTaskQueue::Pop() -> FdEvent * {
-  FdEvent *re = nullptr;
-  Mutex::Locker lock(mutex_);
-  if (!tasks_.empty()) {
-    re = tasks_.front();
-    tasks_.pop();
+auto CoroutineTaskQueue::PopSome(int thread_idx, int pop_cnt) -> std::vector<FdEvent *> {
+  std::vector<FdEvent *> vec;
+  int cnt = 0;
+  Mutex::Locker lock(mutexs_[thread_idx]);
+  while (!tasks_[thread_idx].empty() && cnt != pop_cnt) {
+    vec.push_back(tasks_[thread_idx].front());
+    tasks_[thread_idx].pop();
+    cnt++;
   }
   lock.Unlock();
 
-  return re;
+  return vec;
+}
+
+bool CoroutineTaskQueue::Empty(int thread_idx) {
+  Mutex::Locker lock(mutexs_[thread_idx]);
+  return tasks_[thread_idx].empty();
+}
+
+std::vector<FdEvent *> CoroutineTaskQueue::Steal(int thread_idx, int steal_cnt) {
+  std::vector<FdEvent *> steal_tasks;
+
+  int cnt = 0;
+  for (int i = 0; i < static_cast<int>(tasks_.size()); i++) {
+    if (cnt == steal_cnt) break;
+    if (i == thread_idx) continue;
+    Mutex::Locker lock(mutexs_[i]);
+    while (!tasks_[i].empty() && cnt < steal_cnt) {
+      auto task = tasks_[i].front();
+      tasks_[i].pop();
+      steal_tasks.push_back(task);
+      cnt++;
+    }
+  }
+  return steal_tasks;
 }
 
 }  // namespace tirpc

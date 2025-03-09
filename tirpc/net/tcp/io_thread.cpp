@@ -57,7 +57,10 @@ auto IOThread::GetReactor() -> Reactor * { return reactor_; }
 
 auto IOThread::GetPthreadId() -> pthread_t { return thread_; }
 
-void IOThread::SetThreadIndex(int index) { index_ = index; }
+void IOThread::SetThreadIndex(int index) {
+  index_ = index;
+  reactor_->SetThreadIndex(index);
+}
 
 auto IOThread::GetThreadIndex() -> int { return index_; }
 
