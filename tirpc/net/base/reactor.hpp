@@ -42,6 +42,8 @@ class Reactor {
 
   void AddCoroutine(Coroutine::ptr cor, bool is_wakeup = true);
 
+  void SetThreadIndex(int thread_idx) { thread_idx_ = thread_idx; }
+
   void Wakeup();
 
   void Loop();
@@ -74,6 +76,8 @@ class Reactor {
   bool is_looping_{false};
   bool is_init_timer_{false};
 
+  int thread_idx_{-1};
+
   pid_t tid_{0};
 
   Mutex mutex_;
@@ -100,13 +104,31 @@ class CoroutineTaskQueue {
  public:
   static auto GetCoroutineTaskQueue() -> CoroutineTaskQueue *;
 
-  void Push(FdEvent *fd);
+  CoroutineTaskQueue();
 
-  auto Pop() -> FdEvent *;
+  void Push(int thread_idx, FdEvent *fd);
+
+  /**
+   * @brief Try to pop a FdEvent, if empty, return nullptr
+   *
+   * @param thread_idx
+   * @return FdEvent*
+   */
+  auto PopSome(int thread_idx, int pop_cnt) -> std::vector<FdEvent *>;
+
+  bool Empty(int thread_idx);
+
+  /**
+   * @brief Steal some tasks from other threads.
+   *
+   * @param thread_idx
+   * @return int task count steal successfully
+   */
+  std::vector<FdEvent *> Steal(int thread_idx, int steal_cnt);
 
  private:
-  std::queue<FdEvent *> tasks_;
-  Mutex mutex_;
+  std::vector<std::queue<FdEvent *>> tasks_;
+  std::vector<Mutex> mutexs_;
 };
 
 }  // namespace tirpc
