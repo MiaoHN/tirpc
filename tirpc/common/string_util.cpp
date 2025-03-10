@@ -15,13 +15,13 @@ extern read_fun_ptr_t g_sys_read_fun;  // sys read func
 
 namespace tirpc {
 
-void StringUtil::SplitStrToMap(const std::string &str, const std::string &split_str, const std::string &joiner,
+void StringUtil::SplitStrToMap(std::string_view str, const std::string &split_str, const std::string &joiner,
                                std::map<std::string, std::string> &res) {
   if (str.empty() || split_str.empty() || joiner.empty()) {
     LOG_DEBUG << "str or split_str or joiner_str is empty";
     return;
   }
-  const std::string &tmp = str;
+  std::string tmp(str);
 
   std::vector<std::string> vec;
   SplitStrToVector(tmp, split_str, vec);
@@ -38,12 +38,12 @@ void StringUtil::SplitStrToMap(const std::string &str, const std::string &split_
   }
 }
 
-void StringUtil::SplitStrToVector(const std::string &str, const std::string &split_str, std::vector<std::string> &res) {
+void StringUtil::SplitStrToVector(std::string_view str, const std::string &split_str, std::vector<std::string> &res) {
   if (str.empty() || split_str.empty()) {
     // LOG_DEBUG << "str or split_str is empty";
     return;
   }
-  std::string tmp = str;
+  std::string tmp(str);
   if (tmp.substr(tmp.length() - split_str.length(), split_str.length()) != split_str) {
     tmp += split_str;
   }

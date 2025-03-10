@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <string_view>
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/string_util.hpp"
@@ -22,11 +23,18 @@ void HttpCodeC::Encode(TcpBuffer *buf, AbstractData *data) {
   auto *response = dynamic_cast<HttpResponse *>(data);
   response->encode_succ_ = false;
 
-  std::stringstream ss;
-  ss << response->response_version_ << " " << response->response_code_ << " " << response->response_info_ << "\r\n"
-     << response->response_header_.ToHttpString() << "\r\n"
-     << response->response_body_;
-  std::string http_res = ss.str();
+  std::string http_res;
+  http_res.reserve(256);  // 根据典型响应大小调整
+
+  http_res.append(response->response_version_)
+      .append(" ")
+      .append(std::to_string(response->response_code_))
+      .append(" ")
+      .append(response->response_info_)
+      .append("\r\n")
+      .append(response->response_header_.ToHttpString())
+      .append("\r\n")
+      .append(response->response_body_);
   LOG_DEBUG << "encode http response is:  " << http_res;
 
   buf->WriteToBuffer(http_res.c_str(), http_res.length());
@@ -52,7 +60,7 @@ void HttpCodeC::Decode(TcpBuffer *buf, AbstractData *data) {
 
   std::string strs = buf->GetBufferString();
   const int totalLength = strs.length();
-  std::string tmp = strs;
+  std::string_view tmp(strs);
   int len = tmp.length();
   int readSize = 0;
 
@@ -132,7 +140,7 @@ void HttpCodeC::Decode(TcpBuffer *buf, AbstractData *data) {
 
 auto HttpCodeC::GenDataPtr() -> AbstractData::ptr { return std::make_shared<HttpRequest>(); }
 
-auto HttpCodeC::ParseHttpRequestLine(HttpRequest *requset, const std::string &tmp) -> bool {
+auto HttpCodeC::ParseHttpRequestLine(HttpRequest *requset, std::string_view tmp) -> bool {
   size_t s1 = tmp.find_first_of(' ');
   size_t s2 = tmp.find_last_of(' ');
 
@@ -140,7 +148,7 @@ auto HttpCodeC::ParseHttpRequestLine(HttpRequest *requset, const std::string &tm
     LOG_ERROR << "error read Http Requser Line, space is not 2";
     return false;
   }
-  std::string method = tmp.substr(0, s1);
+  std::string method(tmp.substr(0, s1));
   std::transform(method.begin(), method.end(), method.begin(), toupper);
   if (method == "GET") {
     requset->request_method_ = HttpMethod::GET;
@@ -151,7 +159,7 @@ auto HttpCodeC::ParseHttpRequestLine(HttpRequest *requset, const std::string &tm
     return false;
   }
 
-  std::string version = tmp.substr(s2 + 1, tmp.length() - s2 - 1);
+  std::string version(tmp.substr(s2 + 1, tmp.length() - s2 - 1));
   std::transform(version.begin(), version.end(), version.begin(), toupper);
   if (version != "HTTP/1.1" && version != "HTTP/1.0") {
     LOG_ERROR << "parse http request request line error, not support http version:" << version;
@@ -159,7 +167,7 @@ auto HttpCodeC::ParseHttpRequestLine(HttpRequest *requset, const std::string &tm
   }
   requset->request_version_ = version;
 
-  std::string url = tmp.substr(s1 + 1, s2 - s1 - 1);
+  std::string url(tmp.substr(s1 + 1, s2 - s1 - 1));
   size_t j = url.find("://");
 
   if (j != std::string::npos && j + 3 >= url.length()) {
@@ -195,15 +203,14 @@ auto HttpCodeC::ParseHttpRequestLine(HttpRequest *requset, const std::string &tm
   return true;
 }
 
-auto HttpCodeC::ParseHttpRequestHeader(HttpRequest *requset, const std::string &str) -> bool {
+auto HttpCodeC::ParseHttpRequestHeader(HttpRequest *requset, std::string_view str) -> bool {
   if (str.empty() || str.length() < 4 || str == "\r\n\r\n") {
     return true;
   }
-  const std::string &tmp = str;
-  StringUtil::SplitStrToMap(tmp, "\r\n", ":", requset->requeset_header_.maps_);
+  StringUtil::SplitStrToMap(str, "\r\n", ":", requset->requeset_header_.maps_);
   return true;
 }
-auto HttpCodeC::ParseHttpRequestContent(HttpRequest *requset, const std::string &str) -> bool {
+auto HttpCodeC::ParseHttpRequestContent(HttpRequest *requset, std::string_view str) -> bool {
   if (str.empty()) {
     return true;
   }

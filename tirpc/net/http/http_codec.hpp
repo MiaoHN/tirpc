@@ -2,6 +2,8 @@
 
 #include <map>
 #include <string>
+#include <string_view>
+
 #include "tirpc/net/http/http_request.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/tcp/abstract_data.hpp"
@@ -21,9 +23,9 @@ class HttpCodeC : public AbstractCodeC {
   auto GenDataPtr() -> AbstractData::ptr override;
 
  private:
-  auto ParseHttpRequestLine(HttpRequest *requset, const std::string &tmp) -> bool;
-  auto ParseHttpRequestHeader(HttpRequest *requset, const std::string &tmp) -> bool;
-  auto ParseHttpRequestContent(HttpRequest *requset, const std::string &tmp) -> bool;
+  auto ParseHttpRequestLine(HttpRequest *requset, std::string_view tmp) -> bool;
+  auto ParseHttpRequestHeader(HttpRequest *requset, std::string_view tmp) -> bool;
+  auto ParseHttpRequestContent(HttpRequest *requset, std::string_view tmp) -> bool;
 };
 
 }  // namespace tirpc
