@@ -14,14 +14,10 @@
 #include <string>
 #include <vector>
 
-#include "tirpc/common/config.hpp"
 #include "tirpc/common/const.hpp"
-
 #include "tirpc/common/mutex.hpp"
 
 namespace tirpc {
-
-extern Config::ptr g_rpc_config;
 
 template <typename... Args>
 auto FormatString(const char *fmt, Args... args) -> std::string {
@@ -36,13 +32,13 @@ auto FormatString(const char *fmt, Args... args) -> std::string {
 }
 
 #define LOG_LEVEL(level)                                                                                    \
-  if (tirpc::OpenLog() && tirpc::LogLevel::level >= tirpc::g_rpc_config->level_)                            \
+  if (tirpc::OpenLog() && tirpc::LogLevel::level >= tirpc::GetRpcLogLevel())                                \
   tirpc::LogWrapper(std::make_shared<tirpc::LogEvent>(tirpc::LogLevel::level, __FILE__, __LINE__, __func__, \
                                                       tirpc::LogType::RPC_LOG))                             \
       .GetSS()
 
 #define APP_LOG_LEVEL(level, str, ...)                                                                              \
-  if (tirpc::OpenLog() && tirpc::LogLevel::level >= tirpc::g_rpc_config->app_log_level_)                            \
+  if (tirpc::OpenLog() && tirpc::LogLevel::level >= tirpc::GetAppLogLevel())                                        \
     tirpc::Logger::GetLogger()->PushAppLog(                                                                         \
         tirpc::LogEvent(tirpc::LogLevel::level, __FILE__, __LINE__, __func__, tirpc::LogType::APP_LOG).ToString() + \
         "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" +                                      \
@@ -67,6 +63,9 @@ auto StringToLevel(const std::string &str) -> LogLevel;
 auto LevelToString(LogLevel level) -> std::string;
 
 auto OpenLog() -> bool;
+
+auto GetRpcLogLevel() -> LogLevel;
+auto GetAppLogLevel() -> LogLevel;
 
 class LogEvent {
  public:

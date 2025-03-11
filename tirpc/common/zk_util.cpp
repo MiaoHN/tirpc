@@ -11,7 +11,10 @@
 
 namespace tirpc {
 
-extern tirpc::Config::ptr g_rpc_config;
+static ConfigVar<std::string>::ptr g_service_register_ip =
+    Config::Lookup("service_register.ip", std::string("127.0.0.1"));
+static ConfigVar<int>::ptr g_service_register_port = Config::Lookup("service_register.port", 2181);
+static ConfigVar<int>::ptr g_service_register_timeout = Config::Lookup("service_register.timeout", 30000);
 
 static const char *ROOT_PATH = "/tirpc";
 
@@ -38,8 +41,8 @@ ZkClient::ZkClient(const std::string &ip, int port, int timeout) {
 
 ZkClient::ZkClient() {
   zhandle_ = nullptr;
-  connstr_ = std::string(g_rpc_config->zk_ip_ + ":" + std::to_string(g_rpc_config->zk_port_));
-  timeout_ = g_rpc_config->zk_timeout_;
+  connstr_ = std::string(g_service_register_ip->GetValue() + ":" + std::to_string(g_service_register_port->GetValue()));
+  timeout_ = g_service_register_timeout->GetValue();
 }
 
 ZkClient::~ZkClient() { stop(); }

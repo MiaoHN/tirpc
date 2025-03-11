@@ -19,12 +19,19 @@
 #include <iostream>
 #include <sstream>
 
+#include "tirpc/common/config.hpp"
+#include "tirpc/common/const.hpp"
 #include "tirpc/net/base/reactor.hpp"
 #include "tirpc/net/base/timer.hpp"
 
 namespace tirpc {
 
-extern Logger::ptr g_rpc_logger;
+static ConfigVar<std::string>::ptr g_log_prefix = Config::Lookup("log.log_prefix", std::string("log"));
+static ConfigVar<std::string>::ptr g_log_path = Config::Lookup("log.log_path", std::string("./"));
+static ConfigVar<std::string>::ptr g_rpc_log_level = Config::Lookup("log.rpc_log_level", std::string("INFO"));
+static ConfigVar<std::string>::ptr g_app_log_level = Config::Lookup("log.app_log_level", std::string("INFO"));
+static ConfigVar<int>::ptr g_log_max_size = Config::Lookup("log.log_max_file_size", 5);
+static ConfigVar<int>::ptr g_log_sync_interval = Config::Lookup("log.log_sync_interval", 500);
 
 void BackTrace(std::vector<std::string> &bt, int size, int skip) {
   void **array = static_cast<void **>(malloc(sizeof(void *) * size));
@@ -68,10 +75,10 @@ void CoredumpHandler(int signal_no) {
     printf("coredump stack:\n%s\n", bt.c_str());
   }
 
-  g_rpc_logger->Flush();
+  Logger::GetLogger()->Flush();
 
-  pthread_join(g_rpc_logger->GetAsyncRpcLogger()->thread_, nullptr);
-  pthread_join(g_rpc_logger->GetAsyncAppLogger()->thread_, nullptr);
+  pthread_join(Logger::GetLogger()->GetAsyncRpcLogger()->thread_, nullptr);
+  pthread_join(Logger::GetLogger()->GetAsyncAppLogger()->thread_, nullptr);
 
   signal(signal_no, SIG_DFL);
   raise(signal_no);
@@ -90,7 +97,30 @@ auto GetTid() -> pid_t {
   return t_thread_id;
 }
 
-auto OpenLog() -> bool { return g_rpc_logger != nullptr; }
+auto OpenLog() -> bool { return Logger::GetLogger() != nullptr; }
+
+static auto StrToLogLevel(const std::string &str) -> LogLevel {
+  if (str == "WARN") {
+    return LogLevel::WARN;
+  }
+  if (str == "INFO") {
+    return LogLevel::INFO;
+  }
+  if (str == "DEBUG") {
+    return LogLevel::DEBUG;
+  }
+  if (str == "ERROR") {
+    return LogLevel::ERROR;
+  }
+  if (str == "NONE") {
+    return LogLevel::NONE;
+  }
+  return LogLevel::INFO;
+}
+
+auto GetRpcLogLevel() -> LogLevel { return StrToLogLevel(g_rpc_log_level->GetValue()); }
+
+auto GetAppLogLevel() -> LogLevel { return StrToLogLevel(g_app_log_level->GetValue()); }
 
 LogEvent::LogEvent(LogLevel level, const char *file_name, int line, const char *func_name, LogType type)
     : level_(level), file_name_(file_name), line_(line), func_name_(func_name), type_(type) {}
@@ -217,10 +247,10 @@ auto LogEvent::ToString() -> std::string { return GetSS().str(); }
 
 void LogEvent::Log() {
   ss_ << "\n";
-  if (level_ >= g_rpc_config->level_ && type_ == RPC_LOG) {
-    g_rpc_logger->PushRpcLog(ss_.str());
-  } else if (level_ >= g_rpc_config->app_log_level_ && type_ == APP_LOG) {
-    g_rpc_logger->PushAppLog(ss_.str());
+  if (level_ >= GetRpcLogLevel() && type_ == RPC_LOG) {
+    Logger::GetLogger()->PushRpcLog(ss_.str());
+  } else if (level_ >= GetAppLogLevel() && type_ == APP_LOG) {
+    Logger::GetLogger()->PushAppLog(ss_.str());
   }
 }
 
@@ -233,7 +263,16 @@ Logger::~Logger() {
   pthread_join(app_logger_->thread_, nullptr);
 }
 
-auto Logger::GetLogger() -> Logger * { return g_rpc_logger.get(); }
+auto Logger::GetLogger() -> Logger * {
+  static Logger::ptr s_logger = nullptr;
+  if (s_logger == nullptr) {
+    s_logger = std::make_shared<Logger>();
+    s_logger->Init(g_log_prefix->GetValue().c_str(), g_log_path->GetValue().c_str(), g_log_max_size->GetValue(),
+                   g_log_sync_interval->GetValue());
+  }
+
+  return s_logger.get();
+}
 
 void Logger::Init(const char *file_name, const char *file_path, int max_size, int sync_interval) {
   if (!is_init_) {
@@ -397,7 +436,7 @@ auto AsyncLogger::Execute(void *arg) -> void * {
         fwrite(i.c_str(), 1, i.length(), ptr->file_handler_);
 
         // Write to console
-        if (g_rpc_config->log_to_console_ && ptr->type_ == RPC_LOG) {
+        if (ptr->type_ == RPC_LOG) {
           std::cout << i;
         }
       }
@@ -444,8 +483,8 @@ void Exit(int status) {
 #endif
 
   printf("It's sorry to said we start TiRPC server error, look up log file to get more deatils!\n");
-  g_rpc_logger->Flush();
-  pthread_join(g_rpc_logger->GetAsyncRpcLogger()->thread_, nullptr);
+  Logger::GetLogger()->Flush();
+  pthread_join(Logger::GetLogger()->GetAsyncRpcLogger()->thread_, nullptr);
 
   _exit(status);
 }

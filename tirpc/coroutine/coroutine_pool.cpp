@@ -10,13 +10,14 @@
 
 namespace tirpc {
 
-extern Config::ptr g_rpc_config;
+static ConfigVar<int>::ptr g_cor_stack_size = Config::Lookup("coroutine.coroutine_stack_size", 256);
+static ConfigVar<int>::ptr g_cor_pool_size = Config::Lookup("coroutine.coroutine_pool_size", 1000);
 
 static CoroutinePool *t_coroutine_container_ptr = nullptr;
 
 auto GetCoroutinePool() -> CoroutinePool * {
   if (t_coroutine_container_ptr == nullptr) {
-    t_coroutine_container_ptr = new CoroutinePool(g_rpc_config->cor_pool_size_, g_rpc_config->cor_stack_size_);
+    t_coroutine_container_ptr = new CoroutinePool(g_cor_pool_size->GetValue(), g_cor_stack_size->GetValue() * 1024);
   }
   return t_coroutine_container_ptr;
 }

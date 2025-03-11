@@ -4,6 +4,7 @@
 
 #include "rpc_server.pb.h"
 
+#include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/common/start.hpp"
@@ -76,12 +77,9 @@ auto main(int argc, char *argv[]) -> int {
     port = std::stoi(argv[3]);
   }
 
-  tirpc::InitConfig(config_file.c_str());
-  if (port != -1) {
-    tirpc::GetConfig()->GetAddr()->SetPort(port);
-  }
+  tirpc::Config::LoadFromFile(config_file);
 
-  auto server = std::make_shared<tirpc::RpcServer>(tirpc::GetConfig()->GetAddr());
+  auto server = std::make_shared<tirpc::RpcServer>();
 
   server->RegisterService(std::make_shared<QueryServiceImpl>());
 

@@ -6,8 +6,8 @@ log:
   # identify max size of single log file, MB
   log_max_file_size: 5
   # log level: DEBUG < INFO < WARN < ERROR
-  rpc_log_level: NONE
-  app_log_level: NONE
+  rpc_log_level: WARN
+  app_log_level: WARN
   # interval that put log info to async logger, ms
   log_sync_interval: 500
   log_to_console: 1

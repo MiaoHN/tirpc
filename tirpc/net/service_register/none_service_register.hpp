@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "tirpc/net/tcp/abstract_service_register.hpp"
 
 namespace tirpc {
@@ -16,6 +18,9 @@ class NoneServiceRegister : public AbstractServiceRegister {
   std::vector<Address::ptr> Discover(const std::string &serviceName) override { return std::vector<Address::ptr>(); }
 
   void Clear() override {}
+
+ private:
+  std::unordered_map<std::string, std::vector<Address::ptr>> services_;
 };
 
 }  // namespace tirpc

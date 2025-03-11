@@ -149,9 +149,9 @@ void TcpConnection::Input() {
   if (close_flag) {
     ClearClient();
     LOG_DEBUG << "peer close, now yield current coroutine, wait main thread clear this TcpConnection";
-    Coroutine::GetCurrentCoroutine()->SetCanResume(false);
+    // Coroutine::GetCurrentCoroutine()->SetCanResume(false);
     Coroutine::Yield();
-    // return;
+    return;
   }
 
   if (is_over_time_) {

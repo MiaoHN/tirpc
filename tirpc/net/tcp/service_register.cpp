@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cctype>
 
-#include "tirpc/net/service_register/zk_service_register.hpp"
 #include "tirpc/net/service_register/none_service_register.hpp"
+#include "tirpc/net/service_register/zk_service_register.hpp"
 
 namespace tirpc {
 
@@ -20,8 +20,7 @@ auto ServiceRegister::Query(ServiceRegisterCategory category) -> AbstractService
       return s_noneServiceRegister;
     case ServiceRegisterCategory::Zk:
       if (!s_zkServiceRegister) {
-        // TODO: 更灵活
-        s_zkServiceRegister = std::make_shared<ZkServiceRegister>("127.0.0.1", 2181, 30000);
+        s_zkServiceRegister = std::make_shared<ZkServiceRegister>();
       }
       return s_zkServiceRegister;
     default:

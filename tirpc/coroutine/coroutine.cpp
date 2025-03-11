@@ -149,7 +149,7 @@ void Coroutine::Resume(Coroutine *co) {
   }
 
   if ((co == nullptr) || !co->can_resume_) {
-    LOG_ERROR << "pennding coroutine is nullptr or cannot resume";
+    LOG_ERROR << "pennding coroutine is nullptr or cannot resume: " << co->can_resume_;
     return;
   }
 

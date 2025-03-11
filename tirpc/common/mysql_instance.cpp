@@ -11,8 +11,6 @@
 
 namespace tirpc {
 
-extern Config::ptr g_rpc_config;
-
 #ifdef DECLARE_MYSQL_PLUGIN
 
 static thread_local MySQLInstaseFactroy *t_mysql_factory = NULL;
@@ -80,14 +78,14 @@ int MySQLInstase::reconnect() {
     mysql_options(sql_handler_, MYSQL_SET_CHARSET_NAME, option_.char_set_.c_str());
   }
   LOG_DEBUG << "begin to connect mysql{ip:" << option_.addr_.getIP() << ", port:" << option_.addr_.getPort()
-           << ", user:" << option_.user_ << ", passwd:" << option_.passwd_ << ", select_db: " << option_.select_db_
-           << "charset:" << option_.char_set_ << "}";
+            << ", user:" << option_.user_ << ", passwd:" << option_.passwd_ << ", select_db: " << option_.select_db_
+            << "charset:" << option_.char_set_ << "}";
   // mysql_real_connect(sql_handler_, option_.addr_.getIP().c_str(), option_.user_.c_str(),
   //     option_.passwd_.c_str(), option_.select_db_.c_str(), option_.addr_.getPort(), NULL, 0);
   if (!mysql_real_connect(sql_handler_, option_.addr_.getIP().c_str(), option_.user_.c_str(), option_.passwd_.c_str(),
                           option_.select_db_.c_str(), option_.addr_.getPort(), NULL, 0)) {
     LOG_ERROR << "faild to call mysql_real_connect, peer addr[ " << option_.addr_.getIP() << ":"
-             << option_.addr_.getPort() << "], mysql sys errinfo[" << mysql_error(sql_handler_) << "]";
+              << option_.addr_.getPort() << "], mysql sys errinfo[" << mysql_error(sql_handler_) << "]";
     return -1;
   }
   LOG_DEBUG << "mysql_handler connect succ";
@@ -145,7 +143,7 @@ int MySQLInstase::query(const std::string &sql) {
   int rt = mysql_real_query(sql_handler_, sql.c_str(), sql.length());
   if (rt != 0) {
     LOG_ERROR << "excute mysql_real_query error, sql[" << sql << "], mysql sys errinfo[" << mysql_error(sql_handler_)
-             << "]";
+              << "]";
     // if connect error, begin to reconnect
     if (mysql_errno(sql_handler_) == CR_SERVER_GONE_ERROR || mysql_errno(sql_handler_) == CR_SERVER_LOST) {
       rt = reconnect();

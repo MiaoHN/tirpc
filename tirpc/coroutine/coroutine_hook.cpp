@@ -31,7 +31,7 @@ HOOK_SYS_FUNC(sleep);
 
 namespace tirpc {
 
-extern tirpc::Config::ptr g_rpc_config;
+static ConfigVar<int>::ptr g_max_connect_timeout = Config::Lookup("max_connect_timeout", 75);
 
 static bool g_hook = true;
 
@@ -287,7 +287,7 @@ int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
   };
 
   tirpc::TimerEvent::ptr event =
-      std::make_shared<tirpc::TimerEvent>(g_rpc_config->max_connect_timeout_, false, timeout_cb);
+      std::make_shared<tirpc::TimerEvent>(g_max_connect_timeout->GetValue(), false, timeout_cb);
 
   tirpc::Timer *timer = reactor->GetTimer();
   timer->AddTimerEvent(event);
@@ -309,7 +309,7 @@ int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
   }
 
   if (is_timeout) {
-    LOG_ERROR << "connect error,  timeout[ " << g_rpc_config->max_connect_timeout_ << "ms]";
+    LOG_ERROR << "connect error,  timeout[ " << g_max_connect_timeout->GetValue() << "ms]";
     errno = ETIMEDOUT;
   }
 

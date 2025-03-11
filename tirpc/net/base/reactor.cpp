@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstring>
 
+#include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
@@ -18,6 +19,9 @@ extern read_fun_ptr_t g_sys_read_fun;    // sys read func
 extern write_fun_ptr_t g_sys_write_fun;  // sys write func
 
 namespace tirpc {
+
+static ConfigVar<int>::ptr g_iothread_num = Config::Lookup("iothread_num", 1, "IO thread number");
+static ConfigVar<bool>::ptr g_use_lock_free = Config::Lookup("use_lock_free", false, "wheather to use lock free queue");
 
 static thread_local Reactor *t_reactor_ptr = nullptr;
 
@@ -381,8 +385,8 @@ auto Reactor::GetTid() -> pid_t { return tid_; }
 void Reactor::SetReactorType(ReactorType type) { type_ = type; }
 
 CoroutineTaskQueue::CoroutineTaskQueue() {
-  tasks_.resize(g_rpc_config->iothread_num_);
-  mutexs_.resize(g_rpc_config->iothread_num_);
+  tasks_.resize(g_iothread_num->GetValue());
+  mutexs_.resize(g_iothread_num->GetValue());
 }
 
 auto CoroutineTaskQueue::GetCoroutineTaskQueue() -> CoroutineTaskQueue * {

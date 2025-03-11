@@ -43,6 +43,8 @@ class TcpServer {
  public:
   using ptr = std::shared_ptr<TcpServer>;
 
+  TcpServer();
+
   explicit TcpServer(Address::ptr addr);
 
   ~TcpServer();

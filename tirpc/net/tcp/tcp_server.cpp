@@ -16,7 +16,13 @@
 
 namespace tirpc {
 
-extern tirpc::Config::ptr g_rpc_config;
+static ConfigVar<std::string>::ptr g_server_ip = Config::Lookup("server.ip", std::string("127.0.0.1"));
+static ConfigVar<int>::ptr g_server_port = Config::Lookup("server.port", 19999);
+static ConfigVar<std::string>::ptr g_server_protocal = Config::Lookup("server.protocal", std::string("TinyPB"));
+
+static ConfigVar<int>::ptr g_iothread_num = Config::Lookup("iothread_num", 1, "IO thread number");
+static ConfigVar<int>::ptr g_timewheel_bucket_num = Config::Lookup("time_wheel.bucket_num", 3, "TimeWheel bucket num");
+static ConfigVar<int>::ptr g_timewheel_interval = Config::Lookup("time_wheel.interval", 5, "TimeWheel interval");
 
 TcpAcceptor::TcpAcceptor(Address::ptr net_addr) : local_addr_(std::move(net_addr)) {
   family_ = local_addr_->GetFamily();
@@ -30,13 +36,6 @@ void TcpAcceptor::Init() {
   }
   // assert(fd_ != -1);
   LOG_DEBUG << "create listenfd succ, listenfd=" << fd_;
-
-  // int flag = fcntl(fd_, F_GETFL, 0);
-  // int rt = fcntl(fd_, F_SETFL, flag | O_NONBLOCK);
-
-  // if (rt != 0) {
-  // LOG_ERROR << "fcntl set nonblock error, errno=" << errno << ", error=" << strerror(errno);
-  // }
 
   int val = 1;
   if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) < 0) {
@@ -108,14 +107,32 @@ auto TcpAcceptor::ToAccept() -> int {
   return rt;
 }
 
-TcpServer::TcpServer(Address::ptr addr) : addr_(std::move(addr)) {
-  io_pool_ = std::make_shared<IOThreadPool>(g_rpc_config->iothread_num_);
+TcpServer::TcpServer() {
+  addr_ = std::make_shared<IPAddress>(g_server_ip->GetValue(), g_server_port->GetValue());
+
+  io_pool_ = std::make_shared<IOThreadPool>(g_iothread_num->GetValue());
 
   main_reactor_ = Reactor::GetReactor();
   main_reactor_->SetReactorType(MainReactor);
 
-  time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, g_rpc_config->timewheel_bucket_num_,
-                                               g_rpc_config->timewheel_interval_);
+  time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, g_timewheel_bucket_num->GetValue(),
+                                               g_timewheel_interval->GetValue());
+
+  clear_clent_timer_event_ =
+      std::make_shared<TimerEvent>(10000, true, std::bind(&TcpServer::ClearClientTimerFunc, this));
+  main_reactor_->GetTimer()->AddTimerEvent(clear_clent_timer_event_);
+
+  LOG_DEBUG << "TcpServer setup on [" << addr_->ToString() << "]";
+}
+
+TcpServer::TcpServer(Address::ptr addr) : addr_(std::move(addr)) {
+  io_pool_ = std::make_shared<IOThreadPool>(g_iothread_num->GetValue());
+
+  main_reactor_ = Reactor::GetReactor();
+  main_reactor_->SetReactorType(MainReactor);
+
+  time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, g_timewheel_bucket_num->GetValue(),
+                                               g_timewheel_interval->GetValue());
 
   clear_clent_timer_event_ =
       std::make_shared<TimerEvent>(10000, true, std::bind(&TcpServer::ClearClientTimerFunc, this));

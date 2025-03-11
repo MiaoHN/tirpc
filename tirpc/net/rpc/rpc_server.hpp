@@ -10,6 +10,8 @@ namespace tirpc {
  */
 class RpcServer : public TcpServer {
  public:
+  RpcServer();
+
   explicit RpcServer(Address::ptr addr);
 
   auto RegisterService(std::shared_ptr<google::protobuf::Service> service) -> bool;

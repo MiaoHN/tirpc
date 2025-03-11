@@ -12,7 +12,7 @@
 
 namespace tirpc {
 
-extern Config::ptr g_rpc_config;
+static ConfigVar<int>::ptr g_msg_req_len = Config::Lookup("msg_req_len", 20);
 
 static thread_local std::string t_msg_req_nu;
 static thread_local std::string t_max_msg_req_nu;
@@ -21,10 +21,7 @@ static thread_local std::string t_max_msg_req_nu;
 static int g_random_fd = -1;
 
 auto MsgReqUtil::GenMsgNumber() -> std::string {
-  int t_msg_req_len = 20;
-  if (g_rpc_config) {
-    t_msg_req_len = g_rpc_config->msg_req_len_;
-  }
+  int t_msg_req_len = g_msg_req_len->GetValue();
 
   if (t_msg_req_nu.empty() || t_msg_req_nu == t_max_msg_req_nu) {
     if (g_random_fd == -1) {

@@ -35,7 +35,7 @@ class FileHttpServlet : public tirpc::HttpServlet {
 
 auto main(int argc, char *argv[]) -> int {
   // default config file
-  std::string config_file = "./conf/http_server.xml";
+  std::string config_file = "./conf/http_server.yml";
 
   if (argc == 2) {
     config_file = argv[1];

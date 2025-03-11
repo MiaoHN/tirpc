@@ -18,14 +18,13 @@
 
 const char *html = "<html><body><h1>Welcome to tirPC, just enjoy it!</h1><p>%s</p></body></html>";
 
-tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);
-
 class BlockCallHttpServlet : public tirpc::HttpServlet {
  public:
   BlockCallHttpServlet() = default;
   ~BlockCallHttpServlet() override = default;
 
   void HandleGet(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
+    tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);
     SetHttpCode(res, tirpc::HTTP_OK);
     SetHttpContentType(res, "text/html;charset=utf-8");
 
@@ -79,6 +78,7 @@ class NonBlockCallHttpServlet : public tirpc::HttpServlet {
   ~NonBlockCallHttpServlet() override = default;
 
   void HandleGet(tirpc::HttpRequest *req, tirpc::HttpResponse *res) override {
+    tirpc::IPAddress::ptr addr = std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999);
     SetHttpCode(res, tirpc::HTTP_OK);
     SetHttpContentType(res, "text/html;charset=utf-8");
 
@@ -166,9 +166,7 @@ auto main(int argc, char *argv[]) -> int {
     config_file = argv[1];
   }
 
-  tirpc::InitConfig(config_file.c_str());
-
-  auto server = std::make_shared<tirpc::HttpServer>(tirpc::GetConfig()->GetAddr());
+  auto server = std::make_shared<tirpc::HttpServer>();
 
   server->RegisterHttpServlet("/qps", std::make_shared<QPSHttpServlet>());
   server->RegisterHttpServlet("/block", std::make_shared<BlockCallHttpServlet>());

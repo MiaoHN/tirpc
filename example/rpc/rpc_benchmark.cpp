@@ -17,67 +17,67 @@
 #include "tirpc/net/tcp/abstract_service_register.hpp"
 #include "tirpc/net/tcp/service_register.hpp"
 
-void SingleChannelWorker(tirpc::AbstractServiceRegister::ptr center, std::atomic<int> &successCount, int duration) {
-  std::vector<tirpc::Address::ptr> addrs = center->Discover("QueryService");
+void WorkerFunction(tirpc::AbstractServiceRegister::ptr center, std::atomic<int> &success_count, int duration) {
+  auto addrs = center->Discover("QueryService");
 
   tirpc::RpcChannel channel(addrs, tirpc::LoadBalanceCategory::Random);
   QueryService_Stub stub(&channel);
 
   tirpc::RpcController rpc_controller;
-  rpc_controller.SetTimeout(1000000);
+  rpc_controller.SetTimeout(5000);
 
   queryNameReq rpc_req;
   queryNameRes rpc_res;
 
-  auto startTime = std::chrono::high_resolution_clock::now();
-  auto endTime = startTime + std::chrono::seconds(duration);
+  auto start_time = std::chrono::high_resolution_clock::now();
+  auto end_time = start_time + std::chrono::seconds(duration);
 
-  while (std::chrono::high_resolution_clock::now() < endTime) {
+  while (std::chrono::high_resolution_clock::now() < end_time) {
     rpc_controller.Reset();  // 重置控制器状态
     stub.query_name(&rpc_controller, &rpc_req, &rpc_res, nullptr);
 
     if (rpc_controller.ErrorCode() == 0) {
-      successCount.fetch_add(1, std::memory_order_relaxed);
+      success_count.fetch_add(1, std::memory_order_relaxed);
     }
   }
 }
 
 void RunBenchmark(int numClients, int duration) {
-  tirpc::AbstractServiceRegister::ptr center = tirpc::ServiceRegister::Query(tirpc::ServiceRegisterCategory::Zk);
+  auto center = tirpc::ServiceRegister::Query(tirpc::ServiceRegisterCategory::Zk);
 
   // 单 channel 测试
-  std::atomic<int> singleChannelSuccessCount(0);
-  std::vector<std::thread> singleChannelThreads;
+  std::atomic<int> success_count(0);
+  std::vector<std::thread> benchmark_threads;
   for (int i = 0; i < numClients; ++i) {
-    singleChannelThreads.emplace_back(SingleChannelWorker, center, std::ref(singleChannelSuccessCount), duration);
+    benchmark_threads.emplace_back(WorkerFunction, center, std::ref(success_count), duration);
   }
-  int total = singleChannelThreads.size();
+  int total = benchmark_threads.size();
   int joined = 0;
-  for (auto &thread : singleChannelThreads) {
+  for (auto &thread : benchmark_threads) {
     joined++;
     thread.join();
     std::cout << "\r[" << joined << "/" << total << "] joined!";
   }
   std::cout << std::endl;
 
-  double singleChannelQPS = static_cast<double>(singleChannelSuccessCount) / static_cast<double>(duration);
+  double qps = static_cast<double>(success_count) / static_cast<double>(duration);
   std::cout << "Total clients: " << numClients << ", Total time: " << duration << " s" << std::endl;
-  std::cout << "Successful calls: " << singleChannelSuccessCount << std::endl;
-  std::cout << "QPS: " << singleChannelQPS << std::endl;
+  std::cout << "Successful calls: " << success_count << std::endl;
+  std::cout << "QPS: " << qps << std::endl;
 
   std::cout << std::endl;
 }
 
 auto main(int argc, char *argv[]) -> int {
   // default config file
-  int numClients = 1;
+  int num_clients = 1;
   int duration = 10;
 
   int opt;
-  while ((opt = getopt(argc, argv, "c:t")) != -1) {
+  while ((opt = getopt(argc, argv, "c:t:")) != -1) {
     switch (opt) {
       case 'c':
-        numClients = std::stoi(optarg);
+        num_clients = std::stoi(optarg);
         break;
       case 't':
         duration = std::stoi(optarg);
@@ -89,9 +89,9 @@ auto main(int argc, char *argv[]) -> int {
   }
 
   std::cout << "Start benchmark!" << std::endl;
-  std::cout << "Client: " << numClients << ", Duration: " << duration << "s" << std::endl;
+  std::cout << "Client: " << num_clients << ", Duration: " << duration << "s" << std::endl;
 
-  RunBenchmark(numClients, duration);
+  RunBenchmark(num_clients, duration);
 
   return 0;
 }

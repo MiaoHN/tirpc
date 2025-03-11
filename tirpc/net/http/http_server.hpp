@@ -7,7 +7,11 @@ namespace tirpc {
 
 class HttpServer : public TcpServer {
  public:
+  HttpServer();
+
   explicit HttpServer(Address::ptr addr);
+
+  void Init();
 
   auto RegisterHttpServlet(const std::string &url_path, HttpServlet::ptr servlet) -> bool;
 
