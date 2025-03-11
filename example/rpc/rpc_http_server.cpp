@@ -163,28 +163,12 @@ class QPSHttpServlet : public tirpc::HttpServlet {
 auto main(int argc, char *argv[]) -> int {
   // default config file
   std::string config_file = "./conf/http_server.yml";
-  bool use_lockfree = false;
 
   if (argc == 2) {
-    if (argv[1][0] != '-') {
-      config_file = argv[1];
-    } else {
-      if (!strcmp(argv[1], "--use-locked-queue")) {
-        use_lockfree = false;
-      } else if (!strcmp(argv[1], "--use-lock-free-queue")) {
-        use_lockfree = true;
-      } else {
-        std::cerr << "unknown argv[1]: " << argv[1] << std::endl;
-        exit(0);
-      }
-    }
+    config_file = argv[1];
   }
 
-  std::cout << "use_lockfree: " << use_lockfree << std::endl;
-
   tirpc::InitConfig(config_file.c_str());
-
-  tirpc::GetConfig()->use_look_free_ = use_lockfree;
 
   auto server = std::make_shared<tirpc::HttpServer>(tirpc::GetConfig()->GetAddr());
 

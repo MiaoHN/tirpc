@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
 #include "tirpc/net/tcp/abstract_data.hpp"
 

@@ -23,10 +23,7 @@ static thread_local Reactor *t_reactor_ptr = nullptr;
 
 static thread_local int t_max_epoll_timeout = 10000;  // ms
 
-static LockFreeTaskQueue *t_lockfree_task_queue = nullptr;
-
 static CoroutineTaskQueue *t_coroutine_task_queue = nullptr;
-
 
 Reactor::Reactor() {
   // one thread can't create more than one reactor object!!

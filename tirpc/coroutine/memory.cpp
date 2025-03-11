@@ -17,17 +17,10 @@ Memory::Memory(int block_size, int block_count) : block_size_(block_size), block
 
   end_ = start_ + size_ - 1;
 
-  if (g_rpc_config->use_look_free_) {
-    for (int i = 0; i < block_count_; ++i) {
-      char *block = start_ + i * block_size_;
-      available_blocks_.enqueue(block);
-    }
-  } else {
-    blocks_.resize(block_count_);
+  blocks_.resize(block_count_);
 
-    for (size_t i = 0; i < blocks_.size(); ++i) {
-      blocks_[i] = false;
-    }
+  for (size_t i = 0; i < blocks_.size(); ++i) {
+    blocks_[i] = false;
   }
 
   ref_count_ = 0;
@@ -50,15 +43,6 @@ auto Memory::GetStart() -> char * { return start_; }
 auto Memory::GetEnd() -> char * { return end_; }
 
 auto Memory::GetBlock() -> char * {
-  if (g_rpc_config->use_look_free_) {
-    char *block = nullptr;
-    if (available_blocks_.try_dequeue(block)) {
-      ref_count_++;
-      return block;
-    }
-    return nullptr;
-  }
-
   int t = -1;
   Mutex::Locker lock(mutex_);
   for (size_t i = 0; i < blocks_.size(); ++i) {
@@ -81,14 +65,11 @@ void Memory::BackBlock(char *block) {
     LOG_ERROR << "error, this block is not belong to this Memory";
     return;
   }
-  if (g_rpc_config->use_look_free_) {
-    available_blocks_.enqueue(block);
-  } else {
-    int t = (block - start_) / block_size_;
-    Mutex::Locker lock(mutex_);
-    blocks_[t] = false;
-    lock.Unlock();
-  }
+
+  int t = (block - start_) / block_size_;
+  Mutex::Locker lock(mutex_);
+  blocks_[t] = false;
+  lock.Unlock();
 
   ref_count_--;
 }

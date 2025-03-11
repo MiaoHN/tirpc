@@ -109,8 +109,6 @@ void Config::ReadConf() {
   int max_connect_timeout = GetElementType<int>(yaml_, "max_connect_timeout");
   max_connect_timeout_ = max_connect_timeout * 1000;
 
-  use_look_free_ = GetElementType<int>(yaml_, "use_lockfree");
-
   iothread_num_ = GetElementType<int>(yaml_, "iothread_num");
 
   timewheel_bucket_num_ = GetElementType<int>(time_wheel_node, "bucket_num");

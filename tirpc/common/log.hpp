@@ -22,6 +22,9 @@ namespace tirpc {
 
 extern Config::ptr g_rpc_config;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+
 template <typename... Args>
 auto FormatString(const char *fmt, Args... args) -> std::string {
   int size = snprintf(nullptr, 0, fmt, args...);
@@ -33,6 +36,8 @@ auto FormatString(const char *fmt, Args... args) -> std::string {
   }
   return result;
 }
+
+#pragma GCC diagnostic pop
 
 #define LOG_LEVEL(level)                                                                                    \
   if (tirpc::OpenLog() && tirpc::LogLevel::level >= tirpc::g_rpc_config->level_)                            \

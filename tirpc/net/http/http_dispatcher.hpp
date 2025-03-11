@@ -1,7 +1,6 @@
 #pragma once
 
 #include <map>
-#include <memory>
 
 #include "tirpc/net/http/http_servlet.hpp"
 #include "tirpc/net/tcp/abstract_dispatcher.hpp"

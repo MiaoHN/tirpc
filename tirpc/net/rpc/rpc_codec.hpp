@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 #include "tirpc/net/rpc/rpc_data.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/tcp/abstract_data.hpp"

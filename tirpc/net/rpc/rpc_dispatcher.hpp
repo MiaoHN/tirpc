@@ -6,7 +6,6 @@
 #include <map>
 #include <memory>
 
-#include "tirpc/net/rpc/rpc_data.hpp"
 #include "tirpc/net/tcp/abstract_dispatcher.hpp"
 
 namespace tirpc {

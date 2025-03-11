@@ -1,9 +1,7 @@
 #include "tirpc/net/rpc/rpc_codec.hpp"
 
-#include <algorithm>
 #include <cstring>
 #include <memory>
-#include <sstream>
 #include <vector>
 
 #include "tirpc/common/log.hpp"
@@ -186,7 +184,7 @@ void TinyPbCodeC::Decode(TcpBuffer *buf, AbstractData *data) {
   buf->RecycleRead(end_index + 1 - start_index);
 
   LOG_DEBUG << "read_buffer size=" << buf->GetBufferVector().size() << "rd=" << buf->ReadIndex()
-           << "wd=" << buf->WriteIndex();
+            << "wd=" << buf->WriteIndex();
 
   // TinyPbStruct pb_struct;
   auto pb_struct = dynamic_cast<TinyPbStruct *>(data);
@@ -219,7 +217,7 @@ void TinyPbCodeC::Decode(TcpBuffer *buf, AbstractData *data) {
   int service_name_len_index = msg_req_index + pb_struct->msg_req_len_;
   if (service_name_len_index >= end_index) {
     LOG_ERROR << "parse error, service_name_len_index[" << service_name_len_index << "] >= end_index[" << end_index
-             << "]";
+              << "]";
     // drop this error package
     return;
   }

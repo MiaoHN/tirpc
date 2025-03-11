@@ -3,7 +3,6 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/service.h>
-#include <future>
 #include <memory>
 
 #include "tirpc/common/error_code.hpp"
@@ -14,11 +13,8 @@
 #include "tirpc/coroutine/coroutine_pool.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/rpc/rpc_channel.hpp"
-#include "tirpc/net/rpc/rpc_codec.hpp"
 #include "tirpc/net/rpc/rpc_controller.hpp"
-#include "tirpc/net/rpc/rpc_data.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
-#include "tirpc/net/tcp/tcp_client.hpp"
 
 namespace tirpc {
 

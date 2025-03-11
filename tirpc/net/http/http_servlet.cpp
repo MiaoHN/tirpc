@@ -1,6 +1,5 @@
 #include "tirpc/net/http/http_servlet.hpp"
 
-#include <memory>
 #include <unordered_map>
 
 #include "tirpc/common/log.hpp"

@@ -7,8 +7,6 @@
 #include <memory>
 #include <vector>
 
-#include "tirpc/common/concurrentqueue.hpp"
-#include "tirpc/common/lock_free_queue.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 
@@ -95,10 +93,6 @@ class Reactor {
 
   ReactorType type_{ReactorType::SubReactor};
 };
-
-using LockFreeTaskQueue = moodycamel::ConcurrentQueue<FdEvent *>;
-
-auto GetLockFreeTaskQueue() -> LockFreeTaskQueue *;
 
 class CoroutineTaskQueue {
  public:

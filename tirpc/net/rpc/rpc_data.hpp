@@ -2,8 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
-#include "tirpc/common/log.hpp"
 #include "tirpc/net/tcp/abstract_data.hpp"
 
 namespace tirpc {

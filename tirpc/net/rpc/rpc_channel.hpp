@@ -5,7 +5,6 @@
 
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/tcp/load_balance.hpp"
-#include "tirpc/net/tcp/tcp_client.hpp"
 
 namespace tirpc {
 
@@ -18,8 +17,7 @@ class RpcChannel : public google::protobuf::RpcChannel {
  public:
   using ptr = std::shared_ptr<RpcChannel>;
   explicit RpcChannel(Address::ptr addr);
-  explicit RpcChannel(std::vector<Address::ptr> addrs,
-                        LoadBalanceCategory load_balance = LoadBalanceCategory::Random);
+  explicit RpcChannel(std::vector<Address::ptr> addrs, LoadBalanceCategory load_balance = LoadBalanceCategory::Random);
 
   ~RpcChannel() override = default;
 

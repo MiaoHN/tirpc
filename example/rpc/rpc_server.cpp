@@ -72,16 +72,10 @@ auto main(int argc, char *argv[]) -> int {
   bool use_lockfree = false;
 
   if (argc == 2) {
-    if (std::strcmp(argv[1], "--use-locked-queue") == 0) {
-      use_lockfree = false;
-    } else if (std::strcmp(argv[1], "--use-lock-free-queue") == 0) {
-      use_lockfree = true;
-    } else {
-      config_file = argv[1];
-    }
+    config_file = argv[1];
   } else if (argc == 4) {
     if (std::strcmp(argv[2], "-p") != 0) {
-      std::cout << "usage " << argv[0] << " <config> -p <port>" << std::endl;
+      std::cout << "usage: " << argv[0] << " <config> -p <port>" << std::endl;
     }
     config_file = argv[1];
     port = std::stoi(argv[3]);
@@ -91,9 +85,6 @@ auto main(int argc, char *argv[]) -> int {
   if (port != -1) {
     tirpc::GetConfig()->GetAddr()->SetPort(port);
   }
-  std::cout << "use_lockfree: " << use_lockfree << std::endl;
-
-  tirpc::GetConfig()->use_look_free_ = use_lockfree;
 
   auto server = std::make_shared<tirpc::RpcServer>(tirpc::GetConfig()->GetAddr());
 
