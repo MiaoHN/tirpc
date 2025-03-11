@@ -1,9 +1,7 @@
 #pragma once
 
 #include <google/protobuf/service.h>
-#include <memory>
 #include <string>
-#include <vector>
 #include "tirpc/common/const.hpp"
 #include "tirpc/net/tcp/abstract_service_register.hpp"
 

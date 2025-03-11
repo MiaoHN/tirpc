@@ -14,8 +14,6 @@
 
 namespace tirpc {
 
-enum LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, FATAL, NONE };
-
 class Config {
  public:
   using ptr = std::shared_ptr<Config>;

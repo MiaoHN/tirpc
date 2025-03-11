@@ -8,8 +8,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <algorithm>
-#include <atomic>
 #include <cassert>
 #include <cerrno>
 #include <chrono>

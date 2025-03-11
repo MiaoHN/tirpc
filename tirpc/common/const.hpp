@@ -2,6 +2,8 @@
 
 namespace tirpc {
 
+enum LogLevel { TRACE, DEBUG, INFO, WARN, ERROR, FATAL, NONE };
+
 enum class LoadBalanceCategory {
   // 随机算法
   Random,

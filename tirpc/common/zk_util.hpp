@@ -2,9 +2,7 @@
 
 #include <semaphore.h>
 #include <zookeeper/zookeeper.h>
-#include <chrono>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 

@@ -10,9 +10,6 @@
 #include "tirpc/coroutine/coroutine.hpp"
 #include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
-#include "tirpc/net/http/http_codec.hpp"
-#include "tirpc/net/http/http_dispatcher.hpp"
-#include "tirpc/net/rpc/rpc_dispatcher.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
@@ -57,7 +54,8 @@ void TcpAcceptor::Init() {
   LOG_DEBUG << "set REUSEADDR succ";
   rt = listen(fd_, 10);
   if (rt != 0) {
-    LOG_ERROR << "start server error. listen error, fd= " << fd_ << ", errno=" << errno << ", error=" << strerror(errno);
+    LOG_ERROR << "start server error. listen error, fd= " << fd_ << ", errno=" << errno
+              << ", error=" << strerror(errno);
     Exit(0);
   }
   // assert(rt == 0);

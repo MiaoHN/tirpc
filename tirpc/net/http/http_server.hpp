@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tirpc/net/http/http_servlet.hpp"
 #include "tirpc/net/tcp/tcp_server.hpp"
 
 namespace tirpc {

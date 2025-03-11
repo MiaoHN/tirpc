@@ -2,7 +2,9 @@
 #include <zookeeper/zookeeper.h>
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"

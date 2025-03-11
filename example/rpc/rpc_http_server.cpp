@@ -1,6 +1,4 @@
 #include <google/protobuf/service.h>
-#include <atomic>
-#include <future>
 #include <memory>
 
 #include "rpc_server.pb.h"

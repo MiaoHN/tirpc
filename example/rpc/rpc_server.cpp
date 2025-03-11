@@ -1,7 +1,5 @@
 #include <google/protobuf/service.h>
-#include <atomic>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "rpc_server.pb.h"
@@ -9,8 +7,6 @@
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/common/start.hpp"
-#include "tirpc/net/base/address.hpp"
-#include "tirpc/net/rpc/rpc_dispatcher.hpp"
 #include "tirpc/net/rpc/rpc_server.hpp"
 
 static int i = 0;
@@ -69,7 +65,6 @@ auto main(int argc, char *argv[]) -> int {
   // default config file
   std::string config_file = "./conf/rpc_server.yml";
   int port = -1;
-  bool use_lockfree = false;
 
   if (argc == 2) {
     config_file = argv[1];

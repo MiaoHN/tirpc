@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include <iostream>
 #include <memory>
 
 #include <yaml-cpp/node/parse.h>
@@ -10,8 +11,6 @@
 #include "tirpc/common/const.hpp"
 #include "tirpc/common/log.hpp"
 #include "tirpc/net/base/address.hpp"
-#include "tirpc/net/tcp/abstract_codec.hpp"
-#include "tirpc/net/tcp/tcp_server.hpp"
 
 namespace tirpc {
 
@@ -119,10 +118,12 @@ void Config::ReadConf() {
   std::string sr_type = GetElementType<std::string>(service_register_node, "type");
   if (sr_type == "zk") {
     service_register_ = ServiceRegisterCategory::Zk;
+    zk_ip_ = GetElementType<std::string>(service_register_node, "ip");
+    zk_port_ = GetElementType<int>(service_register_node, "port");
+    zk_timeout_ = GetElementType<int>(service_register_node, "timeout");
+  } else if (sr_type == "none") {
+    service_register_ = ServiceRegisterCategory::None;
   }
-  zk_ip_ = GetElementType<std::string>(service_register_node, "ip");
-  zk_port_ = GetElementType<int>(service_register_node, "port");
-  zk_timeout_ = GetElementType<int>(service_register_node, "timeout");
 
   const YAML::Node &net_node = yaml_["server"];
   if (!net_node) {
