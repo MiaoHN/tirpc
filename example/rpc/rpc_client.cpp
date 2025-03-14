@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "rpc_server.pb.h"
+#include "tirpc/common/config.hpp"
 #include "tirpc/common/const.hpp"
 #include "tirpc/common/start.hpp"
 #include "tirpc/net/base/address.hpp"
@@ -105,7 +106,7 @@ auto main(int argc, char *argv[]) -> int {
     numCalls = std::stoi(argv[2]);
   }
 
-  tirpc::InitConfig(config_file.c_str());
+  tirpc::Config::LoadFromFile(config_file);
 
   // 执行两种模式的测试
   TestClientSingleChannel(numCalls);

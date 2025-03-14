@@ -1,5 +1,6 @@
 #include "tirpc/net/http/http_server.hpp"
 #include "tirpc/common/start.hpp"
+#include "tirpc/common/config.hpp"
 #include "tirpc/common/string_util.hpp"
 
 class FileHttpServlet : public tirpc::HttpServlet {
@@ -41,9 +42,9 @@ auto main(int argc, char *argv[]) -> int {
     config_file = argv[1];
   }
 
-  tirpc::InitConfig(config_file.c_str());
+  tirpc::Config::LoadFromFile(config_file);
 
-  auto server = std::make_shared<tirpc::HttpServer>(tirpc::GetConfig()->GetAddr());
+  auto server = std::make_shared<tirpc::HttpServer>();
 
   server->RegisterHttpServlet("/*", std::make_shared<FileHttpServlet>("./root/"));
 

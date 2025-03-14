@@ -9,7 +9,7 @@ class HttpServer : public TcpServer {
  public:
   HttpServer();
 
-  explicit HttpServer(Address::ptr addr);
+  HttpServer(Address::ptr addr);
 
   void Init();
 
