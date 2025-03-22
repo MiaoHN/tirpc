@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "tirpc/common/log.hpp"
-#include "tirpc/common/string_util.hpp"
+#include "tirpc/common/util.hpp"
 #include "tirpc/net/http/http_request.hpp"
 #include "tirpc/net/http/http_response.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"

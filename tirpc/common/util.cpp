@@ -1,4 +1,4 @@
-#include "tirpc/common/string_util.hpp"
+#include "tirpc/common/util.hpp"
 
 #include <fcntl.h>
 #include <sys/stat.h>

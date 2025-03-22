@@ -24,8 +24,6 @@ msg_req_len: 20
 # max time when call connect, s
 max_connect_timeout: 75
 
-use_lockfree: 1
-
 # count of io threads, at least 1
 iothread_num: 4
 
@@ -34,6 +32,7 @@ time_wheel:
   # interval that destroy bad TcpConnection, s
   interval: 5
 
+# service register, none | zk
 service_register:
   type: none
 
