@@ -132,7 +132,6 @@ class AsyncLogger {
   const char *file_path_;
   int max_size_{0};
   LogType type_;
-  pthread_t tid_;
   int no_{0};
   bool need_reopen_{false};
   FILE *file_handler_{nullptr};

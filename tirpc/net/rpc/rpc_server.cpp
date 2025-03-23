@@ -11,8 +11,10 @@ namespace tirpc {
 static ConfigVar<std::string>::ptr g_service_register =
     Config::Lookup("service_register.type", std::string("zk"), "Service Register");
 
-RpcServer::RpcServer() {
-
+RpcServer::RpcServer() : TcpServer() {
+  dispatcher_ = std::make_shared<RpcDispatcher>();
+  codec_ = std::make_shared<TinyPbCodeC>();
+  start_info_ = "RPC service has started and is available at " + addr_->ToString() + "\n Press Ctrl+C to stop";
 }
 
 RpcServer::RpcServer(Address::ptr addr) : TcpServer(addr) {

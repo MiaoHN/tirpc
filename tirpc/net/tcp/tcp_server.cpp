@@ -8,7 +8,6 @@
 
 #include "tirpc/common/config.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
-#include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
@@ -23,89 +22,6 @@ static ConfigVar<std::string>::ptr g_server_protocal = Config::Lookup("server.pr
 static ConfigVar<int>::ptr g_iothread_num = Config::Lookup("iothread_num", 1, "IO thread number");
 static ConfigVar<int>::ptr g_timewheel_bucket_num = Config::Lookup("time_wheel.bucket_num", 3, "TimeWheel bucket num");
 static ConfigVar<int>::ptr g_timewheel_interval = Config::Lookup("time_wheel.interval", 5, "TimeWheel interval");
-
-TcpAcceptor::TcpAcceptor(Address::ptr net_addr) : local_addr_(std::move(net_addr)) {
-  family_ = local_addr_->GetFamily();
-}
-
-void TcpAcceptor::Init() {
-  fd_ = socket(local_addr_->GetFamily(), SOCK_STREAM, 0);
-  if (fd_ < 0) {
-    LOG_ERROR << "start server error. socket error, sys error=" << strerror(errno);
-    Exit(0);
-  }
-  // assert(fd_ != -1);
-  LOG_DEBUG << "create listenfd succ, listenfd=" << fd_;
-
-  int val = 1;
-  if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) < 0) {
-    LOG_ERROR << "set REUSEADDR error";
-  }
-
-  socklen_t len = local_addr_->GetSockLen();
-  int rt = bind(fd_, local_addr_->GetSockAddr(), len);
-  if (rt != 0) {
-    LOG_ERROR << "start server error. bind error, errno=" << errno << ", error=" << strerror(errno);
-    Exit(0);
-  }
-  // assert(rt == 0);
-
-  LOG_DEBUG << "set REUSEADDR succ";
-  rt = listen(fd_, 10);
-  if (rt != 0) {
-    LOG_ERROR << "start server error. listen error, fd= " << fd_ << ", errno=" << errno
-              << ", error=" << strerror(errno);
-    Exit(0);
-  }
-  // assert(rt == 0);
-}
-
-TcpAcceptor::~TcpAcceptor() {
-  FdEvent::ptr fd_event = FdEventContainer::GetFdContainer()->GetFdEvent(fd_);
-  fd_event->UnregisterFromReactor();
-  if (fd_ != -1) {
-    close(fd_);
-  }
-}
-
-auto TcpAcceptor::ToAccept() -> int {
-  socklen_t len = 0;
-  int rt = 0;
-
-  if (family_ == AF_INET) {
-    sockaddr_in cli_addr;
-    memset(&cli_addr, 0, sizeof(cli_addr));
-    len = sizeof(cli_addr);
-    // call hook accept
-    rt = accept_hook(fd_, reinterpret_cast<sockaddr *>(&cli_addr), &len);
-    if (rt == -1) {
-      LOG_DEBUG << "error, no new client coming, errno=" << errno << "error=" << strerror(errno);
-      return -1;
-    }
-    LOG_DEBUG << "New client accepted succ! port:[" << cli_addr.sin_port;
-    peer_addr_ = std::make_shared<IPAddress>(cli_addr);
-  } else if (family_ == AF_UNIX) {
-    sockaddr_un cli_addr;
-    len = sizeof(cli_addr);
-    memset(&cli_addr, 0, sizeof(cli_addr));
-    // call hook accept
-    rt = accept_hook(fd_, reinterpret_cast<sockaddr *>(&cli_addr), &len);
-    if (rt == -1) {
-      LOG_DEBUG << "error, no new client coming, errno=" << errno << "error=" << strerror(errno);
-      return -1;
-    }
-    peer_addr_ = std::make_shared<UnixDomainAddress>(cli_addr);
-
-  } else {
-    LOG_ERROR << "unknown type protocol!";
-    close(rt);
-    return -1;
-  }
-
-  LOG_DEBUG << "New client accepted succ! fd:[" << rt << ", addr:[" << peer_addr_->ToString() << "]";
-
-  return rt;
-}
 
 TcpServer::TcpServer() {
   addr_ = std::make_shared<IPAddress>(g_server_ip->GetValue(), g_server_port->GetValue());
@@ -145,8 +61,9 @@ void TcpServer::Start() {
   if (!start_info_.empty()) {
     std::cout << start_info_ << std::endl << std::endl;
   }
-  acceptor_.reset(new TcpAcceptor(addr_));
-  acceptor_->Init();
+  acceptor_ = Socket::CreateTCP(addr_);
+  acceptor_->Bind(addr_);
+  acceptor_->Listen();
   accept_cor_ = GetCoroutinePool()->GetCoroutineInstanse();
   accept_cor_->SetCallBack(std::bind(&TcpServer::MainAcceptCorFunc, this));
 
@@ -169,15 +86,15 @@ TcpServer::~TcpServer() {
 
 void TcpServer::MainAcceptCorFunc() {
   while (!is_stop_accept_) {
-    int fd = acceptor_->ToAccept();
-    if (fd == -1) {
+    Socket::ptr sock = acceptor_->Accept();
+    if (sock == nullptr) {
       Coroutine::Yield();
       continue;
     }
     IOThread *io_thread = io_pool_->GetIoThread();
-    TcpConnection::ptr conn = AddClient(io_thread, fd);
+    TcpConnection::ptr conn = AddClient(io_thread, sock->GetFd());
     conn->InitServer();
-    LOG_DEBUG << "tcpconnection address is " << conn.get() << ", and fd is" << fd;
+    LOG_DEBUG << "tcpconnection address is " << conn.get() << ", and fd is" << sock->GetFd();
 
     io_thread->GetReactor()->AddCoroutine(conn->GetCoroutine());
     tcp_counts_++;
@@ -228,7 +145,7 @@ void TcpServer::ClearClientTimerFunc() {
   }
 }
 
-auto TcpServer::GetPeerAddr() -> Address::ptr { return acceptor_->GetPeerAddr(); }
+auto TcpServer::GetPeerAddr() -> Address::ptr { return acceptor_->GetRemoteAddr(); }
 
 auto TcpServer::GetLocalAddr() -> Address::ptr { return addr_; }
 

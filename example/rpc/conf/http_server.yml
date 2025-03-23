@@ -15,9 +15,9 @@ log:
 
 coroutine:
   # coroutine stack size (KB)
-  coroutine_stack_size: 256
+  stack_size: 256
   # default coroutine pool size
-  coroutine_pool_size: 1000
+  pool_size: 1000
 
 msg_req_len: 20
 

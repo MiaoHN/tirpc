@@ -7,6 +7,7 @@
 #include <tinyxml2.h>
 #include <yaml-cpp/yaml.h>
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
 #include <cctype>
 #include <exception>
 #include <functional>
@@ -58,7 +59,7 @@ template <class F, class T>
 class LexicalCast {
  public:
   // FIXIT
-  T operator()(const F &v) { return T(); }
+  T operator()(const F &v) { return boost::lexical_cast<T>(v); }
 };
 
 /**
@@ -444,7 +445,6 @@ class Config {
     if (it != GetDatas().end()) {
       auto tmp = std::dynamic_pointer_cast<ConfigVar<T>>(it->second);
       if (tmp) {
-        LOG_INFO << "Lookup name=" << name << " exists";
         return tmp;
       } else {
         LOG_ERROR << "Lookup name=" << name << " exists but type not " << TypeToName<T>()

@@ -6,6 +6,7 @@
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/base/fd_event.hpp"
 #include "tirpc/net/base/reactor.hpp"
+#include "tirpc/net/base/socket.hpp"
 #include "tirpc/net/base/timer.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
 #include "tirpc/net/tcp/abstract_dispatcher.hpp"
@@ -15,29 +16,6 @@
 #include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
 
 namespace tirpc {
-
-class TcpAcceptor {
- public:
-  using ptr = std::shared_ptr<TcpAcceptor>;
-  explicit TcpAcceptor(Address::ptr net_addr);
-
-  void Init();
-
-  auto ToAccept() -> int;
-
-  ~TcpAcceptor();
-
-  auto GetPeerAddr() -> Address::ptr { return peer_addr_; }
-
-  auto GeLocalAddr() -> Address::ptr { return local_addr_; }
-
- private:
-  int family_{-1};
-  int fd_{-1};
-
-  Address::ptr local_addr_{nullptr};
-  Address::ptr peer_addr_{nullptr};
-};
 
 class TcpServer {
  public:
@@ -87,7 +65,7 @@ class TcpServer {
   Address::ptr addr_;
 
  private:
-  TcpAcceptor::ptr acceptor_;
+  Socket::ptr acceptor_;
 
   int tcp_counts_{0};
 

@@ -16,6 +16,8 @@ class Address {
  public:
   using ptr = std::shared_ptr<Address>;
 
+  virtual ~Address() = default;
+
   virtual auto GetSockAddr() -> sockaddr * = 0;
 
   virtual auto GetFamily() const -> int = 0;
@@ -29,7 +31,11 @@ class IPAddress : public Address {
  public:
   using ptr = std::shared_ptr<IPAddress>;
 
+  IPAddress(uint32_t addr = INADDR_ANY, uint16_t port = 0);
+
   IPAddress(const std::string &ip, uint16_t port);
+
+  virtual ~IPAddress() = default;
 
   explicit IPAddress(const std::string &addr);
 
@@ -65,6 +71,8 @@ class UnixDomainAddress : public Address {
   explicit UnixDomainAddress(std::string &path);
 
   explicit UnixDomainAddress(sockaddr_un addr);
+
+  virtual ~UnixDomainAddress() = default;
 
   auto GetSockAddr() -> sockaddr * override;
 

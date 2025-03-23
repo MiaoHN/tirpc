@@ -3,6 +3,7 @@
 
 #include "rpc_server.pb.h"
 
+#include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
 #include "tirpc/common/start.hpp"
 #include "tirpc/net/base/address.hpp"
@@ -165,6 +166,8 @@ auto main(int argc, char *argv[]) -> int {
   if (argc == 2) {
     config_file = argv[1];
   }
+
+  tirpc::Config::LoadFromFile(config_file);
 
   auto server = std::make_shared<tirpc::HttpServer>();
 

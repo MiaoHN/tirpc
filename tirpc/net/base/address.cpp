@@ -1,5 +1,6 @@
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/common/log.hpp"
+#include "tirpc/net/base/endian.hpp"
 
 namespace tirpc {
 
@@ -19,14 +20,19 @@ auto IPAddress::CheckValidIPAddr(const std::string &addr) -> bool {
   return true;
 }
 
+IPAddress::IPAddress(uint32_t addr, uint16_t port) {
+  memset(&addr_, 0, sizeof(addr_));
+  addr_.sin_family = AF_INET;
+  addr_.sin_port = byteswapOnLittleEndian(port);
+  addr_.sin_addr.s_addr = byteswapOnLittleEndian(addr);
+}
+
 IPAddress::IPAddress(const std::string &ip, uint16_t port) : port_(port) {
   ip_ = ip;
   memset(&addr_, 0, sizeof(addr_));
   addr_.sin_family = AF_INET;
   addr_.sin_addr.s_addr = inet_addr(ip_.c_str());
   addr_.sin_port = htons(port_);
-
-  LOG_DEBUG << "create ipv4 address succ [" << ToString() << "]";
 }
 
 IPAddress::IPAddress(sockaddr_in addr) : addr_(addr) {

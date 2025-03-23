@@ -72,7 +72,6 @@ class Reactor {
   int timer_fd_{-1};
   bool stop_{false};
   bool is_looping_{false};
-  bool is_init_timer_{false};
 
   int thread_idx_{-1};
 
@@ -81,8 +80,6 @@ class Reactor {
   Mutex mutex_;
 
   std::vector<int> fds_;
-
-  std::atomic<int> fd_size_;
 
   std::map<int, epoll_event> pending_add_fds_;
   std::vector<int> pending_del_fds_;

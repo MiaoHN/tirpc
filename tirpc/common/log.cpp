@@ -33,46 +33,11 @@ static ConfigVar<std::string>::ptr g_app_log_level = Config::Lookup("log.app_log
 static ConfigVar<int>::ptr g_log_max_size = Config::Lookup("log.log_max_file_size", 5);
 static ConfigVar<int>::ptr g_log_sync_interval = Config::Lookup("log.log_sync_interval", 500);
 
-void BackTrace(std::vector<std::string> &bt, int size, int skip) {
-  void **array = static_cast<void **>(malloc(sizeof(void *) * size));
-  size_t s = ::backtrace(array, size);
-
-  char **strings = backtrace_symbols(array, s);
-  if (strings == nullptr) {
-    printf("backtrace_symbols return nullptr\n");
-    return;
-  }
-
-  for (size_t i = skip; i < s; ++i) {
-    bt.emplace_back(strings[i]);
-  }
-
-  free(strings);
-  free(array);
-}
-
-auto BacktraceToString(int size = 64, int skip = 2, const std::string &prefix = "") -> std::string {
-  std::vector<std::string> bt;
-  BackTrace(bt, size, skip);
-  std::stringstream ss;
-  for (auto &i : bt) {
-    ss << prefix << i << std::endl;
-  }
-  return ss.str();
-}
-
 void CoredumpHandler(int signal_no) {
   if (signal_no == SIGINT) {
-    std::cout << "\nReceived Ctrl+C signal, preparing for graceful exit..." << std::endl;
+    LOG_INFO << "Received Ctrl+C signal, preparing for graceful exit...";
   } else {
-    LOG_ERROR << "progress receive invalid signal, will exit";
-    printf("progress receive invalid signal, will exit\n");
-
-    std::string bt = BacktraceToString();
-
-    LOG_ERROR << "coredump stack:\n" << bt;
-
-    printf("coredump stack:\n%s\n", bt.c_str());
+    LOG_ERROR << "Progress receive invalid signal, will exit";
   }
 
   Logger::GetLogger()->Flush();
