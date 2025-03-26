@@ -16,8 +16,10 @@ namespace tirpc {
 class RpcChannel : public google::protobuf::RpcChannel {
  public:
   using ptr = std::shared_ptr<RpcChannel>;
-  explicit RpcChannel(Address::ptr addr);
-  explicit RpcChannel(std::vector<Address::ptr> addrs, LoadBalanceCategory load_balance = LoadBalanceCategory::Random);
+
+  RpcChannel(Address::ptr addr);
+
+  RpcChannel(std::vector<Address::ptr> addrs, LoadBalanceCategory load_balance = LoadBalanceCategory::Random);
 
   ~RpcChannel() override = default;
 

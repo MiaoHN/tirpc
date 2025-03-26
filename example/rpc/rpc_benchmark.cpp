@@ -3,6 +3,7 @@
 #include <atomic>
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include <thread>
 #include <vector>
 
@@ -17,9 +18,7 @@
 #include "tirpc/net/tcp/abstract_service_register.hpp"
 #include "tirpc/net/tcp/service_register.hpp"
 
-void WorkerFunction(tirpc::AbstractServiceRegister::ptr center, std::atomic<int> &success_count, int duration) {
-  auto addrs = center->Discover("QueryService");
-
+void WorkerFunction(const std::vector<tirpc::Address::ptr> addrs, std::atomic<int> &success_count, int duration) {
   tirpc::RpcChannel channel(addrs, tirpc::LoadBalanceCategory::Random);
   QueryService_Stub stub(&channel);
 
@@ -42,23 +41,18 @@ void WorkerFunction(tirpc::AbstractServiceRegister::ptr center, std::atomic<int>
   }
 }
 
-void RunBenchmark(int numClients, int duration) {
-  auto center = tirpc::ServiceRegister::Query(tirpc::ServiceRegisterCategory::Zk);
-
+void RunBenchmark(int numClients, int duration, const std::vector<tirpc::Address::ptr> addrs) {
   // 单 channel 测试
   std::atomic<int> success_count(0);
   std::vector<std::thread> benchmark_threads;
   for (int i = 0; i < numClients; ++i) {
-    benchmark_threads.emplace_back(WorkerFunction, center, std::ref(success_count), duration);
+    benchmark_threads.emplace_back(WorkerFunction, addrs, std::ref(success_count), duration);
   }
-  int total = benchmark_threads.size();
   int joined = 0;
   for (auto &thread : benchmark_threads) {
     joined++;
     thread.join();
-    std::cout << "\r[" << joined << "/" << total << "] joined!";
   }
-  std::cout << std::endl;
 
   double qps = static_cast<double>(success_count) / static_cast<double>(duration);
   std::cout << "Total clients: " << numClients << ", Total time: " << duration << " s" << std::endl;
@@ -91,7 +85,9 @@ auto main(int argc, char *argv[]) -> int {
   std::cout << "Start benchmark!" << std::endl;
   std::cout << "Client: " << num_clients << ", Duration: " << duration << "s" << std::endl;
 
-  RunBenchmark(num_clients, duration);
+  std::vector<tirpc::Address::ptr> addrs = {std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999)};
+
+  RunBenchmark(num_clients, duration, addrs);
 
   return 0;
 }

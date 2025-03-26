@@ -25,9 +25,9 @@ TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, in
   reactor_ = io_thread_->GetReactor();
 
   // LOG_DEBUG << "state_=[" << state_ << "], =" << fd;
-  tcp_svr_ = tcp_svr;
+  server_ = tcp_svr;
 
-  codec_ = tcp_svr_->GetCodec();
+  codec_ = server_->GetCodec();
   fd_event_ = FdEventContainer::GetFdContainer()->GetFdEvent(fd);
   fd_event_->SetReactor(reactor_);
   InitBuffer(buff_size);
@@ -36,13 +36,13 @@ TcpConnection::TcpConnection(TcpServer *tcp_svr, IOThread *io_thread, int fd, in
   LOG_DEBUG << "succ create tcp connection[" << state_ << "], fd=" << fd;
 }
 
-TcpConnection::TcpConnection(TcpClient *tcp_cli, Reactor *reactor, int fd, int buff_size, Address::ptr peer_addr)
+TcpConnection::TcpConnection(TcpClient *client, Reactor *reactor, int fd, int buff_size, Address::ptr peer_addr)
     : fd_(fd), state_(NotConnected), connection_type_(ClientConnection), peer_addr_(std::move(peer_addr)) {
   reactor_ = reactor;
 
-  tcp_cli_ = tcp_cli;
+  client_ = client;
 
-  codec_ = tcp_cli_->GetCodeC();
+  codec_ = client_->GetCodeC();
 
   fd_event_ = FdEventContainer::GetFdContainer()->GetFdEvent(fd);
   fd_event_->SetReactor(reactor_);
@@ -62,7 +62,7 @@ void TcpConnection::RegisterToTimeWheel() {
   auto cb = [](TcpConnection::ptr conn) { conn->ShutdownConnection(); };
   TcpTimeWheel::TcpConnectionSlot::ptr tmp = std::make_shared<AbstractSlot<TcpConnection>>(shared_from_this(), cb);
   weak_slot_ = tmp;
-  tcp_svr_->FreshTcpConnection(tmp);
+  server_->FreshTcpConnection(tmp);
 }
 
 void TcpConnection::SetUpClient() { SetState(Connected); }
@@ -115,13 +115,13 @@ void TcpConnection::Input() {
     int write_index = read_buffer_->WriteIndex();
 
     LOG_DEBUG << "read_buffer_ size=" << read_buffer_->GetBufferVector().size() << "rd=" << read_buffer_->ReadIndex()
-             << "wd=" << read_buffer_->WriteIndex();
+              << "wd=" << read_buffer_->WriteIndex();
     int rt = recv_hook(fd_, &(read_buffer_->buffer_[write_index]), read_count, 0);
     if (rt > 0) {
       read_buffer_->RecycleWrite(rt);
     }
     LOG_DEBUG << "read_buffer_ size=" << read_buffer_->GetBufferVector().size() << "rd=" << read_buffer_->ReadIndex()
-             << "wd=" << read_buffer_->WriteIndex();
+              << "wd=" << read_buffer_->WriteIndex();
 
     LOG_DEBUG << "read data back, fd=" << fd_;
     count += rt;
@@ -164,7 +164,7 @@ void TcpConnection::Input() {
   if (connection_type_ == ServerConnection) {
     TcpTimeWheel::TcpConnectionSlot::ptr tmp = weak_slot_.lock();
     if (tmp) {
-      tcp_svr_->FreshTcpConnection(tmp);
+      server_->FreshTcpConnection(tmp);
     }
   }
 }
@@ -185,7 +185,7 @@ void TcpConnection::Execute() {
     // LOG_DEBUG << "it parse request success";
     if (connection_type_ == ServerConnection) {
       // LOG_DEBUG << "to dispatch this package";
-      tcp_svr_->GetDispatcher()->Dispatch(data.get(), this);
+      server_->GetDispatcher()->Dispatch(data.get(), this);
       // LOG_DEBUG << "contine parse next package";
     } else if (connection_type_ == ClientConnection) {
       std::shared_ptr<TinyPbStruct> tmp = std::dynamic_pointer_cast<TinyPbStruct>(data);
@@ -222,8 +222,8 @@ void TcpConnection::Output() {
 
     LOG_DEBUG << "succ write " << rt << " bytes";
     write_buffer_->RecycleRead(rt);
-    LOG_DEBUG << "recycle write index =" << write_buffer_->WriteIndex() << ", read_index =" << write_buffer_->ReadIndex()
-             << "readable = " << write_buffer_->Readable();
+    LOG_DEBUG << "recycle write index =" << write_buffer_->WriteIndex()
+              << ", read_index =" << write_buffer_->ReadIndex() << "readable = " << write_buffer_->Readable();
     LOG_DEBUG << "send[" << rt << "] bytes data to [" << peer_addr_->ToString() << "], fd [" << fd_ << "]";
     if (write_buffer_->Readable() <= 0) {
       // LOG_INFO << "send all data, now unregister write event on reactor and yield Coroutine";

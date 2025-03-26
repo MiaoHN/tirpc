@@ -11,13 +11,13 @@ class NoneServiceRegister : public AbstractServiceRegister {
   NoneServiceRegister() {}
   ~NoneServiceRegister() {}
 
-  void Register(std::shared_ptr<google::protobuf::Service> service, Address::ptr addr) override {}
+  void Register(std::shared_ptr<google::protobuf::Service> service, Address::ptr addr) override;
 
-  void Register(std::shared_ptr<CustomService> service, Address::ptr addr) override {}
+  void Register(std::shared_ptr<CustomService> service, Address::ptr addr) override;
 
-  std::vector<Address::ptr> Discover(const std::string &serviceName) override { return std::vector<Address::ptr>(); }
+  std::vector<Address::ptr> Discover(const std::string &serviceName) override;
 
-  void Clear() override {}
+  void Clear() override;
 
  private:
   std::unordered_map<std::string, std::vector<Address::ptr>> services_;

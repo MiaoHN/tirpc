@@ -92,8 +92,8 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   void ClearClient();
 
  private:
-  TcpServer *tcp_svr_{nullptr};
-  TcpClient *tcp_cli_{nullptr};
+  TcpServer *server_{nullptr};
+  TcpClient *client_{nullptr};
   IOThread *io_thread_{nullptr};
   Reactor *reactor_{nullptr};
 

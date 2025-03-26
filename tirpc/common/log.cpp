@@ -28,8 +28,8 @@ namespace tirpc {
 
 static ConfigVar<std::string>::ptr g_log_prefix = Config::Lookup("log.log_prefix", std::string("log"));
 static ConfigVar<std::string>::ptr g_log_path = Config::Lookup("log.log_path", std::string("./"));
-static ConfigVar<std::string>::ptr g_rpc_log_level = Config::Lookup("log.rpc_log_level", std::string("INFO"));
-static ConfigVar<std::string>::ptr g_app_log_level = Config::Lookup("log.app_log_level", std::string("INFO"));
+static ConfigVar<std::string>::ptr g_rpc_log_level = Config::Lookup("log.rpc_log_level", std::string("ERROR"));
+static ConfigVar<std::string>::ptr g_app_log_level = Config::Lookup("log.app_log_level", std::string("ERROR"));
 static ConfigVar<int>::ptr g_log_max_size = Config::Lookup("log.log_max_file_size", 5);
 static ConfigVar<int>::ptr g_log_sync_interval = Config::Lookup("log.log_sync_interval", 500);
 
