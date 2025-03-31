@@ -15,8 +15,7 @@
 
 // 模式一：创建一个 channel，使用这个 channel 进行多次调用
 void TestClientSingleChannel(int numCalls) {
-  tirpc::AbstractServiceRegister::ptr center = tirpc::ServiceRegister::Query(tirpc::ServiceRegisterCategory::Zk);
-  std::vector<tirpc::Address::ptr> addrs = center->Discover("QueryService");
+  std::vector<tirpc::Address::ptr> addrs = {std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999)};
 
   tirpc::RpcChannel channel(addrs, tirpc::LoadBalanceCategory::Random);
   QueryService_Stub stub(&channel);
@@ -55,8 +54,7 @@ void TestClientSingleChannel(int numCalls) {
 
 // 模式二：每次调用 RPC 时新建 channel
 void TestClientMultipleChannels(int numCalls) {
-  tirpc::AbstractServiceRegister::ptr center = tirpc::ServiceRegister::Query(tirpc::ServiceRegisterCategory::Zk);
-  std::vector<tirpc::Address::ptr> addrs = center->Discover("QueryService");
+  std::vector<tirpc::Address::ptr> addrs = {std::make_shared<tirpc::IPAddress>("127.0.0.1", 39999)};
 
   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
@@ -98,7 +96,7 @@ auto main(int argc, char *argv[]) -> int {
   // default config file
   std::string config_file = "./conf/rpc_client.yml";
 
-  int numCalls = 10000;  // 默认调用次数
+  int numCalls = 1000;  // 默认调用次数
   if (argc == 2) {
     config_file = argv[1];
   } else if (argc == 3) {
