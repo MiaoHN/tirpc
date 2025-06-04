@@ -21,42 +21,27 @@ endif()
 
 
 find_package(Protobuf REQUIRED)
-if (${PROTOBUF_FOUND})
+if(${PROTOBUF_FOUND})
     message("protobuf found")
-else ()
+else()
     message(FATAL_ERROR "Cannot find Protobuf")
-endif ()
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
 include_directories(${PROJECT_SOURCE_DIR} ${ZOOKEEPER_INCLUDE_DIR})
 
-# *.cc
-file(GLOB COMM ${PROJECT_SOURCE_DIR}/tirpc/common/*.cpp)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/coroutine COR)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/base NETBASE)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/service_register SERVICE)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/rpc RPC)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/http HTTP)
-aux_source_directory(${PROJECT_SOURCE_DIR}/tirpc/net/tcp TCP)
+enable_testing()
 
-set(COXTX ${PROJECT_SOURCE_DIR}/tirpc/coroutine/coctx_swap.s)
+add_subdirectory(tirpc)
 
-add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NETBASE} ${SERVICE} ${HTTP} ${RPC})
+add_subdirectory(tests)
 
-target_link_libraries(tirpc
-    protobuf
-    dl
-    pthread
-    zookeeper_mt
-    yaml-cpp
-)
-
-set(LIBS
-    tirpc
-    protobuf
-    dl
-    pthread
-    zookeeper_mt
-    yaml-cpp
-)
-
-add_subdirectory(example)
+add_subdirectory(examples)
