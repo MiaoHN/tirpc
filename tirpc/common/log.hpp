@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <cstdarg>
 #include <cstdlib>
 #include <ctime>
 #include <memory>
@@ -19,14 +20,18 @@
 
 namespace tirpc {
 
-template <typename... Args>
-auto FormatString(const char *fmt, Args... args) -> std::string {
-  int size = snprintf(nullptr, 0, fmt, args...);
+inline std::string FormatString(const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  int size = vsnprintf(nullptr, 0, fmt, args);
+  va_end(args);
 
   std::string result;
   if (size > 0) {
     result.resize(size);
-    snprintf(const_cast<char *>(result.data()), size, fmt, args...);
+    va_start(args, fmt);
+    vsnprintf(&result[0], size + 1, fmt, args);
+    va_end(args);
   }
   return result;
 }
@@ -82,15 +87,11 @@ class LogEvent {
   void Log();
 
  private:
-  timeval timeval_;
   LogLevel level_;
   pid_t pid_;
   pid_t tid_;
   int cor_id_;
 
-  const char *file_name_;
-  int line_;
-  const char *func_name_;
   LogType type_;
   std::string msg_no_;
   std::stringstream ss_;

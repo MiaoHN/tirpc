@@ -44,7 +44,6 @@ class TcpBuffer {
  private:
   int read_index_{0};
   int write_index_{0};
-  int size_{0};
 
  public:
   std::vector<char> buffer_;

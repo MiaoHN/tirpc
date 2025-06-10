@@ -10,7 +10,7 @@ namespace tirpc {
 
 TcpTimeWheel::TcpTimeWheel(Reactor *reactor, int bucket_count, int interval /*= 10*/)
     : reactor_(reactor), bucket_count_(bucket_count), interval_(interval) {
-  for (int i = 0; i < bucket_count; ++i) {
+  for (int i = 0; i < bucket_count_; ++i) {
     std::vector<TcpConnectionSlot::ptr> tmp;
     wheel_.push(tmp);
   }

@@ -1,15 +1,15 @@
-# *.cc
-file(GLOB COMM common/*.cpp)
-aux_source_directory(coroutine COR)
-aux_source_directory(net/base NETBASE)
-aux_source_directory(net/service_register SERVICE)
-aux_source_directory(net/rpc RPC)
-aux_source_directory(net/http HTTP)
-aux_source_directory(net/tcp TCP)
+file(GLOB TIRPC_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/coroutine/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/net/base/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/net/service_register/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/net/rpc/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/net/http/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/net/tcp/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/coroutine/coctx_swap.s
+)
 
-set(COXTX coroutine/coctx_swap.s)
-
-add_library(tirpc ${COMM} ${TCP} ${COXTX} ${COR} ${NETBASE} ${SERVICE} ${HTTP} ${RPC})
+add_library(tirpc ${TIRPC_SOURCES})
 
 target_link_libraries(tirpc
     protobuf

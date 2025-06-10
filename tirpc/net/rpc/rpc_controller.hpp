@@ -84,7 +84,6 @@ class RpcController : public google::protobuf::RpcController {
   std::string error_info_;  // error_info, details description of error
   std::string msg_req_;     // msg_req, identify once rpc request and response
   bool is_failed_{false};
-  bool is_cancled_{false};
   Address::ptr peer_addr_;
   Address::ptr local_addr_;
 

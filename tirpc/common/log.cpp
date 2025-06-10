@@ -88,7 +88,7 @@ auto GetRpcLogLevel() -> LogLevel { return StrToLogLevel(g_rpc_log_level->GetVal
 auto GetAppLogLevel() -> LogLevel { return StrToLogLevel(g_app_log_level->GetValue()); }
 
 LogEvent::LogEvent(LogLevel level, const char *file_name, int line, const char *func_name, LogType type)
-    : level_(level), file_name_(file_name), line_(line), func_name_(func_name), type_(type) {}
+    : level_(level), type_(type) {}
 
 LogEvent::~LogEvent() = default;
 
