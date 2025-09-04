@@ -94,7 +94,7 @@ void TestClientMultipleChannels(int numCalls) {
 
 auto main(int argc, char *argv[]) -> int {
   // default config file
-  std::string config_file = "./conf/rpc_client.yml";
+  std::string config_file = "rpc_client.yml";
 
   int numCalls = 1000;  // 默认调用次数
   if (argc == 2) {

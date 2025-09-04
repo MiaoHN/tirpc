@@ -16,7 +16,7 @@ static ConfigVar<std::string>::ptr g_service_register_ip =
 static ConfigVar<int>::ptr g_service_register_port = Config::Lookup("service_register.port", 2181);
 static ConfigVar<int>::ptr g_service_register_timeout = Config::Lookup("service_register.timeout", 30000);
 
-static const char *ROOT_PATH = "/tirpc";
+// static const char *ROOT_PATH = "/tirpc";
 
 // 全局的watcher观察器   zkserver给zkclient的通知
 void ZkClient::globalWatcher(zhandle_t *zh, int type, int state, const char *path, void *watcherCtx) {
@@ -84,51 +84,51 @@ void ZkClient::stop() {
 // 在zkserver上根据指定的path创建znode节点
 // state: 表示永久性节点还是临时性节点，0是永久性节点。永久性节点的ephemeralOwner为0
 void ZkClient::create(const char *path, const char *data, int datalen, int state) {
-  char path_buffer[1024] = {0};
-  int bufferlen = sizeof(path_buffer);
-  int flag;
-  // 先判断path表示的znode节点是否存在，如果存在，就不再重复创建了
-  flag = zoo_exists(zhandle_, path, 0, nullptr);  // 同步的判断
-  if (ZNONODE == flag) {                          // 表示path的znode节点不存在
-    // 创建指定path的znode节点了
-    flag =
-        zoo_create(zhandle_, path, data, datalen, &ZOO_OPEN_ACL_UNSAFE, state, path_buffer, bufferlen);  // 也是同步的
-    if (flag == ZOK) {
-      LOG_INFO << "znode create success... path: " << path;
-    } else {
-      LOG_ERROR << "flag: " << flag;
-      LOG_ERROR << "znode create error... path: " << path;
-    }
-  }
+  // char path_buffer[1024] = {0};
+  // int bufferlen = sizeof(path_buffer);
+  // int flag;
+  // // 先判断path表示的znode节点是否存在，如果存在，就不再重复创建了
+  // flag = zoo_exists(zhandle_, path, 0, nullptr);  // 同步的判断
+  // if (ZNONODE == flag) {                          // 表示path的znode节点不存在
+  //   // 创建指定path的znode节点了
+  //   flag =
+  //       zoo_create(zhandle_, path, data, datalen, &ZOO_OPEN_ACL_UNSAFE, state, path_buffer, bufferlen);  // 也是同步的
+  //   if (flag == ZOK) {
+  //     LOG_INFO << "znode create success... path: " << path;
+  //   } else {
+  //     LOG_ERROR << "flag: " << flag;
+  //     LOG_ERROR << "znode create error... path: " << path;
+  //   }
+  // }
 }
 
 // 删除节点
 void ZkClient::deleteNode(const char *path) {
-  int flag;
-  // 先判断path表示的znode节点是否存在，如果不存在，就不再重复删除
-  flag = zoo_exists(zhandle_, path, 0, nullptr);  // 同步的判断
-  if (ZNONODE != flag) {                          // 表示path的znode节点不存在
-    flag = zoo_delete(zhandle_, path, -1);        // 也是同步的
-    if (flag == ZOK) {
-      LOG_INFO << "znode delete success... path: " << path;
-    } else {
-      LOG_ERROR << "flag: " << flag;
-      LOG_ERROR << "znode delete error... path: " << path;
-    }
-  }
+  // int flag;
+  // // 先判断path表示的znode节点是否存在，如果不存在，就不再重复删除
+  // flag = zoo_exists(zhandle_, path, 0, nullptr);  // 同步的判断
+  // if (ZNONODE != flag) {                          // 表示path的znode节点不存在
+  //   flag = zoo_delete(zhandle_, path, -1);        // 也是同步的
+  //   if (flag == ZOK) {
+  //     LOG_INFO << "znode delete success... path: " << path;
+  //   } else {
+  //     LOG_ERROR << "flag: " << flag;
+  //     LOG_ERROR << "znode delete error... path: " << path;
+  //   }
+  // }
 }
 
 // 根据指定的path，获取znode节点的值
 std::string ZkClient::getData(const char *path) {
-  char buffer[64];
-  int bufferlen = sizeof(buffer);
-  // 以同步的方式获取znode节点的值
-  int flag = zoo_get(zhandle_, path, 0, buffer, &bufferlen, nullptr);
-  if (flag != ZOK) {
-    LOG_ERROR << "get znode error... path: " << path;
-    return "";
-  }
-  return buffer;
+  // char buffer[64];
+  // int bufferlen = sizeof(buffer);
+  // // 以同步的方式获取znode节点的值
+  // int flag = zoo_get(zhandle_, path, 0, buffer, &bufferlen, nullptr);
+  // if (flag != ZOK) {
+  //   LOG_ERROR << "get znode error... path: " << path;
+  //   return "";
+  // }
+  // return buffer;
 }
 
 // 获取路径对应的子节点
@@ -142,20 +142,20 @@ std::vector<std::string> ZkClient::getChildrenNodes(const std::string &path) {
 
 // 根据参数指定的znode节点路径，获取znode节点的子节点
 std::vector<std::string> ZkClient::getChildren(const char *path) {
-  struct String_vector node_vec;
-  int flag = zoo_wget_children(zhandle_, path, serviceWatcher, nullptr, &node_vec);
-  zoo_set_context(zhandle_, this);
-  std::vector<std::string> result;
-  if (flag != ZOK) {
-    LOG_ERROR << "get znode children error... path: " << path;
-  } else {
-    int size = node_vec.count;
-    for (int i = 0; i < size; ++i) {
-      result.push_back(node_vec.data[i]);
-    }
-    deallocate_String_vector(&node_vec);
-  }
-  return result;
+  // struct String_vector node_vec;
+  // int flag = zoo_wget_children(zhandle_, path, serviceWatcher, nullptr, &node_vec);
+  // zoo_set_context(zhandle_, this);
+  // std::vector<std::string> result;
+  // if (flag != ZOK) {
+  //   LOG_ERROR << "get znode children error... path: " << path;
+  // } else {
+  //   int size = node_vec.count;
+  //   for (int i = 0; i < size; ++i) {
+  //     result.push_back(node_vec.data[i]);
+  //   }
+  //   deallocate_String_vector(&node_vec);
+  // }
+  // return result;
 }
 
 void ZkClient::serviceWatcher(zhandle_t *zh, int type, int state, const char *path, void *watcherCtx) {
@@ -172,14 +172,14 @@ void ZkClient::closeLog() { zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR); }
 
 // 心跳机制
 void ZkClient::sendHeartBeat() {
-  std::thread t([&]() {
-    while (true) {
-      int time = zoo_recv_timeout(zhandle_) * 1.0 / 3;  // 默认timeout 30000
-      std::this_thread::sleep_for(std::chrono::seconds(time));
-      zoo_exists(zhandle_, ROOT_PATH, 0, nullptr);
-    }
-  });
-  t.detach();
+  // std::thread t([&]() {
+  //   while (true) {
+  //     int time = zoo_recv_timeout(zhandle_) * 1.0 / 3;  // 默认timeout 30000
+  //     std::this_thread::sleep_for(std::chrono::seconds(time));
+  //     zoo_exists(zhandle_, ROOT_PATH, 0, nullptr);
+  //   }
+  // });
+  // t.detach();
 }
 
 }  // namespace tirpc
