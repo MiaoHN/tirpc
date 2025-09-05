@@ -2,12 +2,11 @@
 
 #include <atomic>
 #include <cassert>
-#include <cinttypes>
 #include <cstdint>
 #include <cstring>
-#include <utility>
 #include "tirpc/common/log.hpp"
-#include "tirpc/coroutine/coctx.hpp"
+
+#include <ucontext.h>
 
 namespace tirpc {
 
@@ -42,7 +41,7 @@ void CoFunction(Coroutine *co) {
 Coroutine::Coroutine() {
   cor_id_ = 0;
   t_coroutine_count++;
-  memset(&coctx_, 0, sizeof(coctx_));
+  memset(&ctx_, 0, sizeof(ctx_));
   t_current_coroutine = this;
 }
 
@@ -86,12 +85,13 @@ auto Coroutine::SetCallBack(std::function<void()> cb) -> bool {
 
   top = reinterpret_cast<char *>((reinterpret_cast<uint64_t>(top)) & -16LL);
 
-  memset(&coctx_, 0, sizeof(coctx_));
+  // init  ctx_
 
-  coctx_.regs_[kRSP] = top;
-  coctx_.regs_[kRBP] = top;
-  coctx_.regs_[kRETAddr] = reinterpret_cast<void *>(CoFunction);
-  coctx_.regs_[kRDI] = reinterpret_cast<char *>(this);
+  getcontext(&ctx_);
+  ctx_.uc_stack.ss_sp = stack_sp_;
+  ctx_.uc_stack.ss_size = stack_size_;
+  ctx_.uc_link = nullptr;
+  makecontext(&ctx_, (void (*)())CoFunction, 1, this);
 
   can_resume_ = true;
   return true;
@@ -134,7 +134,7 @@ void Coroutine::Yield() {
   Coroutine *co = t_current_coroutine;
   t_current_coroutine = t_main_coroutine;
   t_current_runtime = nullptr;
-  CoctxSwap(&(co->coctx_), &(t_main_coroutine->coctx_));
+  swapcontext(&(co->ctx_), &(t_main_coroutine->ctx_));
 }
 
 void Coroutine::Resume(Coroutine *co) {
@@ -161,7 +161,7 @@ void Coroutine::Resume(Coroutine *co) {
   t_current_coroutine = co;
   t_current_runtime = co->GetRuntime();
 
-  CoctxSwap(&(t_main_coroutine->coctx_), &(co->coctx_));
+  swapcontext(&(t_main_coroutine->ctx_), &(co->ctx_));
 }
 
 }  // namespace tirpc

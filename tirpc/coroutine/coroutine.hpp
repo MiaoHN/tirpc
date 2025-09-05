@@ -1,10 +1,11 @@
 #pragma once
 
+#include <sys/ucontext.h>
 #include <functional>
 #include <memory>
 #include <string>
 
-#include "tirpc/coroutine/coctx.hpp"
+#include <ucontext.h>
 
 namespace tirpc {
 
@@ -75,7 +76,7 @@ class Coroutine {
 
  private:
   int cor_id_{0};      // coroutine' id
-  CoCtx coctx_;        // coroutine regs
+  ucontext_t ctx_;     // coroutine's context
   int stack_size_{0};  // size of stack memory space
 
   /// coroutine's stack memory space, you can malloc or mmap get some mermory to init this value
