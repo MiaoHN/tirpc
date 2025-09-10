@@ -4,15 +4,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <random>
 #include <string>
 
 #include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
 
 namespace tirpc {
-
-static ConfigVar<int>::ptr g_msg_req_len = Config::Lookup("msg_req_len", 20);
 
 static thread_local std::string t_msg_req_nu;
 static thread_local std::string t_max_msg_req_nu;
@@ -21,7 +18,7 @@ static thread_local std::string t_max_msg_req_nu;
 static int g_random_fd = -1;
 
 auto MsgReqUtil::GenMsgNumber() -> std::string {
-  int t_msg_req_len = g_msg_req_len->GetValue();
+  int t_msg_req_len = Config::Get<int>("msg_req_len", 20);
 
   if (t_msg_req_nu.empty() || t_msg_req_nu == t_max_msg_req_nu) {
     if (g_random_fd == -1) {

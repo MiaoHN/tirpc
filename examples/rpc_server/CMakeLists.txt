@@ -22,6 +22,6 @@ target_link_libraries(rpc_server proto_lib tirpc)
 add_executable(rpc_client rpc_client.cpp)
 target_link_libraries(rpc_client proto_lib tirpc)
 
-# 复制 *.yml 到可执行文件所在目录
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/rpc_server.yml DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/rpc_client.yml DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# 复制 *.conf 到可执行文件所在目录
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/rpc_server.conf DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/rpc_client.conf DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

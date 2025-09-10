@@ -64,7 +64,7 @@ class QueryServiceImpl : public QueryService {
 
 auto main(int argc, char *argv[]) -> int {
   // default config file
-  std::string config_file = "rpc_server.yml";
+  std::string config_file = "rpc_server.conf";
   int port = -1;
 
   if (argc == 2) {

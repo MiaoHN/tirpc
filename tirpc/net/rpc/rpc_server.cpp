@@ -8,9 +8,6 @@
 
 namespace tirpc {
 
-static ConfigVar<std::string>::ptr g_service_register =
-    Config::Lookup("service_register.type", std::string("zk"), "Service Register");
-
 RpcServer::RpcServer() : TcpServer() {
   dispatcher_ = std::make_shared<RpcDispatcher>();
   codec_ = std::make_shared<TinyPbCodeC>();
@@ -28,7 +25,7 @@ auto RpcServer::RegisterService(std::shared_ptr<google::protobuf::Service> servi
     dynamic_cast<RpcDispatcher *>(dispatcher_.get())->RegisterService(service);
     if (!register_) {
       ServiceRegisterCategory category;
-      if (g_service_register->GetValue() == "zk") {
+      if (Config::Get<std::string>("service_register.type", "none") == "zk") {
         category = ServiceRegisterCategory::Zk;
       } else {
         category = ServiceRegisterCategory::None;

@@ -2,12 +2,9 @@
 
 #include <cassert>
 
-#include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
 
 namespace tirpc {
-
-static ConfigVar<bool>::ptr g_use_lock_free = Config::Lookup("use_lock_free", false, "wheather to use lock free queue");
 
 Memory::Memory(int block_size, int block_count) : block_size_(block_size), block_count_(block_count) {
   size_ = block_size_ * block_count_;

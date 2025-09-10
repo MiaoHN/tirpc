@@ -4,21 +4,17 @@
 #include <vector>
 
 #include "tirpc/common/config.hpp"
-#include "tirpc/common/log.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 
 namespace tirpc {
 
-static ConfigVar<int>::ptr g_cor_stack_size = Config::Lookup("coroutine.stack_size", 256);
-static ConfigVar<int>::ptr g_cor_pool_size = Config::Lookup("coroutine.pool_size", 1000);
-
 static CoroutinePool *t_coroutine_container_ptr = nullptr;
 
 auto GetCoroutinePool() -> CoroutinePool * {
   if (t_coroutine_container_ptr == nullptr) {
-    LOG_INFO << "Fetch " << g_cor_stack_size->GetName() << ": " << g_cor_stack_size->GetValue();
-    t_coroutine_container_ptr = new CoroutinePool(g_cor_pool_size->GetValue(), g_cor_stack_size->GetValue() * 1024);
+    t_coroutine_container_ptr = new CoroutinePool(Config::Get<int>("coroutine.pool_size", 1000),
+                                                  Config::Get<int>("coroutine.stack_size", 256) * 1024);
   }
   return t_coroutine_container_ptr;
 }

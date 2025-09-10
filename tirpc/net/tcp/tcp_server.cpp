@@ -15,24 +15,17 @@
 
 namespace tirpc {
 
-static ConfigVar<std::string>::ptr g_server_ip = Config::Lookup("server.ip", std::string("127.0.0.1"));
-static ConfigVar<int>::ptr g_server_port = Config::Lookup("server.port", 19999);
-static ConfigVar<std::string>::ptr g_server_protocal = Config::Lookup("server.protocal", std::string("TinyPB"));
-
-static ConfigVar<int>::ptr g_iothread_num = Config::Lookup("iothread_num", 1, "IO thread number");
-static ConfigVar<int>::ptr g_timewheel_bucket_num = Config::Lookup("time_wheel.bucket_num", 3, "TimeWheel bucket num");
-static ConfigVar<int>::ptr g_timewheel_interval = Config::Lookup("time_wheel.interval", 5, "TimeWheel interval");
-
 TcpServer::TcpServer() {
-  addr_ = std::make_shared<IPAddress>(g_server_ip->GetValue(), g_server_port->GetValue());
+  addr_ = std::make_shared<IPAddress>(Config::Get<std::string>("server.ip", "127.0.0.1"),
+                                      Config::Get<int>("server.port", 19999));
 
-  io_pool_ = std::make_shared<IOThreadPool>(g_iothread_num->GetValue());
+  io_pool_ = std::make_shared<IOThreadPool>(Config::Get<int>("iothread_num", 1));
 
   main_reactor_ = Reactor::GetReactor();
   main_reactor_->SetReactorType(MainReactor);
 
-  time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, g_timewheel_bucket_num->GetValue(),
-                                               g_timewheel_interval->GetValue());
+  time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, Config::Get<int>("time_wheel.bucket_num", 3),
+                                               Config::Get<int>("time_wheel.interval", 5));
 
   clear_clent_timer_event_ =
       std::make_shared<TimerEvent>(10000, true, std::bind(&TcpServer::ClearClientTimerFunc, this));
@@ -42,13 +35,13 @@ TcpServer::TcpServer() {
 }
 
 TcpServer::TcpServer(Address::ptr addr) : addr_(std::move(addr)) {
-  io_pool_ = std::make_shared<IOThreadPool>(g_iothread_num->GetValue());
+  io_pool_ = std::make_shared<IOThreadPool>(Config::Get<int>("iothread_num", 1));
 
   main_reactor_ = Reactor::GetReactor();
   main_reactor_->SetReactorType(MainReactor);
 
-  time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, g_timewheel_bucket_num->GetValue(),
-                                               g_timewheel_interval->GetValue());
+  time_wheel_ = std::make_shared<TcpTimeWheel>(main_reactor_, Config::Get<int>("time_wheel.bucket_num", 3),
+                                               Config::Get<int>("time_wheel.interval", 5));
 
   clear_clent_timer_event_ =
       std::make_shared<TimerEvent>(10000, true, std::bind(&TcpServer::ClearClientTimerFunc, this));

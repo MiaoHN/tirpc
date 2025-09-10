@@ -20,9 +20,6 @@ extern write_fun_ptr_t g_sys_write_fun;  // sys write func
 
 namespace tirpc {
 
-static ConfigVar<int>::ptr g_iothread_num = Config::Lookup("iothread_num", 1, "IO thread number");
-static ConfigVar<bool>::ptr g_use_lock_free = Config::Lookup("use_lock_free", false, "wheather to use lock free queue");
-
 static thread_local Reactor *t_reactor_ptr = nullptr;
 
 static thread_local int t_max_epoll_timeout = 10000;  // ms
@@ -385,8 +382,8 @@ auto Reactor::GetTid() -> pid_t { return tid_; }
 void Reactor::SetReactorType(ReactorType type) { type_ = type; }
 
 CoroutineTaskQueue::CoroutineTaskQueue() {
-  tasks_.resize(g_iothread_num->GetValue());
-  mutexs_.resize(g_iothread_num->GetValue());
+  tasks_.resize(Config::Get<int>("iothread_num", 1));
+  mutexs_.resize(Config::Get<int>("iothread_num", 1));
 }
 
 auto CoroutineTaskQueue::GetCoroutineTaskQueue() -> CoroutineTaskQueue * {

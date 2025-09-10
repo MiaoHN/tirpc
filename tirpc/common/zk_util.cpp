@@ -2,21 +2,11 @@
 #include <zookeeper/zookeeper.h>
 
 #include <cassert>
-#include <chrono>
 #include <iostream>
-#include <thread>
 
-#include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
 
 namespace tirpc {
-
-static ConfigVar<std::string>::ptr g_service_register_ip =
-    Config::Lookup("service_register.ip", std::string("127.0.0.1"));
-static ConfigVar<int>::ptr g_service_register_port = Config::Lookup("service_register.port", 2181);
-static ConfigVar<int>::ptr g_service_register_timeout = Config::Lookup("service_register.timeout", 30000);
-
-// static const char *ROOT_PATH = "/tirpc";
 
 // 全局的watcher观察器   zkserver给zkclient的通知
 void ZkClient::globalWatcher(zhandle_t *zh, int type, int state, const char *path, void *watcherCtx) {
@@ -41,8 +31,8 @@ ZkClient::ZkClient(const std::string &ip, int port, int timeout) {
 
 ZkClient::ZkClient() {
   zhandle_ = nullptr;
-  connstr_ = std::string(g_service_register_ip->GetValue() + ":" + std::to_string(g_service_register_port->GetValue()));
-  timeout_ = g_service_register_timeout->GetValue();
+  // connstr_ = std::string(g_service_register_ip->GetValue() + ":" +
+  // std::to_string(g_service_register_port->GetValue())); timeout_ = g_service_register_timeout->GetValue();
 }
 
 ZkClient::~ZkClient() { stop(); }
@@ -92,7 +82,8 @@ void ZkClient::create(const char *path, const char *data, int datalen, int state
   // if (ZNONODE == flag) {                          // 表示path的znode节点不存在
   //   // 创建指定path的znode节点了
   //   flag =
-  //       zoo_create(zhandle_, path, data, datalen, &ZOO_OPEN_ACL_UNSAFE, state, path_buffer, bufferlen);  // 也是同步的
+  //       zoo_create(zhandle_, path, data, datalen, &ZOO_OPEN_ACL_UNSAFE, state, path_buffer, bufferlen);  //
+  //       也是同步的
   //   if (flag == ZOK) {
   //     LOG_INFO << "znode create success... path: " << path;
   //   } else {
@@ -129,6 +120,7 @@ std::string ZkClient::getData(const char *path) {
   //   return "";
   // }
   // return buffer;
+  return {};
 }
 
 // 获取路径对应的子节点
@@ -156,6 +148,7 @@ std::vector<std::string> ZkClient::getChildren(const char *path) {
   //   deallocate_String_vector(&node_vec);
   // }
   // return result;
+  return {};
 }
 
 void ZkClient::serviceWatcher(zhandle_t *zh, int type, int state, const char *path, void *watcherCtx) {

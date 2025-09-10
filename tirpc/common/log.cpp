@@ -26,13 +26,6 @@
 
 namespace tirpc {
 
-static ConfigVar<std::string>::ptr g_log_prefix = Config::Lookup("log.log_prefix", std::string("log"));
-static ConfigVar<std::string>::ptr g_log_path = Config::Lookup("log.log_path", std::string("./"));
-static ConfigVar<std::string>::ptr g_rpc_log_level = Config::Lookup("log.rpc_log_level", std::string("ERROR"));
-static ConfigVar<std::string>::ptr g_app_log_level = Config::Lookup("log.app_log_level", std::string("ERROR"));
-static ConfigVar<int>::ptr g_log_max_size = Config::Lookup("log.log_max_file_size", 5);
-static ConfigVar<int>::ptr g_log_sync_interval = Config::Lookup("log.log_sync_interval", 500);
-
 void CoredumpHandler(int signal_no) {
   if (signal_no == SIGINT) {
     LOG_INFO << "Received Ctrl+C signal, preparing for graceful exit...";
@@ -83,9 +76,9 @@ static auto StrToLogLevel(const std::string &str) -> LogLevel {
   return LogLevel::INFO;
 }
 
-auto GetRpcLogLevel() -> LogLevel { return StrToLogLevel(g_rpc_log_level->GetValue()); }
+auto GetRpcLogLevel() -> LogLevel { return StrToLogLevel(Config::Get<std::string>("log.rpc_log_level", "ERROR")); }
 
-auto GetAppLogLevel() -> LogLevel { return StrToLogLevel(g_app_log_level->GetValue()); }
+auto GetAppLogLevel() -> LogLevel { return StrToLogLevel(Config::Get<std::string>("log.app_log_level", "ERROR")); }
 
 LogEvent::LogEvent(LogLevel level, const char *file_name, int line, const char *func_name, LogType type)
     : level_(level), type_(type) {}
@@ -232,8 +225,9 @@ auto Logger::GetLogger() -> Logger * {
   static Logger::ptr s_logger = nullptr;
   if (s_logger == nullptr) {
     s_logger = std::make_shared<Logger>();
-    s_logger->Init(g_log_prefix->GetValue().c_str(), g_log_path->GetValue().c_str(), g_log_max_size->GetValue(),
-                   g_log_sync_interval->GetValue());
+    s_logger->Init(Config::Get<std::string>("log.log_prefix", "log").c_str(),
+                   Config::Get<std::string>("log.log_path", "./").c_str(), Config::Get<int>("log.log_max_file_size", 5),
+                   Config::Get<int>("log.log_sync_interval", 500));
   }
 
   return s_logger.get();
