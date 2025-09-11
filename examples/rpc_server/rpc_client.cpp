@@ -6,12 +6,9 @@
 #include "rpc_server.pb.h"
 #include "tirpc/common/config.hpp"
 #include "tirpc/common/const.hpp"
-#include "tirpc/common/start.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/rpc/rpc_channel.hpp"
 #include "tirpc/net/rpc/rpc_controller.hpp"
-#include "tirpc/net/tcp/abstract_service_register.hpp"
-#include "tirpc/net/tcp/service_register.hpp"
 
 // 模式一：创建一个 channel，使用这个 channel 进行多次调用
 void TestClientSingleChannel(int numCalls) {

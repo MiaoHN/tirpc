@@ -1,7 +1,6 @@
 #pragma once
 
 #include <pthread.h>
-#include <memory>
 #include <queue>
 
 // mostly copied form sylar

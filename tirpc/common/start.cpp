@@ -2,9 +2,7 @@
 
 #include <google/protobuf/service.h>
 
-#include "tirpc/common/config.hpp"
 #include "tirpc/common/log.hpp"
-#include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/net/tcp/tcp_server.hpp"
 
 namespace tirpc {

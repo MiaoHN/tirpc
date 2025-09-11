@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sys/epoll.h>
-#include <atomic>
 #include <functional>
 #include <map>
 #include <memory>

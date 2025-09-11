@@ -2,6 +2,7 @@
 
 #include "tirpc/common/config.hpp"
 #include "tirpc/common/const.hpp"
+#include "tirpc/net/rpc/rpc_codec.hpp"
 #include "tirpc/net/rpc/rpc_dispatcher.hpp"
 #include "tirpc/net/tcp/service_register.hpp"
 #include "tirpc/net/tcp/tcp_server.hpp"

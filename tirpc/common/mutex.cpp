@@ -1,11 +1,9 @@
 #include "tirpc/common/mutex.hpp"
 
 #include <pthread.h>
-#include <memory>
 
 #include "tirpc/common/log.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
-#include "tirpc/coroutine/coroutine_hook.hpp"
 #include "tirpc/net/base/reactor.hpp"
 
 // this file copy form sylar
@@ -38,7 +36,8 @@ void CoroutineMutex::Lock() {
     auto tmp = sleep_cors_;
     lock.Unlock();
 
-    LOG_DEBUG << "coroutine yield, pending coroutine mutex, current sleep queue exist [" << tmp.size() << "] coroutines";
+    LOG_DEBUG << "coroutine yield, pending coroutine mutex, current sleep queue exist [" << tmp.size()
+              << "] coroutines";
 
     Coroutine::Yield();
   }

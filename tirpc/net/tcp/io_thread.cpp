@@ -1,19 +1,15 @@
 #include "tirpc/net/tcp/io_thread.hpp"
 
 #include <semaphore.h>
+#include <cassert>
 #include <cstdlib>
 #include <ctime>
-#include <map>
 #include <memory>
-#include <utility>
 
-#include "tirpc/common/config.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 #include "tirpc/coroutine/coroutine_pool.hpp"
 #include "tirpc/net/base/reactor.hpp"
 #include "tirpc/net/tcp/tcp_connection.hpp"
-#include "tirpc/net/tcp/tcp_connection_time_wheel.hpp"
-#include "tirpc/net/tcp/tcp_server.hpp"
 
 namespace tirpc {
 

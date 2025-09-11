@@ -1,19 +1,14 @@
 #pragma once
 
 #include <memory>
-#include <queue>
-#include <vector>
 
-#include "tirpc/common/log.hpp"
 #include "tirpc/common/mutex.hpp"
 #include "tirpc/coroutine/coroutine.hpp"
 #include "tirpc/net/base/address.hpp"
 #include "tirpc/net/base/fd_event.hpp"
 #include "tirpc/net/base/reactor.hpp"
-#include "tirpc/net/http/http_request.hpp"
-#include "tirpc/net/rpc/rpc_codec.hpp"
+#include "tirpc/net/rpc/rpc_data.hpp"
 #include "tirpc/net/tcp/abstract_codec.hpp"
-#include "tirpc/net/tcp/abstract_data.hpp"
 #include "tirpc/net/tcp/abstract_slot.hpp"
 #include "tirpc/net/tcp/io_thread.hpp"
 #include "tirpc/net/tcp/tcp_buffer.hpp"
@@ -36,8 +31,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
  public:
   using ptr = std::shared_ptr<TcpConnection>;
 
-  TcpConnection(tirpc::TcpServer *tcp_svr, tirpc::IOThread *io_thread, int fd, int buff_size,
-                Address::ptr peer_addr);
+  TcpConnection(tirpc::TcpServer *tcp_svr, tirpc::IOThread *io_thread, int fd, int buff_size, Address::ptr peer_addr);
 
   TcpConnection(tirpc::TcpClient *tcp_cli, tirpc::Reactor *reactor, int fd, int buff_size, Address::ptr peer_addr);
 
