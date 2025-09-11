@@ -1,1 +1,2 @@
 add_subdirectory(rpc_server)
+add_subdirectory(http_server)
